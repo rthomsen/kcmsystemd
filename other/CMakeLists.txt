@@ -1,0 +1,1 @@
+install(FILES kcm_systemd.desktop DESTINATION ${SERVICES_INSTALL_DIR})

@@ -1,0 +1,9 @@
+[Domain]
+Name=Systemd KDE control module
+Icon=system-run
+
+[org.kde.kcontrol.kcmsystemd.save]
+Name=Save the systemd settings
+Description=Administrator authorization is required to save the systemd settings
+Policy=auth_admin
+Persistence=session

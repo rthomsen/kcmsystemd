@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ResLimitsDialog</class>
+ <widget class="QWidget" name="ResLimitsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>343</width>
+    <height>232</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetFixedSize</enum>
+   </property>
+   <item row="11" column="3">
+    <widget class="QSpinBox" name="spnDefaultLimitRTPRIO">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="3">
+    <widget class="QSpinBox" name="spnDefaultLimitSTACK">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
+    <widget class="QSpinBox" name="spnDefaultLimitCPU">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1">
+    <widget class="QSpinBox" name="spnDefaultLimitMEMLOCK">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="1">
+    <widget class="QSpinBox" name="spnDefaultLimitFSIZE">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="3">
+    <widget class="QSpinBox" name="spnDefaultLimitNPROC">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="3">
+    <widget class="QSpinBox" name="spnDefaultLimitRSS">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="3">
+    <widget class="QSpinBox" name="spnDefaultLimitNICE">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="0">
+    <widget class="QLabel" name="label_9">
+     <property name="text">
+      <string>MSGQUEUE:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="2">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>NICE:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="QSpinBox" name="spnDefaultLimitDATA">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>CORE:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>DATA:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>FSIZE:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="3">
+    <widget class="QSpinBox" name="spnDefaultLimitNOFILE">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="3">
+    <widget class="QSpinBox" name="spnDefaultLimitRTTIME">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>AS:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1">
+    <widget class="QSpinBox" name="spnDefaultLimitLOCKS">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="1">
+    <widget class="QSpinBox" name="spnDefaultLimitMSGQUEUE">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="3">
+    <widget class="QSpinBox" name="spnDefaultLimitSIGPENDING">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QSpinBox" name="spnDefaultLimitCORE">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="3">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Set default resource limits for units (0 for no limit):</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QSpinBox" name="spnDefaultLimitAS">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>CPU:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>LOCKS:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2">
+    <widget class="QLabel" name="label_11">
+     <property name="text">
+      <string>NOFILE:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2">
+    <widget class="QLabel" name="label_12">
+     <property name="text">
+      <string>NPROC:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="2">
+    <widget class="QLabel" name="label_13">
+     <property name="text">
+      <string>RSS:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="0">
+    <widget class="QLabel" name="label_8">
+     <property name="text">
+      <string>MEMLOCK:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="2">
+    <widget class="QLabel" name="label_14">
+     <property name="text">
+      <string>RTPRIO:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="2">
+    <widget class="QLabel" name="label_15">
+     <property name="text">
+      <string>RTTIME:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="2">
+    <widget class="QLabel" name="label_16">
+     <property name="text">
+      <string>SIGPENDING:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="2">
+    <widget class="QLabel" name="label_17">
+     <property name="text">
+      <string>STACK:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="0" colspan="4">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>spnDefaultLimitAS</tabstop>
+  <tabstop>spnDefaultLimitNICE</tabstop>
+  <tabstop>spnDefaultLimitCORE</tabstop>
+  <tabstop>spnDefaultLimitNOFILE</tabstop>
+  <tabstop>spnDefaultLimitCPU</tabstop>
+  <tabstop>spnDefaultLimitNPROC</tabstop>
+  <tabstop>spnDefaultLimitDATA</tabstop>
+  <tabstop>spnDefaultLimitRSS</tabstop>
+  <tabstop>spnDefaultLimitFSIZE</tabstop>
+  <tabstop>spnDefaultLimitRTPRIO</tabstop>
+  <tabstop>spnDefaultLimitLOCKS</tabstop>
+  <tabstop>spnDefaultLimitRTTIME</tabstop>
+  <tabstop>spnDefaultLimitMEMLOCK</tabstop>
+  <tabstop>spnDefaultLimitSIGPENDING</tabstop>
+  <tabstop>spnDefaultLimitMSGQUEUE</tabstop>
+  <tabstop>spnDefaultLimitSTACK</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

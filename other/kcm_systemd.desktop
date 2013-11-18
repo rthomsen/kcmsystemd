@@ -1,0 +1,14 @@
+[Desktop Entry]
+Icon=system-run
+Type=Service
+X-KDE-ServiceTypes=KCModule
+Exec=kcmshell4 kcm_systemd
+
+X-KDE-Library=kcm_systemd
+X-KDE-ParentApp=kcontrol
+X-KDE-System-Settings-Parent-Category=system-administration
+
+Name=Systemd
+Comment=Configure the systemd daemon
+X-KDE-Keywords=systemd
+Categories=Qt;KDE;X-KDE-settings-system;
