@@ -10,7 +10,9 @@ The module looks for the files in /etc/systemd and /usr/etc/systemd.
 
 Installation
 ------------
-cmake -DCMAKE_INSTALL_PREFIX=<kde_install_directory> ..  
+mkdir build  
+cd build  
+cmake -DCMAKE_INSTALL_PREFIX=`kde4-config --prefix` ..  
 make  
 make install  
 
