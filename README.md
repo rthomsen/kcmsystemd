@@ -1,12 +1,10 @@
 Kcmsystemd
 ==========
 
-Systemd control module for KDE. Provides a graphical frontend for modifying 
-the systemd configuration files: system.conf, journald.conf and login.conf.
-Integrates in the System Settings dialogue.
-
-The module looks for the files in /etc/systemd and /usr/etc/systemd.
-
+Systemd control module for KDE. Provides a graphical frontend for the systemd 
+daemon, which allow for viewing and controlling systemd units, as well as 
+modifying configuration files.
+Integrates in the System Settings dialogue in KDE.
 
 Installation
 ------------

@@ -23,9 +23,10 @@ using namespace KAuth;
 
 class Helper : public QObject
 {
-    Q_OBJECT
-public slots:
+  Q_OBJECT
+  public slots:
     ActionReply save(QVariantMap args);
+    ActionReply dbusaction(QVariantMap args);
 };
 
 #endif

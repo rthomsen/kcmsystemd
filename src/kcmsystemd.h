@@ -20,7 +20,21 @@
 
 #include <KCModule>
 #include <QProcess>
+#include <QtDBus>
+#include <QStandardItemModel>
+#include <QSortFilterProxyModel>
 #include "ui_kcmsystemd.h"
+
+// struct for storing units retrieved from systemd via DBus
+struct SystemdUnit
+{
+  QString id, description, load_state, active_state, sub_state, following;
+  QDBusObjectPath unit_path;
+  unsigned int job_id;
+  QString job_type;
+  QDBusObjectPath job_path;
+};
+Q_DECLARE_METATYPE(SystemdUnit) 
 
 class kcmsystemd : public KCModule
 {
@@ -28,18 +42,30 @@ class kcmsystemd : public KCModule
 
   public:
     explicit kcmsystemd(QWidget *parent = 0, const QVariantList &list = QVariantList());
-    virtual void defaults();
-    virtual void load();
-    virtual void save();
-    virtual void initializeInterface();
-    virtual void readSystemConf();
-    virtual void readJournaldConf();
-    virtual void readLogindConf();
+    void defaults();
+    void load();
+    void save();
+    void initializeInterface();
+    void readSystemConf();
+    void readJournaldConf();
+    void readLogindConf();
+    void readUnits();
+    void authServiceAction(QString, QString, QString, QString, QList<QVariant>);
+    bool eventFilter(QObject *, QEvent*);
     QProcess *pkgConfigVer;
     static QVariantMap resLimits;
+    QVariantMap unitpaths;
     static QList<QPair<QString, QString> > environ;
     static bool resLimitsChanged;
     static bool environChanged;
+    QSortFilterProxyModel *proxyModel, *proxyModel2;
+    QStandardItemModel *unitsModel;
+    QList<SystemdUnit> unitslist;
+    QString selectedUnit, etcDir;
+    QMenu *contextMenuUnits;
+    QAction *actEnableUnit, *actDisableUnit;
+    float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
+    int timesLoad, lastRowChecked;
     
   private:
     Ui::kcmsystemd ui;
@@ -65,6 +91,16 @@ class kcmsystemd : public KCModule
     void slotKillUserProcessesChanged();
     void slotOpenResourceLimits();
     void slotOpenEnviron();
+    //void slotTblServicesClicked(const QItemSelection &, const QItemSelection &);
+    void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
+    void slotBtnStartUnit();
+    void slotBtnStopUnit();    
+    void slotBtnRestartUnit();
+    void slotBtnReloadUnit(); 
+    void slotChkInactiveUnits();
+    void slotCmbUnitTypes();
+    void slotDisplayMenu(const QPoint &);
+    void refreshUnitsList();
 };
 
 #endif // kcmsystemd_H

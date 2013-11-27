@@ -19,6 +19,7 @@
 
 #include <QDir>
 #include <QTextStream>
+#include <QtDBus>
 
 #include <kdeversion.h>
 #include <KAuth/HelperSupport>
@@ -71,6 +72,53 @@ ActionReply Helper::save(QVariantMap args)
   QTextStream loginStream(&loginFile);
   loginStream << logindConfFileContents;
   loginFile.close();
+  
+  // return a reply
+  return reply;
+}
+
+ActionReply Helper::dbusaction(QVariantMap args)
+{
+  ActionReply reply;
+  QDBusMessage dbusreply;
+  
+  // Get arguments to method call
+  QString service = args["service"].toString();
+  QString path = args["path"].toString();
+  QString interface = args["interface"].toString();
+  QString method = args["method"].toString();
+  QList<QVariant> argsForCall = args["argsForCall"].toList();
+  
+  QDBusConnection systembus = QDBusConnection::systemBus();
+  // qDebug() << "Connection created";
+  
+  QDBusInterface *iface = new QDBusInterface (service,
+					      path,
+					      interface,
+					      systembus,
+					      this);
+  if (iface->isValid())
+    dbusreply = iface->callWithArgumentList(QDBus::AutoDetect, method, argsForCall);
+
+  // Error handling
+  if (dbusreply.type() == QDBusMessage::ErrorMessage)
+  {
+    reply.setErrorCode(ActionReply::DBusError);
+    reply.setErrorDescription(dbusreply.errorMessage());
+    //qDebug() << "Error: " << dbusreply.errorMessage();
+  }
+  
+  //if (dbusreply.type() == QDBusMessage::ReplyMessage)
+  // qDebug() << "Success: " << dbusreply;
+
+  // Reload systemd daemon to update the enabled/disabled status
+  iface = new QDBusInterface ("org.freedesktop.systemd1",
+					      "/org/freedesktop/systemd1",
+					      "org.freedesktop.systemd1.Manager",
+					      systembus,
+					      this);
+  dbusreply = iface->call(QDBus::AutoDetect, "Reload");
+  delete iface;
   
   // return a reply
   return reply;

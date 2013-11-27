@@ -7,3 +7,9 @@ Name=Save the systemd settings
 Description=Administrator authorization is required to save the systemd settings
 Policy=auth_admin
 Persistence=session
+
+[org.kde.kcontrol.kcmsystemd.dbusaction]
+Name=Manipulate a systemd service over DBus
+Description=Administrator authorization is required to modify this service
+Policy=auth_admin
+Persistence=session
