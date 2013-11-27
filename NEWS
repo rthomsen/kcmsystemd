@@ -1,0 +1,10 @@
+NEWS file for kcmsystemd
+
+0.2.0 (2013-11-27)
+---
+- A new tab for viewing and controlling systemd units was added.
+- Correct default values for journald.conf when file not found.
+
+0.1.0 (2013-11-18)
+---
+- Initial release.
