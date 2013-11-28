@@ -651,7 +651,10 @@
               <item row="1" column="3">
                <widget class="QLineEdit" name="leCapBoundSet">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls which capabilities to include in the capability bounding set for PID 1 and its children. Takes a whitespace separated list of capability names. Capabilities listed will be included in the bounding set, all others are removed. If the list of capabilities is prefixed with ~ all but the listed capabilities will be included, the effect of the assignment inverted. Note that this option also affects the respective capabilities in the effective, permitted and inheritable capability sets.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls which capabilities to include in the capability bounding set for PID 1 and its children. Takes a whitespace separated list of capability names. Capabilities listed will be included in the bounding set, all others are removed. If the list of capabilities is prefixed with ~ all but the listed capabilities will be included, the effect of the assignment inverted. Note that this option also affects the respective capabilities in the effective, permitted and inheritable capability sets.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning&lt;/span&gt;: Do not leave this field empty!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>~</string>
                 </property>
                </widget>
               </item>

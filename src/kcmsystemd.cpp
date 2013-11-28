@@ -1091,7 +1091,7 @@ void kcmsystemd::defaults()
     ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("seconds"));
     ui.spnShutdownWatchdog->setValue(10);
     ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("minutes"));
-    ui.leCapBoundSet->setText("");
+    ui.leCapBoundSet->setText("~");
     ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("nanoseconds"));
     ui.spnTimerSlack->setValue(0);
     for(QVariantMap::const_iterator iter = kcmsystemd::resLimits.begin(); iter != kcmsystemd::resLimits.end(); ++iter)
