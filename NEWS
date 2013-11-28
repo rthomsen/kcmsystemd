@@ -1,5 +1,10 @@
 NEWS file for kcmsystemd
 
+0.2.1 (2013-11-28)
+---
+- Fixed segfault in helper.
+- Corrected default value for CapabilityBoundingSet in system.conf.
+
 0.2.0 (2013-11-27)
 ---
 - A new tab for viewing and controlling systemd units was added.
