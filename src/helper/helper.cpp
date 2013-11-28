@@ -99,7 +99,8 @@ ActionReply Helper::dbusaction(QVariantMap args)
 					      this);
   if (iface->isValid())
     dbusreply = iface->callWithArgumentList(QDBus::AutoDetect, method, argsForCall);
-
+  delete iface;
+  
   // Error handling
   if (dbusreply.type() == QDBusMessage::ErrorMessage)
   {
