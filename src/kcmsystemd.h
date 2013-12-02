@@ -18,23 +18,31 @@
 #ifndef KCMSYSTEMD_H
 #define KCMSYSTEMD_H
 
-#include <KCModule>
-#include <QProcess>
 #include <QtDBus>
 #include <QStandardItemModel>
 #include <QSortFilterProxyModel>
+
+#include <KCModule>
 #include "ui_kcmsystemd.h"
 
 // struct for storing units retrieved from systemd via DBus
 struct SystemdUnit
 {
-  QString id, description, load_state, active_state, sub_state, following;
-  QDBusObjectPath unit_path;
+  QString id, description, load_state, active_state, sub_state, following, job_type;
+  QDBusObjectPath unit_path, job_path;
   unsigned int job_id;
-  QString job_type;
-  QDBusObjectPath job_path;
+  
+  // The == operator must be provided to use contains() and indexOf()
+  // on QLists of this struct
+  bool operator==(const SystemdUnit& right) const
+  {
+    if (id == right.id)
+      return true;
+    else
+      return false;
+  }
 };
-Q_DECLARE_METATYPE(SystemdUnit) 
+Q_DECLARE_METATYPE(SystemdUnit)
 
 class kcmsystemd : public KCModule
 {
@@ -52,6 +60,7 @@ class kcmsystemd : public KCModule
     void readUnits();
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);
     bool eventFilter(QObject *, QEvent*);
+    void updateUnitProps(QString, bool);
     QProcess *pkgConfigVer;
     static QVariantMap resLimits;
     QVariantMap unitpaths;
@@ -60,12 +69,12 @@ class kcmsystemd : public KCModule
     static bool environChanged;
     QSortFilterProxyModel *proxyModel, *proxyModel2;
     QStandardItemModel *unitsModel;
-    QList<SystemdUnit> unitslist;
+    QList<SystemdUnit> unitslist, unitslistNew;
     QString selectedUnit, etcDir;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
     float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
-    int timesLoad, lastRowChecked;
+    int timesLoad, lastRowChecked, selectedRow;
     
   private:
     Ui::kcmsystemd ui;
@@ -91,7 +100,6 @@ class kcmsystemd : public KCModule
     void slotKillUserProcessesChanged();
     void slotOpenResourceLimits();
     void slotOpenEnviron();
-    //void slotTblServicesClicked(const QItemSelection &, const QItemSelection &);
     void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
     void slotBtnStartUnit();
     void slotBtnStopUnit();    
@@ -101,6 +109,11 @@ class kcmsystemd : public KCModule
     void slotCmbUnitTypes();
     void slotDisplayMenu(const QPoint &);
     void refreshUnitsList();
+    void slotSystemdReloading(bool);
+    void slotUnitLoaded(QString, QDBusObjectPath);
+    void slotUnitUnloaded(QString, QDBusObjectPath);
+    void slotUnitFilesChanged();
+    void slotPropertiesChanged(QString, QVariantMap, QStringList);
 };
 
 #endif // kcmsystemd_H

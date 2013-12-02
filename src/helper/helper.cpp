@@ -17,12 +17,7 @@
 
 #include "helper.h"
 
-#include <QDir>
-#include <QTextStream>
 #include <QtDBus>
-
-#include <kdeversion.h>
-#include <KAuth/HelperSupport>
 
 #include "../config.h"
 
@@ -36,7 +31,6 @@ ActionReply Helper::save(QVariantMap args)
   QString logindConfFileContents = args["logindConfFileContents"].toString();
    
   // write system.conf
-  //QMessageBox::information(this, QString("Title"), args["etcDir"].toString());
   QFile sysFile(args["etcDir"].toString() + "/system.conf");
   if (!sysFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
     reply = ActionReply::HelperErrorReply;
@@ -89,9 +83,7 @@ ActionReply Helper::dbusaction(QVariantMap args)
   QString method = args["method"].toString();
   QList<QVariant> argsForCall = args["argsForCall"].toList();
   
-  QDBusConnection systembus = QDBusConnection::systemBus();
-  // qDebug() << "Connection created";
-  
+  QDBusConnection systembus = QDBusConnection::systemBus();  
   QDBusInterface *iface = new QDBusInterface (service,
 					      path,
 					      interface,
@@ -106,21 +98,21 @@ ActionReply Helper::dbusaction(QVariantMap args)
   {
     reply.setErrorCode(ActionReply::DBusError);
     reply.setErrorDescription(dbusreply.errorMessage());
-    //qDebug() << "Error: " << dbusreply.errorMessage();
   }
-  
-  //if (dbusreply.type() == QDBusMessage::ReplyMessage)
-  // qDebug() << "Success: " << dbusreply;
 
   // Reload systemd daemon to update the enabled/disabled status
-  iface = new QDBusInterface ("org.freedesktop.systemd1",
-					      "/org/freedesktop/systemd1",
-					      "org.freedesktop.systemd1.Manager",
-					      systembus,
-					      this);
-  dbusreply = iface->call(QDBus::AutoDetect, "Reload");
-  delete iface;
-  
+  if (method == "EnableUnitFiles" || method == "DisableUnitFiles")
+  {
+    // systemd does not update properties when these methods are called so we
+    // need to reload the systemd daemon.
+    iface = new QDBusInterface ("org.freedesktop.systemd1",
+						"/org/freedesktop/systemd1",
+						"org.freedesktop.systemd1.Manager",
+						systembus,
+						this);
+    dbusreply = iface->call(QDBus::AutoDetect, "Reload");
+    delete iface;
+  }
   // return a reply
   return reply;
 }
