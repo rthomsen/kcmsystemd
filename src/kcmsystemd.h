@@ -69,7 +69,7 @@ class kcmsystemd : public KCModule
     static bool environChanged;
     QSortFilterProxyModel *proxyModel, *proxyModel2;
     QStandardItemModel *unitsModel;
-    QList<SystemdUnit> unitslist, unitslistNew;
+    QList<SystemdUnit> unitslist;
     QString selectedUnit, etcDir;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
