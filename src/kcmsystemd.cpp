@@ -1035,7 +1035,6 @@ void kcmsystemd::readUnits()
   unitsModel->setHorizontalHeaderItem(1, new QStandardItem(QString("Active state")));
   unitsModel->setHorizontalHeaderItem(2, new QStandardItem(QString("Unit state")));
   unitsModel->setHorizontalHeaderItem(3, new QStandardItem(QString("Unit")));
-  unitsModel->setHorizontalHeaderItem(4, new QStandardItem(QString("Job")));
 
   ui.tblServices->setModel(proxyModel2);
   QItemSelectionModel *selectionModel = ui.tblServices->selectionModel();
@@ -1048,8 +1047,7 @@ void kcmsystemd::readUnits()
     new QStandardItem(unitslist.at(i).load_state) <<
     new QStandardItem(unitslist.at(i).active_state) <<
     new QStandardItem(unitslist.at(i).sub_state) <<
-    new QStandardItem(unitslist.at(i).id) <<
-    new QStandardItem(unitslist.at(i).job_id);
+    new QStandardItem(unitslist.at(i).id);
         
     unitsModel->appendRow(row);
   }
@@ -1918,8 +1916,7 @@ void kcmsystemd::refreshUnitsList()
       new QStandardItem(unitslist.at(i).load_state) <<
       new QStandardItem(unitslist.at(i).active_state) <<
       new QStandardItem(unitslist.at(i).sub_state) <<
-      new QStandardItem(unitslist.at(i).id) <<
-      new QStandardItem(unitslist.at(i).job_id);
+      new QStandardItem(unitslist.at(i).id);
       int section = ui.tblServices->horizontalHeader()->sortIndicatorSection();
       Qt::SortOrder order = ui.tblServices->horizontalHeader()->sortIndicatorOrder();
       unitsModel->appendRow(row);
