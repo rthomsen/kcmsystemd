@@ -51,10 +51,12 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
   
   timesLoad = 0, lastRowChecked = 0;
   unitsModel = new QStandardItemModel(this);
-  proxyModel = new QSortFilterProxyModel (this);
-  proxyModel2 = new QSortFilterProxyModel (this);
-  proxyModel2->setSourceModel(proxyModel);
-   
+  proxyModelAct = new QSortFilterProxyModel (this);
+  proxyModelUnitType = new QSortFilterProxyModel (this);
+  proxyModelUnitName = new QSortFilterProxyModel (this);
+  proxyModelUnitType->setSourceModel(proxyModelAct);
+  proxyModelUnitName->setSourceModel(proxyModelUnitType);
+  
   ui.tabServices->setContextMenuPolicy(Qt::CustomContextMenu);
   ui.tblServices->viewport()->installEventFilter(this);
   
@@ -175,6 +177,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
   connect(ui.chkInactiveUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkInactiveUnits()));
   connect(ui.cmbUnitTypes, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbUnitTypes()));
   connect(ui.tblServices, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotDisplayMenu(QPoint)));
+  connect(ui.leSearchUnit, SIGNAL(textChanged(QString)), this, SLOT(slotLeSearchUnitChanged(QString)));
 }
 
 QDBusArgument &operator<<(QDBusArgument &argument, const SystemdUnit &service)
@@ -1029,14 +1032,14 @@ void kcmsystemd::readUnits()
     myArg.endArray();
   }
  
-  proxyModel->setSourceModel(unitsModel);
+  proxyModelAct->setSourceModel(unitsModel);
   
   unitsModel->setHorizontalHeaderItem(0, new QStandardItem(QString("Load state")));
   unitsModel->setHorizontalHeaderItem(1, new QStandardItem(QString("Active state")));
   unitsModel->setHorizontalHeaderItem(2, new QStandardItem(QString("Unit state")));
   unitsModel->setHorizontalHeaderItem(3, new QStandardItem(QString("Unit")));
 
-  ui.tblServices->setModel(proxyModel2);
+  ui.tblServices->setModel(proxyModelUnitName);
   QItemSelectionModel *selectionModel = ui.tblServices->selectionModel();
   
   SystemdUnit s;
@@ -1064,12 +1067,12 @@ void kcmsystemd::readUnits()
   
   ui.tblServices->resizeColumnsToContents();
   connect(selectionModel, SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(slotTblRowChanged(const QModelIndex &, const QModelIndex &)));
-  proxyModel->setFilterRegExp(QRegExp("^(active)", 
+  proxyModelAct->setFilterRegExp(QRegExp("^(active)", 
 					Qt::CaseSensitive,
                                         QRegExp::RegExp));
-  proxyModel->setFilterKeyColumn(1);
+  proxyModelAct->setFilterKeyColumn(1);
   ui.tblServices->sortByColumn(3, Qt::AscendingOrder);
-  proxyModel2->setSortCaseSensitivity(Qt::CaseInsensitive);
+  proxyModelUnitName->setSortCaseSensitivity(Qt::CaseInsensitive);
   
 
   iface = new QDBusInterface ("org.freedesktop.systemd1",
@@ -1744,8 +1747,9 @@ void kcmsystemd::slotTblRowChanged(const QModelIndex &current, const QModelIndex
   selectedUnit = ui.tblServices->model()->index(current.row(),3).data().toString();
 
   // Find the selected row
-  QModelIndex inProxyModel = proxyModel2->mapToSource(const_cast<QModelIndex &> (current));
-  selectedRow = proxyModel->mapToSource(inProxyModel).row();  
+  QModelIndex inProxyModelUnitType = proxyModelUnitName->mapToSource(const_cast<QModelIndex &> (current));
+  QModelIndex inProxyModelAct = proxyModelUnitType->mapToSource(inProxyModelUnitType);
+  selectedRow = proxyModelAct->mapToSource(inProxyModelAct).row();
   
   updateUnitProps(selectedUnit, false);
 }
@@ -1782,14 +1786,13 @@ void kcmsystemd::slotChkInactiveUnits()
 {
   if (ui.chkInactiveUnits->isChecked())
   {
-    proxyModel->setFilterRegExp("");
-    proxyModel->setFilterKeyColumn(1);
+    proxyModelAct->setFilterRegExp("");
   } else {
-    proxyModel->setFilterRegExp(QRegExp("^(active)", 
+    proxyModelAct->setFilterRegExp(QRegExp("^(active)", 
 					Qt::CaseSensitive,
                                         QRegExp::RegExp));
-    proxyModel->setFilterKeyColumn(1);    
   }
+  proxyModelAct->setFilterKeyColumn(1);
   ui.tblServices->sortByColumn(3, Qt::AscendingOrder);
 }
 
@@ -1799,81 +1802,48 @@ void kcmsystemd::slotCmbUnitTypes()
   switch (ui.cmbUnitTypes->currentIndex())
   {
   case 0:
-    proxyModel2->setFilterRegExp("");
-    proxyModel2->setFilterKeyColumn(3);  
+    filterUnit = "";
     break;
   case 1:
-    proxyModel2->setFilterRegExp(QRegExp("(.target)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.target)$";
     break;
   case 2:
-    proxyModel2->setFilterRegExp(QRegExp("(.service)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.service)$";
     break;
   case 3:
-    proxyModel2->setFilterRegExp(QRegExp("(.device)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.device)$";
     break;
   case 4:
-    proxyModel2->setFilterRegExp(QRegExp("(.mount)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.mount)$";
     break;
   case 5:
-    proxyModel2->setFilterRegExp(QRegExp("(.automount)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.automount)$";
     break;
   case 6:
-    proxyModel2->setFilterRegExp(QRegExp("(.swap)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.swap)$";
     break;
   case 7:
-    proxyModel2->setFilterRegExp(QRegExp("(.socket)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.socket)$";
     break;
   case 8:
-    proxyModel2->setFilterRegExp(QRegExp("(.path)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.path)$";
     break;
   case 9:
-    proxyModel2->setFilterRegExp(QRegExp("(.timer)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.timer)$";
     break;
   case 10:
-    proxyModel2->setFilterRegExp(QRegExp("(.snapshot)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3);
+    filterUnit = "(.snapshot)$";
     break;
   case 11:
-    proxyModel2->setFilterRegExp(QRegExp("(.slice)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.slice)$";
     break;
   case 12:
-    proxyModel2->setFilterRegExp(QRegExp("(.scope)$", 
-					Qt::CaseSensitive,
-                                        QRegExp::RegExp));
-    proxyModel2->setFilterKeyColumn(3); 
+    filterUnit = "(.scope)$";
   }
+  proxyModelUnitType->setFilterRegExp(QRegExp(filterUnit, 
+					Qt::CaseInsensitive,
+                                        QRegExp::RegExp));
+  proxyModelUnitType->setFilterKeyColumn(3); 
   ui.tblServices->sortByColumn(3, Qt::AscendingOrder);
 }
 
@@ -1947,7 +1917,7 @@ void kcmsystemd::refreshUnitsList()
       if (!unitslist.contains(unit))
       {
 	// Add removed units to list for deletion
-        qDebug() << "Unit removed: " << unitsModel->index(row,3).data().toString();
+        // qDebug() << "Unit removed: " << unitsModel->index(row,3).data().toString();
 	indexes << unitsModel->index(row,3);
       }
     }
@@ -2122,10 +2092,11 @@ bool kcmsystemd::eventFilter(QObject *watched, QEvent* event)
   if (event->type() == QEvent::MouseMove)
   {
     QMouseEvent *me = static_cast<QMouseEvent*>(event);
-    QModelIndex inUnitsModel, inProxyModel, inProxyModel2;
-    inProxyModel2 = ui.tblServices->indexAt(me->pos());
-    inProxyModel = proxyModel2->mapToSource(inProxyModel2);
-    inUnitsModel = proxyModel->mapToSource(inProxyModel);
+    QModelIndex inUnitsModel, inProxyModelAct, inProxyModelUnitType, inProxyModelUnitName;
+    inProxyModelUnitName = ui.tblServices->indexAt(me->pos());
+    inProxyModelUnitType = proxyModelUnitName->mapToSource(inProxyModelUnitName);
+    inProxyModelAct = proxyModelUnitType->mapToSource(inProxyModelUnitType);
+    inUnitsModel = proxyModelAct->mapToSource(inProxyModelAct);
     if (!inUnitsModel.isValid())
       return false;
 
@@ -2202,5 +2173,14 @@ void kcmsystemd::slotPropertiesChanged(QString iface_name, QVariantMap changed_p
   // but no reason to call refreshUnitsList() twice
   if (iface_name == "org.freedesktop.systemd1.Unit")
     refreshUnitsList();
+}
+
+void kcmsystemd::slotLeSearchUnitChanged(QString term)
+{
+  proxyModelUnitName->setFilterRegExp(QRegExp(term, Qt::CaseInsensitive, QRegExp::RegExp));
+  proxyModelUnitName->setFilterKeyColumn(3);
+  int section = ui.tblServices->horizontalHeader()->sortIndicatorSection();
+  Qt::SortOrder order = ui.tblServices->horizontalHeader()->sortIndicatorOrder();
+  ui.tblServices->sortByColumn(section, order);
 }
 

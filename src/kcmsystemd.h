@@ -67,10 +67,10 @@ class kcmsystemd : public KCModule
     static QList<QPair<QString, QString> > environ;
     static bool resLimitsChanged;
     static bool environChanged;
-    QSortFilterProxyModel *proxyModel, *proxyModel2;
+    QSortFilterProxyModel *proxyModelUnitType, *proxyModelAct, *proxyModelUnitName;
     QStandardItemModel *unitsModel;
     QList<SystemdUnit> unitslist;
-    QString selectedUnit, etcDir;
+    QString selectedUnit, etcDir, filterUnit;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
     float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
@@ -114,6 +114,7 @@ class kcmsystemd : public KCModule
     void slotUnitUnloaded(QString, QDBusObjectPath);
     void slotUnitFilesChanged();
     void slotPropertiesChanged(QString, QVariantMap, QStringList);
+    void slotLeSearchUnitChanged(QString);
 };
 
 #endif // kcmsystemd_H
