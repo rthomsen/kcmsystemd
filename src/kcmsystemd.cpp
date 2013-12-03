@@ -1048,12 +1048,22 @@ void kcmsystemd::readUnits()
     new QStandardItem(unitslist.at(i).active_state) <<
     new QStandardItem(unitslist.at(i).sub_state) <<
     new QStandardItem(unitslist.at(i).id);
-        
     unitsModel->appendRow(row);
+    
+    // Set text color according to ActiveState
+    if (unitslist.at(i).active_state == "inactive") {
+      for (int col = 0; col < 4; ++col)
+	unitsModel->setData(unitsModel->index(i,col), QVariant(QColor(Qt::red)), Qt::ForegroundRole);
+    } else if (unitslist.at(i).active_state == "active") {
+      for (int col = 0; col < 4; ++col)
+	unitsModel->setData(unitsModel->index(i,col), QVariant(QColor(Qt::darkGreen)), Qt::ForegroundRole);
+    } else if (unitslist.at(i).active_state == "failed") {
+      for (int col = 0; col < 4; ++col)
+	unitsModel->setData(unitsModel->index(i,col), QVariant(QColor(Qt::darkRed)), Qt::ForegroundRole); }
   }
+  
   ui.tblServices->resizeColumnsToContents();
   connect(selectionModel, SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(slotTblRowChanged(const QModelIndex &, const QModelIndex &)));
-  //QMessageBox::information(this, "title", streng);
   proxyModel->setFilterRegExp(QRegExp("^(active)", 
 					Qt::CaseSensitive,
                                         QRegExp::RegExp));
@@ -1900,12 +1910,8 @@ void kcmsystemd::refreshUnitsList()
   }
 
   // Iterate through the new list and compare to model
-  // QListIterator<SystemdUnit> i(unitslist);
-  // while (i.hasNext())
   for (int i = 0;  i < unitslist.size(); ++i)
   {
-    // i.next();
-
     QList<QStandardItem *> items = unitsModel->findItems(unitslist.at(i).id, Qt::MatchExactly, 3);
     if (items.isEmpty())
     {
@@ -1949,6 +1955,22 @@ void kcmsystemd::refreshUnitsList()
     foreach (QPersistentModelIndex i, indexes)
       unitsModel->removeRow(i.row());
   }
+  
+  // Update the text color in model
+  for (int row = 0; row < unitsModel->rowCount(); ++row)
+  {
+    if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "inactive") {
+      for (int col = 0; col < 4; ++col)
+	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::red)), Qt::ForegroundRole);
+    } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "active") {
+      for (int col = 0; col < 4; ++col)
+	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::darkGreen)), Qt::ForegroundRole);
+    } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "failed") {
+      for (int col = 0; col < 4; ++col)
+	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::darkRed)), Qt::ForegroundRole); }
+  }
+  
+  // Update unit properties for the selected unit
   updateUnitProps(selectedUnit, false);
 }
 
