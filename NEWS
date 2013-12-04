@@ -1,5 +1,12 @@
 NEWS file for kcmsystemd
 
+0.3.0 (2013-12-04)
+---
+- Search functionality was implemented in the units tab.
+- Unit are colored according to ActiveState.
+- The job column was removed.
+- The list of units now gets autoupdated when changes are detected.
+
 0.2.1 (2013-11-28)
 ---
 - Fixed segfault in helper.
