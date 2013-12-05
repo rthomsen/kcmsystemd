@@ -61,6 +61,7 @@ class kcmsystemd : public KCModule
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);
     bool eventFilter(QObject *, QEvent*);
     void updateUnitProps(QString, bool);
+    void updateUnitCount();
     QProcess *pkgConfigVer;
     static QVariantMap resLimits;
     QVariantMap unitpaths;
@@ -74,7 +75,7 @@ class kcmsystemd : public KCModule
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
     float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
-    int timesLoad, lastRowChecked, selectedRow;
+    int timesLoad, lastRowChecked, selectedRow, noActUnits;
     
   private:
     Ui::kcmsystemd ui;

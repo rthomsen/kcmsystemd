@@ -64,14 +64,112 @@
            <string>Units</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_19">
-           <item row="11" column="0">
-            <widget class="QLabel" name="label_21">
+           <item row="10" column="1" colspan="4">
+            <widget class="QLabel" name="lblDesc">
              <property name="text">
-              <string>Fragment path:</string>
+              <string/>
              </property>
             </widget>
            </item>
-           <item row="9" column="0">
+           <item row="9" column="1" colspan="4">
+            <widget class="QLabel" name="lblId">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="3">
+            <widget class="QLabel" name="label_41">
+             <property name="text">
+              <string>Activated:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="0" rowspan="2" colspan="5">
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QPushButton" name="btnStartUnit">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Starts the selected unit.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: &lt;/span&gt;This does not enable autostart of unit. For this purpose right-click unit and select &amp;quot;Enable unit&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Start</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopUnit">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Stops the selected unit.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: &lt;/span&gt;This does not disable autostart of unit. For this purpose right-click unit and select &amp;quot;Disable unit&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Stop</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRestartUnit">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restarts the selected unit.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Restart</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnReloadUnit">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reloads the configuration files for the selected unit.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: &lt;/span&gt;This will not reload the unit configuration file of systemd.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Reload</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="12" column="1" colspan="4">
+            <widget class="QLabel" name="lblFragmentPath">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="1" colspan="2">
+            <widget class="QLabel" name="lblUnitFileState">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="0">
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>Unit files state:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="3">
+            <widget class="QLabel" name="label_42">
+             <property name="text">
+              <string>Deactivated:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
             <widget class="QLabel" name="label_19">
              <property name="text">
               <string>Description:</string>
@@ -118,21 +216,7 @@
              </attribute>
             </widget>
            </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>Id:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="12" column="4">
-            <widget class="QLabel" name="lblTimeActivated">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="4">
+           <item row="14" column="4">
             <widget class="QLabel" name="lblTimeDeactivated">
              <property name="text">
               <string/>
@@ -217,108 +301,31 @@
              </item>
             </layout>
            </item>
-           <item row="9" column="1" colspan="4">
-            <widget class="QLabel" name="lblDesc">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="14" column="0" rowspan="2" colspan="5">
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <item>
-              <widget class="QPushButton" name="btnStartUnit">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Starts the selected unit.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: &lt;/span&gt;This does not enable autostart of unit. For this purpose right-click unit and select &amp;quot;Enable unit&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Start</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btnStopUnit">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Stops the selected unit.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: &lt;/span&gt;This does not disable autostart of unit. For this purpose right-click unit and select &amp;quot;Disable unit&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Stop</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btnRestartUnit">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restarts the selected unit.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Restart</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btnReloadUnit">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reloads the configuration files for the selected unit.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: &lt;/span&gt;This will not reload the unit configuration file of systemd.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Reload</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="11" column="1" colspan="4">
-            <widget class="QLabel" name="lblFragmentPath">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="3">
-            <widget class="QLabel" name="label_42">
-             <property name="text">
-              <string>Deactivated:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="12" column="1" colspan="2">
-            <widget class="QLabel" name="lblUnitFileState">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
            <item row="12" column="0">
-            <widget class="QLabel" name="label_20">
+            <widget class="QLabel" name="label_21">
              <property name="text">
-              <string>Unit files state:</string>
+              <string>Fragment path:</string>
              </property>
             </widget>
            </item>
-           <item row="12" column="3">
-            <widget class="QLabel" name="label_41">
-             <property name="text">
-              <string>Activated:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1" colspan="4">
-            <widget class="QLabel" name="lblId">
+           <item row="13" column="4">
+            <widget class="QLabel" name="lblTimeActivated">
              <property name="text">
               <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Id:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="18" column="0">
+            <widget class="QLabel" name="lblStatus">
+             <property name="text">
+              <string>Overall stats:</string>
              </property>
             </widget>
            </item>

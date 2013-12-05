@@ -1042,6 +1042,7 @@ void kcmsystemd::readUnits()
   ui.tblServices->setModel(proxyModelUnitName);
   QItemSelectionModel *selectionModel = ui.tblServices->selectionModel();
   
+  noActUnits = 0;
   SystemdUnit s;
   for (int i = 0; i < unitslist.size(); ++i)
   {
@@ -1063,6 +1064,9 @@ void kcmsystemd::readUnits()
     } else if (unitslist.at(i).active_state == "failed") {
       for (int col = 0; col < 4; ++col)
 	unitsModel->setData(unitsModel->index(i,col), QVariant(QColor(Qt::darkRed)), Qt::ForegroundRole); }
+    
+    if (unitslist.at(i).active_state == "active")
+      noActUnits++;
   }
   
   ui.tblServices->resizeColumnsToContents();
@@ -1073,7 +1077,8 @@ void kcmsystemd::readUnits()
   proxyModelAct->setFilterKeyColumn(1);
   ui.tblServices->sortByColumn(3, Qt::AscendingOrder);
   proxyModelUnitName->setSortCaseSensitivity(Qt::CaseInsensitive);
-  
+
+  updateUnitCount();
 
   iface = new QDBusInterface ("org.freedesktop.systemd1",
 					      "/org/freedesktop/systemd1",
@@ -1794,6 +1799,7 @@ void kcmsystemd::slotChkInactiveUnits()
   }
   proxyModelAct->setFilterKeyColumn(1);
   ui.tblServices->sortByColumn(3, Qt::AscendingOrder);
+  updateUnitCount();
 }
 
 void kcmsystemd::slotCmbUnitTypes()
@@ -1845,6 +1851,7 @@ void kcmsystemd::slotCmbUnitTypes()
                                         QRegExp::RegExp));
   proxyModelUnitType->setFilterKeyColumn(3); 
   ui.tblServices->sortByColumn(3, Qt::AscendingOrder);
+  updateUnitCount();
 }
 
 void kcmsystemd::refreshUnitsList()
@@ -1853,6 +1860,7 @@ void kcmsystemd::refreshUnitsList()
   // clear lists
   unitslist.clear();
   unitpaths.clear();
+  noActUnits = 0;
   
   // get an updated list of units via dbus
   QDBusMessage dbusreply;
@@ -1903,6 +1911,8 @@ void kcmsystemd::refreshUnitsList()
       unitsModel->item(items.at(0)->row(), 1)->setData(unitslist.at(i).active_state, Qt::DisplayRole);
       unitsModel->item(items.at(0)->row(), 2)->setData(unitslist.at(i).sub_state, Qt::DisplayRole);
     }
+    if (unitslist.at(i).active_state == "active")
+      noActUnits++;
   }
   
   // Check to see if any units were removed
@@ -2006,7 +2016,13 @@ void kcmsystemd::updateUnitProps(QString unit, bool updRow)
     }
   }
   delete iface;
- 
+}
+
+void kcmsystemd::updateUnitCount()
+{
+  ui.lblStatus->setText("Total: " + QString::number(unitsModel->rowCount()) + " units, " + 
+			QString::number(noActUnits) + " active, " + 
+			QString::number(proxyModelUnitName->rowCount()) + " displayed");
 }
 
 void kcmsystemd::authServiceAction(QString service, QString path, QString interface, QString method, QList<QVariant> args)
@@ -2173,6 +2189,7 @@ void kcmsystemd::slotPropertiesChanged(QString iface_name, QVariantMap changed_p
   // but no reason to call refreshUnitsList() twice
   if (iface_name == "org.freedesktop.systemd1.Unit")
     refreshUnitsList();
+  updateUnitCount();
 }
 
 void kcmsystemd::slotLeSearchUnitChanged(QString term)
@@ -2182,5 +2199,6 @@ void kcmsystemd::slotLeSearchUnitChanged(QString term)
   int section = ui.tblServices->horizontalHeader()->sortIndicatorSection();
   Qt::SortOrder order = ui.tblServices->horizontalHeader()->sortIndicatorOrder();
   ui.tblServices->sortByColumn(section, order);
+  updateUnitCount();
 }
 
