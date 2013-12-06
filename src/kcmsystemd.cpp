@@ -1985,13 +1985,41 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
 {
   // Slot for creating the right-click menu over the unit list
   QMenu menu(this);
-  QAction *enable = menu.addAction("&Enable unit");
+  QAction *edit = menu.addAction("&Edit unit file");
+  menu.addSeparator();
+  QAction *enable = menu.addAction("En&able unit");
   QAction *disable = menu.addAction("&Disable unit");  
-  QAction *a = menu.exec(ui.tblServices->viewport()->mapToGlobal(pos));
-
+  
   QString unit = ui.tblServices->model()->index(ui.tblServices->indexAt(pos).row(),3).data().toString();
   QString path = unitpaths[unit].toString();
+  
+  QDBusConnection systembus = QDBusConnection::systemBus();
+  QDBusInterface *iface = new QDBusInterface (
+	  "org.freedesktop.systemd1",
+	  path,
+	  "org.freedesktop.systemd1.Unit",
+	  systembus,
+	  this);
+  if (iface->property("UnitFileState").toString() == "disabled")
+  {
+    disable->setEnabled(false);
+  } else if (iface->property("UnitFileState").toString() == "enabled") {
+    enable->setEnabled(false);
+  } else {
+    enable->setEnabled(false);    
+    disable->setEnabled(false);
+  }
+  if (iface->property("FragmentPath").toString().isEmpty())
+    edit->setEnabled(false);
+  
+  QAction *a = menu.exec(ui.tblServices->viewport()->mapToGlobal(pos));
 
+  if (a == edit)
+  {   
+    QProcess kwrite (this);
+    kwrite.startDetached("kwrite", QStringList() << iface->property("FragmentPath").toString());  
+  }
+  delete iface;
   if (a == enable)
   {
     QList<QString> unitsForCall;
