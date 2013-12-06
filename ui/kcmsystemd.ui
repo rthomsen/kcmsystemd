@@ -60,6 +60,9 @@
           <number>0</number>
          </property>
          <widget class="QWidget" name="tabServices">
+          <property name="contextMenuPolicy">
+           <enum>Qt::CustomContextMenu</enum>
+          </property>
           <attribute name="title">
            <string>Units</string>
           </attribute>

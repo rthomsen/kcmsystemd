@@ -18,9 +18,6 @@
 #include "environ.h"
 #include "kcmsystemd.h"
 
-#include <QMessageBox>
-#include <QSignalMapper>
-
 int addedVars = 0;
 
 EnvironDialog::EnvironDialog (QWidget* parent, Qt::WFlags flags) : KDialog ( parent)
@@ -37,7 +34,6 @@ EnvironDialog::EnvironDialog (QWidget* parent, Qt::WFlags flags) : KDialog ( par
   while (i.hasNext())
   {
     addedVars++;
-    //QMessageBox::information(this, "Test", i.peekNext().first + "=" + i.peekNext().second);
     addNewVariable(addedVars, i.peekNext().first, i.peekNext().second);
     i.next();
   }
@@ -54,7 +50,6 @@ void EnvironDialog::slotButtonClicked(int button)
     kcmsystemd::environ.clear();
     
     QPair<QString,QString> i;
-    //QString test;
     
     // find all QLineEdits that contain "Name"
     QList<QLineEdit *> list = this->findChildren<QLineEdit *>();
@@ -64,8 +59,6 @@ void EnvironDialog::slotButtonClicked(int button)
       {
 	QLineEdit *Value = this->findChild<QLineEdit *>(Name->objectName().section("Name",0,0) + "Value");
 
-	//test.append(Name->text() + "=" + Value->text() + " ");
-
 	// If qlineedits not empty append them to "environ"
 	if (!Name->text().trimmed().isEmpty() && !Value->text().trimmed().isEmpty())
 	{
@@ -74,9 +67,7 @@ void EnvironDialog::slotButtonClicked(int button)
 	  kcmsystemd::environ.append(i);
 	}
       }
-    }
-    
-    // QMessageBox::information(this, "Test", test);
+    }    
   }
   KDialog::slotButtonClicked(button);
 }
@@ -92,7 +83,6 @@ void EnvironDialog::slotNewVariable()
 
 void EnvironDialog::addNewVariable(int index, QString name, QString value)
 {
-  //QMessageBox::information(this, "Test", "Creating: " + QString::number(index));
   QSignalMapper* signalMapper = new QSignalMapper (this);
   
   QLineEdit* leName = new QLineEdit (this);
@@ -123,7 +113,6 @@ void EnvironDialog::addNewVariable(int index, QString name, QString value)
 
 void EnvironDialog::slotRemoveVariable(const int &index)
 {
-  //QMessageBox::information(this, "Test", "Removing: " + QString::number(index));
   QLineEdit *varName = this->findChild<QLineEdit *>(QString::number(index)+"Name");
   if (varName)
     varName->hide();

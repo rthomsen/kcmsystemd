@@ -53,14 +53,15 @@ class kcmsystemd : public KCModule
     void defaults();
     void load();
     void save();
+    void setupSignalSlots();
     void initializeInterface();
+    void setupUnitslist();
     void readSystemConf();
     void readJournaldConf();
     void readLogindConf();
-    void readUnits();
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);
     bool eventFilter(QObject *, QEvent*);
-    void updateUnitProps(QString, bool);
+    void updateUnitProps(QString);
     void updateUnitCount();
     QProcess *pkgConfigVer;
     static QVariantMap resLimits;
@@ -71,7 +72,7 @@ class kcmsystemd : public KCModule
     QSortFilterProxyModel *proxyModelUnitType, *proxyModelAct, *proxyModelUnitName;
     QStandardItemModel *unitsModel;
     QList<SystemdUnit> unitslist;
-    QString selectedUnit, etcDir, filterUnit;
+    QString selectedUnit, etcDir;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
     float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
@@ -88,7 +89,24 @@ class kcmsystemd : public KCModule
   private slots:
     void slotVersion();
     void slotDefaultChanged();
+    void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
+    void slotBtnStartUnit();
+    void slotBtnStopUnit();    
+    void slotBtnRestartUnit();
+    void slotBtnReloadUnit(); 
+    void slotChkInactiveUnits();
+    void slotCmbUnitTypes();
+    void slotDisplayMenu(const QPoint &);
+    void slotRefreshUnitsList();
+    void slotSystemdReloading(bool);
+    void slotUnitLoaded(QString, QDBusObjectPath);
+    void slotUnitUnloaded(QString, QDBusObjectPath);
+    void slotUnitFilesChanged();
+    void slotPropertiesChanged(QString, QVariantMap, QStringList);
+    void slotLeSearchUnitChanged(QString);
     void slotCPUAffinityChanged();
+    void slotOpenResourceLimits();
+    void slotOpenEnviron();
     void slotStorageChanged();
     void slotFwdToSyslogChanged();
     void slotFwdToKmsgChanged();
@@ -99,23 +117,6 @@ class kcmsystemd : public KCModule
     void slotMaxRetentionChanged();
     void slotMaxFileChanged();
     void slotKillUserProcessesChanged();
-    void slotOpenResourceLimits();
-    void slotOpenEnviron();
-    void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
-    void slotBtnStartUnit();
-    void slotBtnStopUnit();    
-    void slotBtnRestartUnit();
-    void slotBtnReloadUnit(); 
-    void slotChkInactiveUnits();
-    void slotCmbUnitTypes();
-    void slotDisplayMenu(const QPoint &);
-    void refreshUnitsList();
-    void slotSystemdReloading(bool);
-    void slotUnitLoaded(QString, QDBusObjectPath);
-    void slotUnitUnloaded(QString, QDBusObjectPath);
-    void slotUnitFilesChanged();
-    void slotPropertiesChanged(QString, QVariantMap, QStringList);
-    void slotLeSearchUnitChanged(QString);
 };
 
 #endif // kcmsystemd_H
