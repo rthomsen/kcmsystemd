@@ -53,6 +53,13 @@ class kcmsystemd : public KCModule
     void defaults();
     void load();
     void save();
+    static QList<QPair<QString, QString> > environ;
+    static QVariantMap resLimits;
+    static bool resLimitsChanged;
+    static bool environChanged;
+    
+  private:
+    Ui::kcmsystemd ui;
     void setupSignalSlots();
     void initializeInterface();
     void setupUnitslist();
@@ -64,11 +71,7 @@ class kcmsystemd : public KCModule
     void updateUnitProps(QString);
     void updateUnitCount();
     QProcess *pkgConfigVer;
-    static QVariantMap resLimits;
     QVariantMap unitpaths;
-    static QList<QPair<QString, QString> > environ;
-    static bool resLimitsChanged;
-    static bool environChanged;
     QSortFilterProxyModel *proxyModelUnitType, *proxyModelAct, *proxyModelUnitName;
     QStandardItemModel *unitsModel;
     QList<SystemdUnit> unitslist;
@@ -77,9 +80,6 @@ class kcmsystemd : public KCModule
     QAction *actEnableUnit, *actDisableUnit;
     float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
     int timesLoad, lastRowChecked, selectedRow, noActUnits;
-    
-  private:
-    Ui::kcmsystemd ui;
     long long unsigned partPersSizeMB, partVolaSizeMB;
     bool isPersistent;
     bool ToBoolDefOff(QString);
