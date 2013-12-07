@@ -9,7 +9,7 @@ Policy=auth_admin
 Persistence=session
 
 [org.kde.kcontrol.kcmsystemd.dbusaction]
-Name=Manipulate a systemd service over DBus
-Description=Administrator authorization is required to modify this service
+Name=Manipulate a systemd unit over DBus
+Description=Administrator authorization is required to modify this unit
 Policy=auth_admin
 Persistence=session

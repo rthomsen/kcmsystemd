@@ -70,12 +70,12 @@ class kcmsystemd : public KCModule
     bool eventFilter(QObject *, QEvent*);
     void updateUnitProps(QString);
     void updateUnitCount();
-    QProcess *pkgConfigVer;
+    QProcess *pkgConfigVer, *kdeConfig;
     QVariantMap unitpaths;
     QSortFilterProxyModel *proxyModelUnitType, *proxyModelAct, *proxyModelUnitName;
     QStandardItemModel *unitsModel;
     QList<SystemdUnit> unitslist;
-    QString selectedUnit, etcDir;
+    QString kdePrefix, selectedUnit, etcDir;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
     float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
@@ -88,6 +88,7 @@ class kcmsystemd : public KCModule
 
   private slots:
     void slotVersion();
+    void slotKdeConfig();
     void slotDefaultChanged();
     void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
     void slotBtnStartUnit();

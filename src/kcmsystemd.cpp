@@ -55,12 +55,17 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
   pkgConfig.waitForFinished(5000);
   if (pkgConfig.exitCode() != 0)
     ui.stackedWidget->setCurrentIndex(1);
-  
+
   // Use pkg-config to get systemd version
   pkgConfigVer = new QProcess(this);
   connect(pkgConfigVer, SIGNAL(readyReadStandardOutput()), this, SLOT(slotVersion()));
   pkgConfigVer->start("pkg-config", QStringList() << "--modversion" << "libsystemd-daemon");
 
+  // Use kde4-config to get kde prefix
+  kdeConfig = new QProcess(this);
+  connect(kdeConfig, SIGNAL(readyReadStandardOutput()), this, SLOT(slotKdeConfig()));
+  kdeConfig->start("kde4-config", QStringList() << "--prefix");
+  
   // Find the configuration directory
   if (QDir("/etc/systemd").exists()) {
     etcDir = "/etc/systemd";
@@ -1623,9 +1628,16 @@ void kcmsystemd::slotFwdToConsoleChanged()
 
 void kcmsystemd::slotVersion()
 {
+  // Global environment variables are only supported in systemd version 205+
   QByteArray version = pkgConfigVer->readAllStandardOutput();
   if (QString(version).toInt() < 205)
     ui.btnEnviron->setEnabled(0);
+}
+
+void kcmsystemd::slotKdeConfig()
+{
+  // Set a QString containing the kde prefix
+  kdePrefix = QString::fromAscii(kdeConfig->readAllStandardOutput()).trimmed();
 }
 
 void kcmsystemd::slotKillUserProcessesChanged()
@@ -2015,9 +2027,9 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   QAction *a = menu.exec(ui.tblServices->viewport()->mapToGlobal(pos));
 
   if (a == edit)
-  {   
+  {
     QProcess kwrite (this);
-    kwrite.startDetached("kwrite", QStringList() << iface->property("FragmentPath").toString());  
+    kwrite.startDetached(kdePrefix + "/lib/kde4/libexec/kdesu", QStringList() << "-t" << "--" << "kwrite" << iface->property("FragmentPath").toString()); 
   }
   delete iface;
   if (a == enable)
