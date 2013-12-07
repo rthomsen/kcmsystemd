@@ -44,22 +44,28 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
 {
   KAboutData *about = new KAboutData("kcmsystemd", "kcmsystemd", ki18nc("@title", "KDE Systemd Control Module"), KCM_SYSTEMD_VERSION, ki18nc("@title", "A KDE Control Module for configuring Systemd."), KAboutData::License_GPL_V3, ki18nc("@info:credit", "Copyright (C) 2013 Ragnar Thomsen"), KLocalizedString(), "https://github.com/rthomsen/kcmsystemd");
   about->addAuthor(ki18nc("@info:credit", "Ragnar Thomsen"), ki18nc("@info:credit", "Main Developer"), "rthomsen6@gmail.com");
-  setAboutData(about);
-  
+  setAboutData(about);  
   ui.setupUi(this);
   setNeedsAuthorization(true);
-  
-  // Use pkg-config to see if systemd is installed
-  QProcess pkgConfig (this);
-  pkgConfig.start("pkg-config", QStringList() << "--exists" << "libsystemd-daemon");
-  pkgConfig.waitForFinished(5000);
-  if (pkgConfig.exitCode() != 0)
-    ui.stackedWidget->setCurrentIndex(1);
 
-  // Use pkg-config to get systemd version
-  pkgConfigVer = new QProcess(this);
-  connect(pkgConfigVer, SIGNAL(readyReadStandardOutput()), this, SLOT(slotVersion()));
-  pkgConfigVer->start("pkg-config", QStringList() << "--modversion" << "libsystemd-daemon");
+  // See if systemd is reachable via dbus
+  QDBusConnection systembus = QDBusConnection::systemBus();
+  QDBusInterface *iface = new QDBusInterface ("org.freedesktop.systemd1",
+					      "/org/freedesktop/systemd1",
+					      "org.freedesktop.systemd1.Manager",
+					      systembus,
+					      this);
+  if (iface->isValid()) {
+    systemdVersion = iface->property("Version").toString().remove("systemd ").toInt();
+    // Global environment variables are only supported in systemd>=205
+    if (systemdVersion < 205)
+      ui.btnEnviron->setEnabled(0);
+    qDebug() << "Systemd" << systemdVersion << "detected.";
+  } else {
+    qDebug() << "Unable to contact systemd daemon!";
+    ui.stackedWidget->setCurrentIndex(1);
+  }
+  delete iface;
 
   // Use kde4-config to get kde prefix
   kdeConfig = new QProcess(this);
@@ -92,15 +98,13 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
   setupSignalSlots();
   
   // Subscribe to dbus signals from systemd daemon and connect them to slots
-  QDBusMessage dbusreply;
-  QDBusConnection systembus = QDBusConnection::systemBus();
-  QDBusInterface *iface = new QDBusInterface ("org.freedesktop.systemd1",
+  iface = new QDBusInterface ("org.freedesktop.systemd1",
 					      "/org/freedesktop/systemd1",
 					      "org.freedesktop.systemd1.Manager",
 					      systembus,
 					      this);
   if (iface->isValid())
-    dbusreply = iface->call(QDBus::AutoDetect, "Subscribe");
+    iface->call(QDBus::AutoDetect, "Subscribe");
   delete iface;
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","Reloading",this,SLOT(slotSystemdReloading(bool)));
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitNew",this,SLOT(slotUnitLoaded(QString, QDBusObjectPath)));
@@ -1624,14 +1628,6 @@ void kcmsystemd::slotFwdToConsoleChanged()
     ui.cmbLevelConsole->setEnabled(0);
   }
   emit changed(true);
-}
-
-void kcmsystemd::slotVersion()
-{
-  // Global environment variables are only supported in systemd version 205+
-  QByteArray version = pkgConfigVer->readAllStandardOutput();
-  if (QString(version).toInt() < 205)
-    ui.btnEnviron->setEnabled(0);
 }
 
 void kcmsystemd::slotKdeConfig()

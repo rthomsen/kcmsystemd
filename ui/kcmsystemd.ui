@@ -40,7 +40,7 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="page1">
+     <widget class="QWidget" name="SystemdFound">
       <layout class="QGridLayout" name="gridLayout_10">
        <item row="0" column="0">
         <widget class="QTabWidget" name="tabWidget">
@@ -1733,7 +1733,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="page2">
+     <widget class="QWidget" name="SystemdNotFound">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <layout class="QGridLayout" name="gridLayout_14">
@@ -1766,7 +1766,7 @@
          <item row="0" column="1">
           <widget class="QLabel" name="lblFailMessage">
            <property name="text">
-            <string>Systemd does not appear to be installed on your system!</string>
+            <string>Attempt to contact the systemd daemon through D-Bus system bus failed!</string>
            </property>
           </widget>
          </item>

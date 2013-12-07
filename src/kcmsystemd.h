@@ -70,7 +70,7 @@ class kcmsystemd : public KCModule
     bool eventFilter(QObject *, QEvent*);
     void updateUnitProps(QString);
     void updateUnitCount();
-    QProcess *pkgConfigVer, *kdeConfig;
+    QProcess *kdeConfig;
     QVariantMap unitpaths;
     QSortFilterProxyModel *proxyModelUnitType, *proxyModelAct, *proxyModelUnitName;
     QStandardItemModel *unitsModel;
@@ -79,7 +79,7 @@ class kcmsystemd : public KCModule
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
     float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
-    int timesLoad, lastRowChecked, selectedRow, noActUnits;
+    int systemdVersion, timesLoad, lastRowChecked, selectedRow, noActUnits;
     long long unsigned partPersSizeMB, partVolaSizeMB;
     bool isPersistent;
     bool ToBoolDefOff(QString);
@@ -87,7 +87,6 @@ class kcmsystemd : public KCModule
     void updateSizeLimits(QComboBox*, QSpinBox*);
 
   private slots:
-    void slotVersion();
     void slotKdeConfig();
     void slotDefaultChanged();
     void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
