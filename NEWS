@@ -1,5 +1,13 @@
 NEWS file for kcmsystemd
 
+0.4.0 (2013-12-08)
+---
+- A clear button was added to the unit search box.
+- When stopping a unit, it now correctly disappears from the list if "Show inactive" is unchecked.
+- "Edit unit file" added to right-click menu (uses kdesu to get root privileges).
+- Only relevant actions in right-click menu are enabled.
+- D-Bus is used to detect systemd and version instead of pkgconfig.
+
 0.3.0 (2013-12-04)
 ---
 - Search functionality was implemented in the units tab.
