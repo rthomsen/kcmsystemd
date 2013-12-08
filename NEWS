@@ -2,6 +2,7 @@ NEWS file for kcmsystemd
 
 0.4.0 (2013-12-08)
 ---
+- A statusbar showing total units, active units and displayed units was implemented.
 - A clear button was added to the unit search box.
 - When stopping a unit, it now correctly disappears from the list if "Show inactive" is unchecked.
 - "Edit unit file" added to right-click menu (uses kdesu to get root privileges).
