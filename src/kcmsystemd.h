@@ -44,6 +44,19 @@ struct SystemdUnit
 };
 Q_DECLARE_METATYPE(SystemdUnit)
 
+struct unitfile
+{
+  QString name, status;
+  
+  bool operator==(const unitfile& right) const
+  {
+    if (name.section('/',-1) == right.name)
+      return true;
+    else
+      return false;
+  }
+};
+
 class kcmsystemd : public KCModule
 {
   Q_OBJECT
@@ -66,16 +79,17 @@ class kcmsystemd : public KCModule
     void readSystemConf();
     void readJournaldConf();
     void readLogindConf();
-    void authServiceAction(QString, QString, QString, QString, QList<QVariant>);
+    void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
     bool eventFilter(QObject *, QEvent*);
     void updateUnitProps(QString);
     void updateUnitCount();
     QProcess *kdeConfig;
     QVariantMap unitpaths;
-    QSortFilterProxyModel *proxyModelUnitType, *proxyModelAct, *proxyModelUnitName;
+    QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct;
     QStandardItemModel *unitsModel;
     QList<SystemdUnit> unitslist;
-    QString kdePrefix, selectedUnit, etcDir;
+    QList<unitfile> unitfileslist;
+    QString kdePrefix, selectedUnit, etcDir, filterUnitType, searchTerm;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
     float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
@@ -94,7 +108,7 @@ class kcmsystemd : public KCModule
     void slotBtnStopUnit();    
     void slotBtnRestartUnit();
     void slotBtnReloadUnit(); 
-    void slotChkInactiveUnits();
+    void slotChkShowUnits();
     void slotCmbUnitTypes();
     void slotDisplayMenu(const QPoint &);
     void slotRefreshUnitsList();
