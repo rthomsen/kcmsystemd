@@ -896,7 +896,7 @@ void kcmsystemd::readLogindConf()
   // Set keywords for parsing logind.conf:
   QStringList loginids = QStringList() << "NAutoVTs" << "ReserveVT" << "KillUserProcesses"
   << "KillOnlyUsers" << "KillExcludeUsers" << "Controllers" << "ResetControllers" 
-  << "InhibDelayMaxSec" << "HandlePowerKey" << "HandleSuspendKey" << "HandleHibernateKey" 
+  << "InhibitDelayMaxSec" << "HandlePowerKey" << "HandleSuspendKey" << "HandleHibernateKey" 
   << "HandleLidSwitch" << "PowerKeyIgnoreInhibited" << "SuspendKeyIgnoreInhibited" 
   << "HibernateKeyIgnoreInhibited" << "LidSwitchIgnoreInhibited" << "IdleAction=" 
   << "IdleActionSec";
@@ -1434,7 +1434,7 @@ void kcmsystemd::save()
   logindConfFileContents.append("KillExcludeUsers=" + ui.leKillExcludeUsers->text() + "\n");
   logindConfFileContents.append("Controllers=" + ui.leControllers->text() + "\n");
   logindConfFileContents.append("ResetControllers=" + ui.leResetControllers->text() + "\n");
-  logindConfFileContents.append("InhibDelayMaxSec=" + ui.spnInhibDelayMax->cleanText() + "\n");
+  logindConfFileContents.append("InhibitDelayMaxSec=" + ui.spnInhibDelayMax->cleanText() + "\n");
   logindConfFileContents.append("HandlePowerKey=" + ui.cmbPowerKey->currentText() + "\n");
   logindConfFileContents.append("HandleSuspendKey=" + ui.cmbSuspendKey->currentText() + "\n");
   logindConfFileContents.append("HandleHibernateKey=" + ui.cmbHibernateKey->currentText() + "\n");
