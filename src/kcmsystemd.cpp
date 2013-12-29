@@ -2096,6 +2096,7 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   QList<QVariant> args;
   args << unit;
   QString UnitFileState = iface->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString();
+  delete iface;
   
   if (UnitFileState == "disabled")
   {
@@ -2106,9 +2107,14 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
     enable->setEnabled(false);    
     disable->setEnabled(false);
   }
+  
+  // Check if unit has a unit file, if not disable editing
+  QString frpath;
   unitfile afile;
   afile.name = unit;
-  QString frpath = unitfileslist.at(unitfileslist.indexOf(afile)).name;
+  int index = unitfileslist.indexOf(afile);
+  if (index != -1)
+    frpath = unitfileslist.at(index).name;
   if (frpath.isEmpty())
     edit->setEnabled(false);
   
@@ -2118,9 +2124,7 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   {
     QProcess kwrite (this);
     kwrite.startDetached(kdePrefix + "/lib/kde4/libexec/kdesu", QStringList() << "-t" << "--" << "kwrite" << frpath);
-    //kwrite.startDetached(kdePrefix + "/lib/kde4/libexec/kdesu", QStringList() << "-t" << "--" << "kwrite" << iface->property("FragmentPath").toString());
   }
-  delete iface;
   if (a == enable)
   {
     QList<QString> unitsForCall;
