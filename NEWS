@@ -1,5 +1,12 @@
 NEWS file for kcmsystemd
 
+0.5.0 (2013-12-30)
+---
+- Ability to control non-loaded units
+- Ability to isolate units
+- Improved tooltips for units tab
+- Bugfixes
+
 0.4.0 (2013-12-08)
 ---
 - A statusbar showing total units, active units and displayed units was implemented.

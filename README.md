@@ -2,7 +2,7 @@ Kcmsystemd
 ==========
 
 Systemd control module for KDE. Provides a graphical frontend for the systemd 
-daemon, which allow for viewing and controlling systemd units, as well as 
+daemon, which allows for viewing and controlling systemd units, as well as 
 modifying configuration files.
 Integrates in the System Settings dialogue in KDE.
 
