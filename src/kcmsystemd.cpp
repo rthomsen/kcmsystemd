@@ -2176,15 +2176,43 @@ bool kcmsystemd::eventFilter(QObject *watched, QEvent* event)
 	  // Use the DBus interface to get unit properties
 	  if (iface->isValid())
 	  {
-	    toolTipText.append(iface->property("Id").toString() + "\n---------------\n");
-	    toolTipText.append("Requires: " + iface->property("Requires").toString() + "\n");
-	    toolTipText.append("Wants: " + iface->property("Wants").toString() + "\n");
-	    toolTipText.append("Conflicts: " + iface->property("Conflicts").toString() + "\n---------------\n");
-	    toolTipText.append("Required by: " + iface->property("RequiredBy").toString() + "\n");
-	    toolTipText.append("Wanted by: " + iface->property("WantedBy").toString() + "\n");
-	    toolTipText.append("Conflicted by: " + iface->property("ConflictedBy").toString() + "\n---------------\n");
-	    toolTipText.append("After: " + iface->property("After").toString() + "\n");
-	    toolTipText.append("Before: " + iface->property("Before").toString());
+	    QStringList req = iface->property("Requires").toStringList();
+	    QStringList wan = iface->property("Wants").toStringList();
+	    QStringList con = iface->property("Conflicts").toStringList();
+	    QStringList reqby = iface->property("RequiredBy").toStringList();
+	    QStringList wanby = iface->property("WantedBy").toStringList();
+	    QStringList conby = iface->property("ConflictedBy").toStringList();
+	    QStringList aft = iface->property("After").toStringList();	    
+	    QStringList bef = iface->property("Before").toStringList();	    
+
+	    toolTipText.append("<FONT COLOR=black>");
+	    toolTipText.append("<span style=\"font-weight:bold;\">" + iface->property("Id").toString() + "</span><hr>");
+	    
+	    toolTipText.append("<span style=\"font-weight:bold;\">Requires:</span> ");
+	    foreach (QString i, req)
+	      toolTipText.append(i + " ");
+	    toolTipText.append("<br><span style=\"font-weight:bold;\">Wants:</span> ");
+	    foreach (QString i, wan)
+	      toolTipText.append(i + " ");
+	    toolTipText.append("<br><span style=\"font-weight:bold;\">Conflicts:</span> ");
+	    foreach (QString i, con)
+	      toolTipText.append(i + " ");
+	    toolTipText.append("<hr><span style=\"font-weight:bold;\">Required by:</span> ");
+	    foreach (QString i, reqby)
+	      toolTipText.append(i + " ");
+	    toolTipText.append("<br><span style=\"font-weight:bold;\">Wanted by:</span> ");
+	    foreach (QString i, wanby)
+	      toolTipText.append(i + " ");
+	    toolTipText.append("<br><span style=\"font-weight:bold;\">Conflicted by:</span> ");
+	    foreach (QString i, conby)
+	      toolTipText.append(i + " ");
+	    toolTipText.append("<hr><span style=\"font-weight:bold;\">After:</span> ");
+	    foreach (QString i, aft)
+	      toolTipText.append(i + " ");
+	    toolTipText.append("<br><span style=\"font-weight:bold;\">Before:</span> ");
+	    foreach (QString i, bef)
+	      toolTipText.append(i + " ");
+	    toolTipText.append("</FONT");
 	  }
 	  unitsModel->itemFromIndex(inUnitsModel)->setToolTip(toolTipText);
 	  delete iface;
