@@ -61,6 +61,9 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
     // Global environment variables are only supported in systemd>=205
     if (systemdVersion < 205)
       ui.btnEnviron->setEnabled(0);
+    // These options were removed in systemd 207
+    if (systemdVersion > 206)
+      ui.grpControlGroups->setEnabled(0);
     qDebug() << "Systemd" << systemdVersion << "detected.";
   } else {
     qDebug() << "Unable to contact systemd daemon!";
@@ -1432,8 +1435,11 @@ void kcmsystemd::save()
     logindConfFileContents.append("KillUserProcesses=no\n");
   logindConfFileContents.append("KillOnlyUsers=" + ui.leKillOnlyUsers->text() + "\n");
   logindConfFileContents.append("KillExcludeUsers=" + ui.leKillExcludeUsers->text() + "\n");
-  logindConfFileContents.append("Controllers=" + ui.leControllers->text() + "\n");
-  logindConfFileContents.append("ResetControllers=" + ui.leResetControllers->text() + "\n");
+  if (systemdVersion < 207)
+  {
+    logindConfFileContents.append("Controllers=" + ui.leControllers->text() + "\n");
+    logindConfFileContents.append("ResetControllers=" + ui.leResetControllers->text() + "\n");
+  }
   logindConfFileContents.append("InhibitDelayMaxSec=" + ui.spnInhibDelayMax->cleanText() + "\n");
   logindConfFileContents.append("HandlePowerKey=" + ui.cmbPowerKey->currentText() + "\n");
   logindConfFileContents.append("HandleSuspendKey=" + ui.cmbSuspendKey->currentText() + "\n");
