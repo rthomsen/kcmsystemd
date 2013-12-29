@@ -2079,6 +2079,7 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   // Slot for creating the right-click menu over the unit list
   QMenu menu(this);
   QAction *edit = menu.addAction("&Edit unit file");
+  QAction *isolate = menu.addAction("&Isolate unit");
   menu.addSeparator();
   QAction *enable = menu.addAction("En&able unit");
   QAction *disable = menu.addAction("&Disable unit");  
@@ -2096,6 +2097,14 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   QList<QVariant> args;
   args << unit;
   QString UnitFileState = iface->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString();
+  
+  iface = new QDBusInterface (
+	  "org.freedesktop.systemd1",
+	  path,
+	  "org.freedesktop.systemd1.Unit",
+	  systembus,
+	  this);
+  isolate->setEnabled(iface->property("CanIsolate").toBool());
   delete iface;
   
   if (UnitFileState == "disabled")
@@ -2124,6 +2133,16 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   {
     QProcess kwrite (this);
     kwrite.startDetached(kdePrefix + "/lib/kde4/libexec/kdesu", QStringList() << "-t" << "--" << "kwrite" << frpath);
+  }
+  if (a == isolate)
+  {
+    QList<QVariant> argsForCall;
+    argsForCall << unit << "isolate";
+    authServiceAction("org.freedesktop.systemd1",
+	"/org/freedesktop/systemd1",
+	"org.freedesktop.systemd1.Manager",
+	"StartUnit",
+	argsForCall);    
   }
   if (a == enable)
   {
