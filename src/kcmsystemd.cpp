@@ -320,7 +320,7 @@ void kcmsystemd::initializeInterface()
     ui.cmbMaxFile->addItem(allowTimeUnits[i]);
     ui.cmbIdleActionSec->addItem(allowTimeUnits[i]);
   }
-  ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("seconds"));
+  ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("minutes"));
   ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("seconds"));
   ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("minutes"));
   ui.cmbMaxRetention->addItem("months");
@@ -607,7 +607,7 @@ void kcmsystemd::readJournaldConf()
 	ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("minutes"));
 	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
 	  QRegExp nmbrs("[0-9]+");
-	  QRegExp timeunit("ms|s|min|h|d|w");
+	  QRegExp timeunit("ms|s|m|h|d|w");
 	  ui.spnSync->setValue(line.section("=",-1).trimmed().section(timeunit,0,0).toInt());
 	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "ms") {
 	    ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("milliseconds"));
