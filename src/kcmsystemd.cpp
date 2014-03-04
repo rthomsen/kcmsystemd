@@ -64,6 +64,12 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
     // These options were removed in systemd 207
     if (systemdVersion > 206)
       ui.grpControlGroups->setEnabled(0);
+    // This option were removed in systemd 208
+    if (systemdVersion > 207)
+    {
+      ui.lblDefControllers->setEnabled(0);
+      ui.leDefControllers->setEnabled(0);
+    }
     qDebug() << "Systemd" << systemdVersion << "detected.";
   } else {
     qDebug() << "Unable to contact systemd daemon!";
@@ -1183,7 +1189,8 @@ void kcmsystemd::save()
     systemConfFileContents.append("CPUAffinity=" + ui.leCPUAffinity->text() + "\n");
   else
     systemConfFileContents.append("CPUAffinity=\n");
-  systemConfFileContents.append("DefaultControllers=" + ui.leDefControllers->text() + "\n");
+  if (systemdVersion < 208)
+    systemConfFileContents.append("DefaultControllers=" + ui.leDefControllers->text() + "\n");
   systemConfFileContents.append("DefaultStandardOutput=" + ui.cmbDefStdOutput->currentText() + "\n");
   systemConfFileContents.append("DefaultStandardError=" + ui.cmbDefStdError->currentText() + "\n");
   systemConfFileContents.append("JoinControllers=" + ui.leJoinControllers->text() + "\n");

@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>472</width>
-    <height>594</height>
+    <width>483</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -796,12 +796,12 @@
               <item row="2" column="1">
                <widget class="QLineEdit" name="leDefControllers">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Configures in which cgroup controller hierarchies to create per-service cgroups automatically, in addition to the name=systemd named hierarchy. Takes a space-separated list of controller names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Configures in which cgroup controller hierarchies to create per-service cgroups automatically, in addition to the name=systemd named hierarchy. Takes a space-separated list of controller names.&lt;/p&gt;&lt;p&gt;This option was removed in systemd 208.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="0">
-               <widget class="QLabel" name="label_6">
+               <widget class="QLabel" name="lblDefControllers">
                 <property name="text">
                  <string>Default controllers:</string>
                 </property>
@@ -833,7 +833,7 @@
               <item row="4" column="2" colspan="2">
                <widget class="QPushButton" name="btnEnviron">
                 <property name="toolTip">
-                 <string>Set environment variables passed to all executed processes.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set environment variables passed to all executed processes.&lt;/p&gt;&lt;p&gt;Requires systemd 205 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Environment</string>
@@ -1783,14 +1783,14 @@
               <item row="0" column="1">
                <widget class="QLineEdit" name="leControllers">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Default control group hierarchies users logging in are added to, in addition to the &amp;quot;name=systemd&amp;quot; hierarchy. Comma-separated list of controllers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Default control group hierarchies users logging in are added to, in addition to the &amp;quot;name=systemd&amp;quot; hierarchy. Comma-separated list of controllers.&lt;/p&gt;&lt;p&gt;This option was removed in systemd 207.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
                <widget class="QLineEdit" name="leResetControllers">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;User sessions will be reset to the root control group in all specified controller hierarchies. Comma-separated list of controllers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;User sessions will be reset to the root control group in all specified controller hierarchies. Comma-separated list of controllers.&lt;/p&gt;&lt;p&gt;This option was removed in systemd 207.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
