@@ -67,9 +67,10 @@ class kcmsystemd : public KCModule
     void load();
     void save();
     static QList<QPair<QString, QString> > environ;
-    static QVariantMap resLimits;
+    static QVariantMap resLimits, timeoutSettings;
     static bool resLimitsChanged;
     static bool environChanged;
+    static bool timeoutsChanged;
     
   private:
     Ui::kcmsystemd ui;
@@ -121,6 +122,7 @@ class kcmsystemd : public KCModule
     void slotCPUAffinityChanged();
     void slotOpenResourceLimits();
     void slotOpenEnviron();
+    void slotOpenTimeouts();
     void slotStorageChanged();
     void slotFwdToSyslogChanged();
     void slotFwdToKmsgChanged();

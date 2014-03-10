@@ -2,13 +2,14 @@ add_subdirectory(helper)
 
 set(kcmsystemd_INCLUDE_DIRS ${KDE4_INCLUDES})
 
-set(kcmsystemd_SRCS kcmsystemd.cpp reslimits.cpp environ.cpp)
+set(kcmsystemd_SRCS kcmsystemd.cpp reslimits.cpp environ.cpp timeouts.cpp)
 
 find_package(Boost 1.45.0 COMPONENTS filesystem system REQUIRED)
 
 kde4_add_ui_files(kcmsystemd_SRCS ../ui/kcmsystemd.ui)
 kde4_add_ui_files(kcmsystemd_SRCS ../ui/reslimits.ui)
 kde4_add_ui_files(kcmsystemd_SRCS ../ui/environ.ui)
+kde4_add_ui_files(kcmsystemd_SRCS ../ui/timeouts.ui)
 
 include_directories(${kcmsystemd_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIR})

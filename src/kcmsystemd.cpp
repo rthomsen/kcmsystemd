@@ -16,9 +16,9 @@
  *******************************************************************************/
 
 #include "kcmsystemd.h"
-//#include "unitfiles.h"
 #include "reslimits.h"
 #include "environ.h"
+#include "timeouts.h"
 #include <config.h>
 
 #include <QMouseEvent>
@@ -37,9 +37,11 @@ K_EXPORT_PLUGIN(kcmsystemdFactory("kcmsystemd"))
 
 // Declare static member variables accessible from reslimits.cpp and environ.cpp
 QVariantMap kcmsystemd::resLimits;
+QVariantMap kcmsystemd::timeoutSettings;
 QList<QPair<QString, QString> > kcmsystemd::environ;
 bool kcmsystemd::resLimitsChanged = 0;
 bool kcmsystemd::environChanged = 0;
+bool kcmsystemd::timeoutsChanged = 0;
 
 kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcmsystemdFactory::componentData(), parent, list)
 {
@@ -198,6 +200,7 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.cmbTimerSlack, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
   connect(ui.btnResourceLimits, SIGNAL(clicked()), this, SLOT(slotOpenResourceLimits()));
   connect(ui.btnEnviron, SIGNAL(clicked()), this, SLOT(slotOpenEnviron()));
+  connect(ui.btnTimeouts, SIGNAL(clicked()), this, SLOT(slotOpenTimeouts()));
   
   // Connect signals for journald.conf:
   connect(ui.chkCompressLogs, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
@@ -374,7 +377,9 @@ void kcmsystemd::readSystemConf()
     << "LogLocation" << "DumpCore" << "CrashShell" << "ShowStatus" << "CrashChVT" 
     << "CPUAffinity" << "DefaultControllers" << "DefaultStandardOutput"
     << "DefaultStandardError" << "JoinControllers" << "RuntimeWatchdogSec"
-    << "ShutdownWatchdogSec" << "CapabilityBoundingSet" << "TimerSlackNSec" 
+    << "ShutdownWatchdogSec" << "CapabilityBoundingSet" << "TimerSlackNSec"
+    << "DefaultTimeoutStartSec" << "DefaultTimeoutStopSec" << "DefaultRestartSec"
+    << "DefaultStartLimitInterval" << "DefaultStartLimitBurst"
     << "DefaultLimitCPU" << "DefaultLimitFSIZE" << "DefaultLimitDATA"
     << "DefaultLimitSTACK" << "DefaultLimitCORE" << "DefaultLimitRSS"
     << "DefaultLimitNOFILE" << "DefaultLimitAS" << "DefaultLimitNPROC"
@@ -382,14 +387,14 @@ void kcmsystemd::readSystemConf()
     << "DefaultLimitMSGQUEUE" << "DefaultLimitNICE" << "DefaultLimitRTPRIO"
     << "DefaultLimitRTTIME" << "DefaultEnvironment";
 
-  QFile systemfile (etcDir + "/system.conf");
-
+  QFile systemfile (etcDir + "/system.conf"); 
+  
   if (systemfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QTextStream in(&systemfile);
     QString line = in.readLine();
 
     while(!line.isNull()) {
-    
+      
       if (line.contains(systemids[0])) {
 	if (line.trimmed().left(1) != "#" && !line.section("=",-1).trimmed().isEmpty())
 	  ui.cmbLogLevel->setCurrentIndex(ui.cmbLogLevel->findText(line.section("=",-1).trimmed().toLower()));
@@ -515,8 +520,69 @@ void kcmsystemd::readSystemConf()
 	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "w")
 	      ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("weeks"));
 	  }
+	  
+      } else if (line.contains(systemids[17])) {
+	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
+     	    QRegExp timeunit("s|min");
+	    if (line.contains("min"))
+	    {
+	      int min = line.section('=',-1).trimmed().section(timeunit,0,0).trimmed().toInt();
+	      qDebug() << "min: " << min;
+	      int sec = line.section('=',-1).trimmed().section(timeunit,1,1).trimmed().toInt();
+	      qDebug() << "sec: " << sec;
+              int secFinal = min * 60 + sec;
+              qDebug() << "secFinal: " << secFinal;
+              timeoutSettings["DefaultTimeoutStartSec"] = secFinal;
+	    } else {
+              timeoutSettings["DefaultTimeoutStartSec"] = line.section('=',-1).trimmed().toInt();
+	    }
+          }
+          
+      } else if (line.contains(systemids[18])) {
+          if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
+            QRegExp timeunit("s|min");
+            if (line.contains("min"))
+            {
+              int min = line.section("=",-1).trimmed().section(timeunit,0,0).trimmed().toInt();
+              qDebug() << "min: " << min;
+              int sec = line.section("=",-1).trimmed().section(timeunit,1,1).trimmed().toInt();
+              qDebug() << "sec: " << sec;
+              int secFinal = min * 60 + sec;
+              qDebug() << "secFinal: " << secFinal;
+              timeoutSettings["DefaultTimeoutStopSec"] = secFinal;
+            } else {
+              timeoutSettings["DefaultTimeoutStopSec"] = line.section("=",-1).trimmed().toInt();
+            }
+          }
+          
+      } else if (line.contains(systemids[19])) {
+          if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
+            QRegExp timeunit("s|min");
+            if (line.contains("min"))
+            {
+              int min = line.section("=",-1).trimmed().section(timeunit,0,0).trimmed().toInt();
+              qDebug() << "min: " << min;
+              int sec = line.section("=",-1).trimmed().section(timeunit,1,1).trimmed().toInt();
+              qDebug() << "sec: " << sec;
+              int secFinal = min * 60 + sec;
+              qDebug() << "secFinal: " << secFinal;
+              timeoutSettings["DefaultRestartSec"] = secFinal;
+            } else {
+              timeoutSettings["DefaultRestartSec"] = line.section('=',-1).trimmed().toInt();
+            }
+          }
 
-      } else if (line.contains(systemids[33])) {
+      } else if (line.contains(systemids[20])) {
+          if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
+            timeoutSettings["DefaultStartLimitInterval"] = line.section('=',-1).trimmed().section('s',0,0).trimmed().toInt();
+          }
+          
+      } else if (line.contains(systemids[21])) {
+          if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
+            timeoutSettings["DefaultStartLimitBurst"] = line.section("=",-1).trimmed().toInt();
+          }
+
+      } else if (line.contains(systemids[38])) {
 	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
 	    QString content = line.section('=',1).trimmed();
 
@@ -555,12 +621,12 @@ void kcmsystemd::readSystemConf()
       // default resource limits
       for (int i = 0; i <= 15; i++)
       {
-	if (line.contains(systemids[i + 17]))
+	if (line.contains(systemids[i + 22]))
 	{
 	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
 	    resLimits[QString(line.section('=',0,0).trimmed())] = line.section("=",-1).trimmed();
 	  else
-	    resLimits[systemids[i + 17]] = 0;
+	    resLimits[systemids[i + 22]] = 0;
 	}
       }
 
@@ -569,8 +635,7 @@ void kcmsystemd::readSystemConf()
         
   } // if file open
   else 
-    KMessageBox::error(this, i18n("Failed to read %1/system.conf. Using default values.", etcDir));
-    
+    KMessageBox::error(this, i18n("Failed to read %1/system.conf. Using default values.", etcDir));   
 }
 
 void kcmsystemd::readJournaldConf()
@@ -1091,6 +1156,14 @@ void kcmsystemd::defaults()
     for(QVariantMap::const_iterator iter = kcmsystemd::resLimits.begin(); iter != kcmsystemd::resLimits.end(); ++iter)
       kcmsystemd::resLimits[QString(iter.key())] = 0;
     environ.clear();
+    if (systemdVersion >= 209)
+    {
+      timeoutSettings["DefaultTimoutStartSec"] = 90;
+      timeoutSettings["DefaultTimeoutStopSec"] = 90;
+      timeoutSettings["DefaultRestartSec"] = 100;
+      timeoutSettings["DefaultStartLimitInterval"] = 10;
+      timeoutSettings["DefaultStartLimitBurst"] = 5;
+    }
     
     //defaults for journald.conf
     ui.cmbStorage->setCurrentIndex(ui.cmbStorage->findText("auto"));
@@ -1260,6 +1333,18 @@ void kcmsystemd::save()
     break;
   case 6:
     systemConfFileContents.append("w\n");
+  }
+  
+  if (systemdVersion >= 209)
+  {
+    for(QVariantMap::const_iterator iter = timeoutSettings.begin(); iter != timeoutSettings.end(); ++iter)
+    {
+      systemConfFileContents.append(iter.key() + "=" + iter.value().toString());
+      if (iter.key() == "DefaultRestartSec")
+        systemConfFileContents.append("ms\n");
+      else
+        systemConfFileContents.append("\n");
+    }
   }
   
   for(QVariantMap::const_iterator iter = resLimits.begin(); iter != resLimits.end(); ++iter)
@@ -1676,6 +1761,15 @@ void kcmsystemd::slotOpenEnviron()
   environDialog->exec();
   delete environDialog;
   if (environChanged)
+    emit changed(true);
+}
+
+void kcmsystemd::slotOpenTimeouts()
+{
+  QPointer<TimeoutsDialog> timeoutsDialog = new TimeoutsDialog(this);
+  timeoutsDialog->exec();
+  delete timeoutsDialog;
+  if (timeoutsChanged)
     emit changed(true);
 }
 

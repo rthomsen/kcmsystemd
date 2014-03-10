@@ -57,7 +57,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="tabServices">
           <property name="contextMenuPolicy">
@@ -719,26 +719,64 @@
               <string>Miscellaneous</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_18">
-              <item row="1" column="0">
-               <widget class="QCheckBox" name="chkCPUAffinity">
-                <property name="toolTip">
-                 <string>Configure the inital CPU affinity for the init process.</string>
-                </property>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_11">
                 <property name="text">
-                 <string>Set CPU affinity:</string>
+                 <string>Timer slack:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
-              <item row="0" column="0" colspan="3">
-               <widget class="QCheckBox" name="chkShowStatus">
+              <item row="1" column="3">
+               <widget class="QLineEdit" name="leCapBoundSet">
                 <property name="toolTip">
-                 <string>Show terse status information while booting.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls which capabilities to include in the capability bounding set for PID 1 and its children. Takes a whitespace separated list of capability names. Capabilities listed will be included in the bounding set, all others are removed. If the list of capabilities is prefixed with ~ all but the listed capabilities will be included, the effect of the assignment inverted. Note that this option also affects the respective capabilities in the effective, permitted and inheritable capability sets.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning&lt;/span&gt;: Do not leave this field empty!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
-                 <string>Show terse status information while booting</string>
+                 <string>~</string>
                 </property>
-                <property name="checked">
-                 <bool>true</bool>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="leCPUAffinity">
+                <property name="toolTip">
+                 <string>Space-separated list of CPU indexes.</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLineEdit" name="leJoinControllers">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Configures controllers that shall be mounted in a single hierarchy. By default systemd will mount all controllers which are enabled in the kernel in individual hierarchies, with the exception of those listed in this setting. Takes a space-separated list of comma-separated controller names, in order to allow multiple joined hierarchies. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="2">
+               <widget class="QPushButton" name="btnResourceLimits">
+                <property name="toolTip">
+                 <string>Set default resource limits for units.</string>
+                </property>
+                <property name="text">
+                 <string>Resource limits</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>Capability bounding set:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="leDefControllers">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Configures in which cgroup controller hierarchies to create per-service cgroups automatically, in addition to the name=systemd named hierarchy. Takes a space-separated list of controller names.&lt;/p&gt;&lt;p&gt;This option was removed in systemd 208.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -762,71 +800,13 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="1">
-               <widget class="QLineEdit" name="leCPUAffinity">
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="chkCPUAffinity">
                 <property name="toolTip">
-                 <string>Space-separated list of CPU indexes.</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
-               <widget class="QLineEdit" name="leJoinControllers">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Configures controllers that shall be mounted in a single hierarchy. By default systemd will mount all controllers which are enabled in the kernel in individual hierarchies, with the exception of those listed in this setting. Takes a space-separated list of comma-separated controller names, in order to allow multiple joined hierarchies. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <widget class="QLineEdit" name="leCapBoundSet">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls which capabilities to include in the capability bounding set for PID 1 and its children. Takes a whitespace separated list of capability names. Capabilities listed will be included in the bounding set, all others are removed. If the list of capabilities is prefixed with ~ all but the listed capabilities will be included, the effect of the assignment inverted. Note that this option also affects the respective capabilities in the effective, permitted and inheritable capability sets.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning&lt;/span&gt;: Do not leave this field empty!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>Configure the inital CPU affinity for the init process.</string>
                 </property>
                 <property name="text">
-                 <string>~</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="2">
-               <widget class="QComboBox" name="cmbTimerSlack">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the timer slack for PID 1 which is then inherited to all executed processes, unless overridden individually. The timer slack controls the accuracy of wake-ups triggered by timers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QLineEdit" name="leDefControllers">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Configures in which cgroup controller hierarchies to create per-service cgroups automatically, in addition to the name=systemd named hierarchy. Takes a space-separated list of controller names.&lt;/p&gt;&lt;p&gt;This option was removed in systemd 208.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="lblDefControllers">
-                <property name="text">
-                 <string>Default controllers:</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Timer slack:</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>Capability bounding set:</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <string>Set CPU affinity:</string>
                 </property>
                </widget>
               </item>
@@ -840,13 +820,40 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="0" colspan="2">
-               <widget class="QPushButton" name="btnResourceLimits">
+              <item row="3" column="2">
+               <widget class="QComboBox" name="cmbTimerSlack">
                 <property name="toolTip">
-                 <string>Set default resource limits for units.</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the timer slack for PID 1 which is then inherited to all executed processes, unless overridden individually. The timer slack controls the accuracy of wake-ups triggered by timers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0" colspan="3">
+               <widget class="QCheckBox" name="chkShowStatus">
+                <property name="toolTip">
+                 <string>Show terse status information while booting.</string>
                 </property>
                 <property name="text">
-                 <string>Resource limits</string>
+                 <string>Show terse status information while booting</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lblDefControllers">
+                <property name="text">
+                 <string>Default controllers:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0" colspan="2">
+               <widget class="QPushButton" name="btnTimeouts">
+                <property name="text">
+                 <string>Timeouts</string>
                 </property>
                </widget>
               </item>
