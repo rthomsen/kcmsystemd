@@ -211,7 +211,11 @@ void kcmsystemd::load()
   QList<QCheckBox *> listChk = this->findChildren<QCheckBox *>();
   foreach(QCheckBox *chk, listChk)
   {
-    if (chk->objectName() != "chkMaxUse" && chk->objectName() != "chkKeepFree" && chk->objectName() != "chkMaxFileSize")
+    if (chk->objectName() != "chkMaxUse" && 
+        chk->objectName() != "chkKeepFree" &&
+        chk->objectName() != "chkMaxFileSize" &&
+        chk->objectName() != "chkInactiveUnits" &&
+        chk->objectName() != "chkShowUnloadedUnits")
       connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotUpdateConfOption()));
   }
     
@@ -230,7 +234,10 @@ void kcmsystemd::load()
   
   QList<QComboBox *> listCmb = this->findChildren<QComboBox *>();
   foreach(QComboBox *cmb, listCmb)
-    connect(cmb, SIGNAL(currentIndexChanged(int)), this, SLOT(slotUpdateConfOption()));
+  {
+    if (cmb->objectName() != "cmbUnitTypes")
+      connect(cmb, SIGNAL(currentIndexChanged(int)), this, SLOT(slotUpdateConfOption()));
+  }
   
 }
 
