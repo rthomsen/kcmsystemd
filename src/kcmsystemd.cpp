@@ -18,11 +18,13 @@
 #include "kcmsystemd.h"
 #include "reslimits.h"
 #include "environ.h"
-#include "timeouts.h"
+#include "advanced.h"
+
 #include <config.h>
 
 #include <QMouseEvent>
 #include <QMenu>
+#include <QThread>
 
 #include <KAboutData>
 #include <KPluginFactory>
@@ -35,14 +37,6 @@ using namespace KAuth;
 K_PLUGIN_FACTORY(kcmsystemdFactory, registerPlugin<kcmsystemd>();)
 K_EXPORT_PLUGIN(kcmsystemdFactory("kcmsystemd"))
 
-// Declare static member variables accessible from reslimits.cpp and environ.cpp
-QVariantMap kcmsystemd::resLimits;
-QVariantMap kcmsystemd::timeoutSettings;
-QList<QPair<QString, QString> > kcmsystemd::environ;
-bool kcmsystemd::resLimitsChanged = 0;
-bool kcmsystemd::environChanged = 0;
-bool kcmsystemd::timeoutsChanged = 0;
-
 kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcmsystemdFactory::componentData(), parent, list)
 {
   KAboutData *about = new KAboutData("kcmsystemd", "kcmsystemd", ki18nc("@title", "KDE Systemd Control Module"), KCM_SYSTEMD_VERSION, ki18nc("@title", "A KDE Control Module for configuring Systemd."), KAboutData::License_GPL_V3, ki18nc("@info:credit", "Copyright (C) 2013 Ragnar Thomsen"), KLocalizedString(), "https://github.com/rthomsen/kcmsystemd");
@@ -50,7 +44,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
   setAboutData(about);  
   ui.setupUi(this);
   setNeedsAuthorization(true);
-
+  
   // See if systemd is reachable via dbus
   QDBusConnection systembus = QDBusConnection::systemBus();
   QDBusInterface *iface = new QDBusInterface ("org.freedesktop.systemd1",
@@ -67,11 +61,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
     if (systemdVersion > 206)
       ui.grpControlGroups->setEnabled(0);
     // This option were removed in systemd 208
-    if (systemdVersion > 207)
-    {
-      ui.lblDefControllers->setEnabled(0);
-      ui.leDefControllers->setEnabled(0);
-    }
+
     qDebug() << "Systemd" << systemdVersion << "detected.";
   } else {
     qDebug() << "Unable to contact systemd daemon!";
@@ -96,7 +86,9 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
     return;
   }
   
-  perDiskUsageValue = 0, perDiskFreeValue = 0, perSizeFilesValue = 0, volDiskUsageValue = 0, volDiskFreeValue = 0, volSizeFilesValue = 0;
+  varLogDirExists = QDir("/var/log/journal").exists();
+  if (varLogDirExists)
+    isPersistent = true;
   // Use boost to find persistent partition size
   boost::filesystem::path pp ("/var/log");
   boost::filesystem::space_info logPpart = boost::filesystem::space(pp);
@@ -106,7 +98,10 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
   boost::filesystem::path pv ("/run/log");
   boost::filesystem::space_info logVpart = boost::filesystem::space(pv);
   partVolaSizeMB = logVpart.capacity / 1024 / 1024;
-    
+  qDebug() << "Persistent partition size found to: " << partPersSizeMB << "MB";
+  qDebug() << "Volatile partition size found to: " << partVolaSizeMB << "MB";
+  
+  setupConfigParms();
   setupSignalSlots();
   
   // Subscribe to dbus signals from systemd daemon and connect them to slots
@@ -176,79 +171,26 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.tblServices, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotDisplayMenu(QPoint)));
   connect(ui.leSearchUnit, SIGNAL(textChanged(QString)), this, SLOT(slotLeSearchUnitChanged(QString)));
   
-  // Connect signals for system.conf
-  connect(ui.cmbLogLevel, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbLogTarget, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkLogColor, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkLogLocation, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkDumpCore, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkCrashShell, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkShowStatus, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbCrashVT, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.leCPUAffinity, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkCPUAffinity, SIGNAL(stateChanged(int)), this, SLOT(slotCPUAffinityChanged()));
-  connect(ui.leDefControllers, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbDefStdOutput, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbDefStdError, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.leJoinControllers, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
-  connect(ui.spnRuntimeWatchdog, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbRuntimeWatchdog, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.spnShutdownWatchdog, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbShutdownWatchdog, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.leCapBoundSet, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
-  connect(ui.spnTimerSlack, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbTimerSlack, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
+  // Connect signals for system.conf  
   connect(ui.btnResourceLimits, SIGNAL(clicked()), this, SLOT(slotOpenResourceLimits()));
   connect(ui.btnEnviron, SIGNAL(clicked()), this, SLOT(slotOpenEnviron()));
-  connect(ui.btnTimeouts, SIGNAL(clicked()), this, SLOT(slotOpenTimeouts()));
+  connect(ui.btnAdvanced, SIGNAL(clicked()), this, SLOT(slotOpenAdvanced()));
   
   // Connect signals for journald.conf:
-  connect(ui.chkCompressLogs, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkFwdSecureSealing, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
   connect(ui.cmbStorage, SIGNAL(currentIndexChanged(int)), this, SLOT(slotStorageChanged()));
-  connect(ui.spnSync, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbSync, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.radLogin, SIGNAL(toggled(bool)), this, SLOT(slotDefaultChanged()));
-  connect(ui.radUID, SIGNAL(toggled(bool)), this, SLOT(slotDefaultChanged()));
-  connect(ui.radNone, SIGNAL(toggled(bool)), this, SLOT(slotDefaultChanged()));
-  connect(ui.spnDiskUsage, SIGNAL(valueChanged(int)), this, SLOT(slotSpnDiskUsageChanged()));
-  connect(ui.spnDiskFree, SIGNAL(valueChanged(int)), this, SLOT(slotSpnDiskFreeChanged()));
-  connect(ui.spnSizeFiles, SIGNAL(valueChanged(int)), this, SLOT(slotSpnSizeFilesChanged()));
-  connect(ui.chkMaxRetention, SIGNAL(stateChanged(int)), this, SLOT(slotMaxRetentionChanged()));
-  connect(ui.spnMaxRetention, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbMaxRetention, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkMaxFile, SIGNAL(stateChanged(int)), this, SLOT(slotMaxFileChanged()));
-  connect(ui.spnMaxFile, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbMaxFile, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkFwdSyslog, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToSyslogChanged()));
-  connect(ui.chkFwdKmsg, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToKmsgChanged()));
-  connect(ui.chkFwdConsole, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToConsoleChanged()));
-  connect(ui.leTTYPath, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbLevelStore, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbLevelKmsg, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbLevelSyslog, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbLevelConsole, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
+  connect(ui.spnMaxUse, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxUseChanged()));
+  connect(ui.spnKeepFree, SIGNAL(valueChanged(int)), this, SLOT(slotSpnKeepFreeChanged()));
+  connect(ui.spnMaxFileSize, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxFileSizeChanged()));
+  connect(ui.chkForwardToSyslog, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToSyslogChanged()));
+  connect(ui.chkForwardToKMsg, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToKmsgChanged()));
+  connect(ui.chkForwardToConsole, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToConsoleChanged()));
+  
+  QList<QCheckBox *> listChk = this->findChildren<QCheckBox *>(QRegExp("MaxUse|KeepFree|MaxFileSize"));
+  foreach(QCheckBox *chk, listChk)
+    connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotStorageChkBoxes(int)));
   
   // Connect signals for logind.conf
-  connect(ui.spnAutoVTs, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.spnReserveVT, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkKillUserProc, SIGNAL(stateChanged(int)), this, SLOT(slotKillUserProcessesChanged()));
-  connect(ui.leKillOnlyUsers, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
-  connect(ui.leKillExcludeUsers, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbIdleAction, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.spnIdleActionSec, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbIdleActionSec, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbPowerKey, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbSuspendKey, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbHibernateKey, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.cmbLidSwitch, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkPowerKey, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkSuspendKey, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkHibernateKey, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.chkLidSwitch, SIGNAL(stateChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.spnInhibDelayMax, SIGNAL(valueChanged(int)), this, SLOT(slotDefaultChanged()));
-  connect(ui.leControllers, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
-  connect(ui.leResetControllers, SIGNAL(textEdited(QString)), this, SLOT(slotDefaultChanged()));
+  connect(ui.chkKillUserProcesses, SIGNAL(stateChanged(int)), this, SLOT(slotKillUserProcessesChanged()));
 }
 
 void kcmsystemd::load()
@@ -261,373 +203,200 @@ void kcmsystemd::load()
   readSystemConf();
   readJournaldConf();
   readLogindConf();
+  
+  // Apply the read settings to the interface
+  applyToInterface();
+  
+  // Connect signals to slots different widget types
+  QList<QCheckBox *> listChk = this->findChildren<QCheckBox *>();
+  foreach(QCheckBox *chk, listChk)
+  {
+    if (chk->objectName() != "chkMaxUse" && chk->objectName() != "chkKeepFree" && chk->objectName() != "chkMaxFileSize")
+      connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotUpdateConfOption()));
+  }
+    
+  QList<QSpinBox *> listSpn = this->findChildren<QSpinBox *>();
+  foreach(QSpinBox *spn, listSpn)
+  {
+    // Three spinboxes must not be connected to this slot
+    if (spn->objectName() != "spnMaxUse" && spn->objectName() != "spnKeepFree" && spn->objectName() != "spnMaxFileSize")
+    {
+      if (confOptList.at(confOptList.indexOf(confOption(spn->objectName().remove("spn")))).type == INTEGER)
+        spn->setMaximum(confOptList.at(confOptList.indexOf(confOption(spn->objectName().remove("spn")))).maxVal);
+      connect(spn, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateConfOption()));
+      
+    }
+  }
+  
+  QList<QComboBox *> listCmb = this->findChildren<QComboBox *>();
+  foreach(QComboBox *cmb, listCmb)
+    connect(cmb, SIGNAL(currentIndexChanged(int)), this, SLOT(slotUpdateConfOption()));
+  
+}
+
+void kcmsystemd::setupConfigParms()
+{
+  // Setup classes for all configuration options in conf.files
+  
+  // system.conf
+  QStringList LogLevelList = QStringList() << "emerg" << "alert" << "crit" << "err" << "warning" << "notice" << "info" << "debug";
+  confOptList.append(confOption(SYSTEMD, "LogLevel", LIST, "info", LogLevelList));
+  QStringList LogTargetList = QStringList() << "console" << "journal" << "syslog" << "kmsg" << "journal-or-kmsg" << "syslog-or-kmsg" << "null";
+  confOptList.append(confOption(SYSTEMD, "LogTarget", LIST, "journal-or-kmsg", LogTargetList));  
+  confOptList.append(confOption(SYSTEMD, "LogColor", BOOL, true));
+  confOptList.append(confOption(SYSTEMD, "LogLocation", BOOL, true));
+  confOptList.append(confOption(SYSTEMD, "DumpCore", BOOL, true));
+  confOptList.append(confOption(SYSTEMD, "CrashShell", BOOL, false));
+  QStringList ShowStatusList = QStringList() << "auto" << "true" << "false";
+  confOptList.append(confOption(SYSTEMD, "ShowStatus", LIST, "auto", ShowStatusList));
+  QStringList CrashChVTList = QStringList() << "-1" << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8";
+  confOptList.append(confOption(SYSTEMD, "CrashChVT", LIST, "-1", CrashChVTList));
+  QStringList CPUAffinityList;
+  for (int i = 1; i <= QThread::idealThreadCount(); ++i)
+    CPUAffinityList << QString::number(i);
+  confOptList.append(confOption(SYSTEMD, "CPUAffinity", MULTILIST, CPUAffinityList));
+  confOptList.append(confOption(SYSTEMD, "JoinControllers", STRING, "cpu,cpuacct net_cls,net_prio"));
+  if (systemdVersion < 208)
+    confOptList.append(confOption(SYSTEMD, "DefaultControllers", STRING, "cpu"));
+  confOptList.append(confOption(SYSTEMD, "RuntimeWatchdogSec", TIME, 0, confOption::s, confOption::s, confOption::ms, confOption::w));
+  confOptList.append(confOption(SYSTEMD, "ShutdownWatchdogSec", TIME, 10, confOption::min, confOption::s, confOption::ms, confOption::w));
+  QStringList CapabilityBoundingSetList = confOption::capabilities;
+  confOptList.append(confOption(SYSTEMD, "CapabilityBoundingSet", MULTILIST, CapabilityBoundingSetList));
+  if (systemdVersion >= 209)
+  {
+    QStringList SystemCallArchitecturesList = QStringList() << "native" << "x86" << "x86-64" << "x32" << "arm";
+    confOptList.append(confOption(SYSTEMD, "SystemCallArchitectures", MULTILIST, SystemCallArchitecturesList));
+  }
+  confOptList.append(confOption(SYSTEMD, "TimerSlackNSec", TIME, 0, confOption::ns, confOption::ns, confOption::ns, confOption::w));
+  QStringList DefaultStandardOutputList = QStringList() << "inherit" << "null" << "tty" << "journal"
+                                                        << "journal+console" << "syslog" << "syslog+console"
+                                                        << "kmsg" << "kmsg+console";
+  confOptList.append(confOption(SYSTEMD, "DefaultStandardOutput", LIST, "journal", DefaultStandardOutputList));
+  confOptList.append(confOption(SYSTEMD, "DefaultStandardError", LIST, "inherit", DefaultStandardOutputList));
+  if (systemdVersion >= 209)
+  {
+    confOptList.append(confOption(SYSTEMD, "DefaultTimeoutStartSec", TIME, 90, confOption::s, confOption::s, confOption::us, confOption::w));
+    confOptList.append(confOption(SYSTEMD, "DefaultTimeoutStopSec", TIME, 90, confOption::s, confOption::s, confOption::us, confOption::w));
+    confOptList.append(confOption(SYSTEMD, "DefaultRestartSec", TIME, 100, confOption::ms, confOption::s, confOption::us, confOption::w));
+    confOptList.append(confOption(SYSTEMD, "DefaultStartLimitInterval", TIME, 10, confOption::s, confOption::s, confOption::us, confOption::w));
+    confOptList.append(confOption(SYSTEMD, "DefaultStartLimitBurst", INTEGER, 5, 0, 99999));
+  }
+  if (systemdVersion >= 205)
+    confOptList.append(confOption(SYSTEMD, "DefaultEnvironment", STRING, ""));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitCPU", RESLIMIT));  
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitFSIZE", RESLIMIT));    
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitDATA", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitSTACK", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitCORE", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitRSS", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitNOFILE", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitAS", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitNPROC", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitMEMLOCK", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitLOCKS", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitSIGPENDING", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitMSGQUEUE", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitNICE", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitRTPRIO", RESLIMIT));
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitRTTIME", RESLIMIT));
+  
+  // journald.conf
+  QStringList StorageList = QStringList() << "volatile" << "persistent" << "auto" << "none";
+  confOptList.append(confOption(JOURNALD, "Storage", LIST, "auto", StorageList));
+  confOptList.append(confOption(JOURNALD, "Compress", BOOL, true));
+  confOptList.append(confOption(JOURNALD, "Seal", BOOL, true));
+  QStringList SplitModeList = QStringList() << "login" << "uid" << "none";
+  confOptList.append(confOption(JOURNALD, "SplitMode", LIST, "login", SplitModeList));
+  confOptList.append(confOption(JOURNALD, "SyncIntervalSec", TIME, 5, confOption::min, confOption::s, confOption::us, confOption::w));
+  confOptList.append(confOption(JOURNALD, "RateLimitInterval", TIME, 10, confOption::s, confOption::s, confOption::us, confOption::h));
+  confOptList.append(confOption(JOURNALD, "RateLimitBurst", INTEGER, 200, 0, 99999));
+  confOptList.append(confOption(JOURNALD, "SystemMaxUse", SIZE, QVariant(0.1 * partPersSizeMB).toULongLong()));
+  confOptList.append(confOption(JOURNALD, "SystemKeepFree", SIZE, QVariant(0.15 * partPersSizeMB).toULongLong()));
+  confOptList.append(confOption(JOURNALD, "SystemMaxFileSize", SIZE, QVariant(0.125 * 0.1 * partPersSizeMB).toULongLong()));
+  confOptList.append(confOption(JOURNALD, "RuntimeMaxUse", SIZE, QVariant(0.1 * partVolaSizeMB).toULongLong()));
+  confOptList.append(confOption(JOURNALD, "RuntimeKeepFree", SIZE, QVariant(0.15 * partVolaSizeMB).toULongLong()));
+  confOptList.append(confOption(JOURNALD, "RuntimeMaxFileSize", SIZE, QVariant(0.125 * 0.1 * partVolaSizeMB).toULongLong()));
+  confOptList.append(confOption(JOURNALD, "MaxRetentionSec", TIME, 0, confOption::d, confOption::s, confOption::s, confOption::year));
+  confOptList.append(confOption(JOURNALD, "MaxFileSec", TIME, 30, confOption::d, confOption::s, confOption::s, confOption::year));
+  confOptList.append(confOption(JOURNALD, "ForwardToSyslog", BOOL, true));
+  confOptList.append(confOption(JOURNALD, "ForwardToKMsg", BOOL, false));
+  confOptList.append(confOption(JOURNALD, "ForwardToConsole", BOOL, false));
+  confOptList.append(confOption(JOURNALD, "TTYPath", STRING, "/dev/console"));
+  QStringList SyslogList = QStringList() << "emerg" << "alert" << "crit" << "err" 
+                                         << "warning" << "notice" << "info" << "debug";
+  confOptList.append(confOption(JOURNALD, "MaxLevelStore", LIST, "debug", SyslogList));
+  confOptList.append(confOption(JOURNALD, "MaxLevelSyslog", LIST, "debug", SyslogList));
+  confOptList.append(confOption(JOURNALD, "MaxLevelKMsg", LIST, "notice", SyslogList));
+  confOptList.append(confOption(JOURNALD, "MaxLevelConsole", LIST, "info", SyslogList));
+  
+  // logind.conf
+  confOptList.append(confOption(LOGIND, "NAutoVTs", INTEGER, 6, 0, 12));
+  confOptList.append(confOption(LOGIND, "ReserveVT", INTEGER, 6, 0, 12));
+  confOptList.append(confOption(LOGIND, "KillUserProcesses", BOOL, false));
+  confOptList.append(confOption(LOGIND, "KillOnlyUsers", STRING, ""));
+  confOptList.append(confOption(LOGIND, "KillExcludeUsers", STRING, "root"));
+  confOptList.append(confOption(LOGIND, "InhibitDelayMaxSec", TIME, 5, confOption::s, confOption::s, confOption::us, confOption::d));
+  QStringList HandlePowerEvents = QStringList() << "ignore" << "poweroff" << "reboot" << "halt" << "kexec" << "suspend" << "hibernate" << "hybrid-sleep" << "lock";
+  confOptList.append(confOption(LOGIND, "HandlePowerKey", LIST, "poweroff", HandlePowerEvents));
+  confOptList.append(confOption(LOGIND, "HandleSuspendKey", LIST, "suspend", HandlePowerEvents));
+  confOptList.append(confOption(LOGIND, "HandleHibernateKey", LIST, "hibernate", HandlePowerEvents));
+  confOptList.append(confOption(LOGIND, "HandleLidSwitch", LIST, "suspend", HandlePowerEvents));
+  confOptList.append(confOption(LOGIND, "PowerKeyIgnoreInhibited", BOOL, false));
+  confOptList.append(confOption(LOGIND, "SuspendKeyIgnoreInhibited", BOOL, false));
+  confOptList.append(confOption(LOGIND, "HibernateKeyIgnoreInhibited", BOOL, false));
+  confOptList.append(confOption(LOGIND, "LidSwitchIgnoreInhibited", BOOL, true));
+  confOptList.append(confOption(LOGIND, "IdleAction", LIST, "ignore", HandlePowerEvents));
+  confOptList.append(confOption(LOGIND, "IdleActionSec", TIME, 0, confOption::s, confOption::s, confOption::us, confOption::d));
+  if (systemdVersion < 207)
+  {
+    confOptList.append(confOption(LOGIND, "Controllers", STRING, ""));
+    confOptList.append(confOption(LOGIND, "ResetControllers", STRING, "cpu"));
+  }
 }
 
 void kcmsystemd::initializeInterface()
 {
   // This function must only be run once
   timesLoad = timesLoad + 1;
- 
-  // Set the default disk usage limits
-  perDiskUsageValue = 0.1 * partPersSizeMB;
-  perDiskFreeValue = 0.15 * partPersSizeMB;
-  perSizeFilesValue = 0.0125 * partPersSizeMB;
-  volDiskUsageValue = 0.1 * partVolaSizeMB;
-  volDiskFreeValue = 0.15 * partVolaSizeMB;
-  volSizeFilesValue = 0.0125 * partVolaSizeMB;
-    
-  // Set allowed values for comboboxes:
-  QStringList allowLogLevel = QStringList() << "emerg" << "alert" << "crit" << "err" << "warning" << "notice" << "info" << "debug";
-  QStringList allowLogTarget = QStringList() << "console" << "journal" << "syslog" << "kmsg" << "journal-or-kmsg" << "syslog-or-kmsg" << "null";
-  QStringList allowStdIO = QStringList() << "inherit" << "null" << "tty" << "journal" << "journal+console" << "syslog" << "syslog+console" << "kmsg" << "kmsg+console";
-  QStringList allowTimeUnits = QStringList() << "seconds" << "minutes" << "hours" << "days" << "weeks";
-  QStringList allowTimeUnitsRateInterval = QStringList() << "microseconds" << "milliseconds" << "seconds" << "minutes" << "hours";  
-  QStringList allowStorage = QStringList() << "volatile" << "persistent" << "auto" << "none";
-  QStringList allowSplitMode = QStringList() << "login" << "UID" << "none";
-  QStringList allowDiskUsage = QStringList() << "bytes" << "kilobytes" << "megabytes" << "gigabytes" << "terabytes" << "petabytes" << "exabytes";
-  QStringList allowPowerEvents = QStringList() << "ignore" << "poweroff" << "reboot" << "halt" << "kexec" << "suspend" << "hibernate" << "hybrid-sleep" << "lock";
-  QStringList allowUnitTypes = QStringList() << "All unit types" << "Targets" << "Services" << "Devices" << "Mounts" << "Automounts" << "Swaps" << "Sockets" << "Paths" << "Timers" << "Snapshots" << "Slices" << "Scopes";
-  
+
   // Populate comboboxes:
-  for (int i = 0; i < allowLogLevel.size(); i++)
+  QList<QComboBox *> listCmb = this->findChildren<QComboBox *>();
+  foreach (QComboBox *cmb, listCmb)
   {
-    ui.cmbLogLevel->addItem(allowLogLevel[i]);
-    ui.cmbLevelStore->addItem(allowLogLevel[i]);
-    ui.cmbLevelSyslog->addItem(allowLogLevel[i]);
-    ui.cmbLevelKmsg->addItem(allowLogLevel[i]);
-    ui.cmbLevelConsole->addItem(allowLogLevel[i]);
+    QString name = cmb->objectName().remove("cmb");
+    int index = confOptList.indexOf(confOption(name));
+    if (index > -1)
+      cmb->addItems(confOptList.at(index).possibleVals);
   }
-  ui.cmbLogLevel->setCurrentIndex(ui.cmbLogLevel->findText("info"));
-  for (int i = 0; i < allowLogTarget.size(); i++)
-  {
-    ui.cmbLogTarget->addItem(allowLogTarget[i]);
-  }
-  ui.cmbLogTarget->setCurrentIndex(ui.cmbLogTarget->findText("journal"));
-  ui.cmbCrashVT->addItem("Off");
-  for (int i = 1; i < 9; i++)
-  {
-    ui.cmbCrashVT->addItem(QString::number(i));
-  }
-  for (int i = 0; i < allowStdIO.size(); i++)
-  {
-    ui.cmbDefStdOutput->addItem(allowStdIO[i]);
-    ui.cmbDefStdError->addItem(allowStdIO[i]);
-  }
-  ui.cmbDefStdOutput->setCurrentIndex(3);
-  ui.cmbDefStdError->setCurrentIndex(0);
-  ui.cmbRuntimeWatchdog->addItem("milliseconds");
-  ui.cmbShutdownWatchdog->addItem("milliseconds");
-  ui.cmbTimerSlack->addItem("nanoseconds");
-  ui.cmbTimerSlack->addItem("milliseconds");
-  for (int i = 0; i < allowTimeUnits.size(); i++)
-  {
-    ui.cmbRuntimeWatchdog->addItem(allowTimeUnits[i]);
-    ui.cmbShutdownWatchdog->addItem(allowTimeUnits[i]);
-    ui.cmbTimerSlack->addItem(allowTimeUnits[i]);
-    ui.cmbSync->addItem(allowTimeUnits[i]);
-    ui.cmbMaxRetention->addItem(allowTimeUnits[i]);
-    ui.cmbMaxFile->addItem(allowTimeUnits[i]);
-    ui.cmbIdleActionSec->addItem(allowTimeUnits[i]);
-  }
-  ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("minutes"));
-  ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("seconds"));
-  ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("minutes"));
-  ui.cmbMaxRetention->addItem("months");
-  ui.cmbMaxRetention->addItem("years");
-  ui.cmbMaxFile->addItem("months");
-  ui.cmbMaxFile->addItem("years");
-  ui.cmbMaxFile->setCurrentIndex(ui.cmbMaxFile->findText("months"));
-  for (int i = 0; i < allowTimeUnitsRateInterval.size(); i++)
-  {
-    ui.cmbRateInterval->addItem(allowTimeUnitsRateInterval[i]); 
-  }
-  ui.cmbRateInterval->setCurrentIndex(ui.cmbRateInterval->findText("seconds"));
-  for (int i = 0; i < allowStorage.size(); i++)
-  {
-    ui.cmbStorage->addItem(allowStorage[i]);
-  }
-  ui.cmbStorage->setCurrentIndex(2);
-  ui.cmbLevelStore->setCurrentIndex(ui.cmbLevelStore->findText("debug"));
-  ui.cmbLevelSyslog->setCurrentIndex(ui.cmbLevelSyslog->findText("debug"));
-  ui.cmbLevelKmsg->setCurrentIndex(ui.cmbLevelKmsg->findText("notice"));
-  ui.cmbLevelConsole->setCurrentIndex(ui.cmbLevelConsole->findText("info"));
-  for (int i = 0; i < allowPowerEvents.size(); i++)
-  {
-    ui.cmbIdleAction->addItem(allowPowerEvents[i]);
-    ui.cmbPowerKey->addItem(allowPowerEvents[i]);
-    ui.cmbSuspendKey->addItem(allowPowerEvents[i]);
-    ui.cmbHibernateKey->addItem(allowPowerEvents[i]);
-    ui.cmbLidSwitch->addItem(allowPowerEvents[i]);
-  }
-  ui.cmbIdleAction->setCurrentIndex(ui.cmbIdleAction->findText("ignore"));
-  ui.cmbPowerKey->setCurrentIndex(ui.cmbPowerKey->findText("poweroff"));
-  ui.cmbSuspendKey->setCurrentIndex(ui.cmbSuspendKey->findText("suspend"));
-  ui.cmbHibernateKey->setCurrentIndex(ui.cmbHibernateKey->findText("hibernate"));
-  ui.cmbLidSwitch->setCurrentIndex(ui.cmbLidSwitch->findText("suspend"));
-  ui.cmbIdleActionSec->removeItem(ui.cmbIdleActionSec->findText("days"));
-  ui.cmbIdleActionSec->removeItem(ui.cmbIdleActionSec->findText("weeks"));  
+  // cmbCrashChVT needs special treatment
+  ui.cmbCrashChVT->setItemData(0, "Off", Qt::DisplayRole);
+  
+  QStringList allowUnitTypes = QStringList() << "All unit types" << "Targets" << "Services"
+                                             << "Devices" << "Mounts" << "Automounts" << "Swaps" 
+                                             << "Sockets" << "Paths" << "Timers" << "Snapshots" 
+                                             << "Slices" << "Scopes";
   for (int i = 0; i < allowUnitTypes.size(); i++)
     ui.cmbUnitTypes->addItem(allowUnitTypes[i]);
 }
 
 void kcmsystemd::readSystemConf()
 { 
-  // Set keywords for parsing system.conf:
-  QStringList systemids = QStringList() << "LogLevel" << "LogTarget" << "LogColor" 
-    << "LogLocation" << "DumpCore" << "CrashShell" << "ShowStatus" << "CrashChVT" 
-    << "CPUAffinity" << "DefaultControllers" << "DefaultStandardOutput"
-    << "DefaultStandardError" << "JoinControllers" << "RuntimeWatchdogSec"
-    << "ShutdownWatchdogSec" << "CapabilityBoundingSet" << "TimerSlackNSec"
-    << "DefaultTimeoutStartSec" << "DefaultTimeoutStopSec" << "DefaultRestartSec"
-    << "DefaultStartLimitInterval" << "DefaultStartLimitBurst"
-    << "DefaultLimitCPU" << "DefaultLimitFSIZE" << "DefaultLimitDATA"
-    << "DefaultLimitSTACK" << "DefaultLimitCORE" << "DefaultLimitRSS"
-    << "DefaultLimitNOFILE" << "DefaultLimitAS" << "DefaultLimitNPROC"
-    << "DefaultLimitMEMLOCK" << "DefaultLimitLOCKS" << "DefaultLimitSIGPENDING"
-    << "DefaultLimitMSGQUEUE" << "DefaultLimitNICE" << "DefaultLimitRTPRIO"
-    << "DefaultLimitRTTIME" << "DefaultEnvironment";
-
-  QFile systemfile (etcDir + "/system.conf"); 
+  // QFile systemfile (etcDir + "/system.conf");
+  QFile systemfile ("/home/ragnar/projects/kcmsystemd/confread/system.conf");
   
   if (systemfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QTextStream in(&systemfile);
     QString line = in.readLine();
 
-    while(!line.isNull()) {
-      
-      if (line.contains(systemids[0])) {
-	if (line.trimmed().left(1) != "#" && !line.section("=",-1).trimmed().isEmpty())
-	  ui.cmbLogLevel->setCurrentIndex(ui.cmbLogLevel->findText(line.section("=",-1).trimmed().toLower()));
-      
-      } else if (line.contains(systemids[1])) {
-	if (line.trimmed().left(1) != "#" && !line.section("=",-1).trimmed().isEmpty())
-	  ui.cmbLogTarget->setCurrentIndex(ui.cmbLogTarget->findText(line.section("=",-1).trimmed().toLower()));
-      
-      } else if (line.contains(systemids[2])) {
-      if (line.trimmed().left(1) != "#" && !ToBoolDefOn(line.section('=',-1)))
-	  ui.chkLogColor->setChecked(0);
-      
-      } else if (line.contains(systemids[3])) {
-	if (line.trimmed().left(1) != "#" && !ToBoolDefOn(line.section('=',-1)))
-	  ui.chkLogLocation->setChecked(0);
-      
-      } else if (line.contains(systemids[4])) {
-	if (line.trimmed().left(1) != "#" && !ToBoolDefOn(line.section('=',-1)))
-	  ui.chkDumpCore->setChecked(0);
-      
-      } else if (line.contains(systemids[5])) {
-	if (line.trimmed().left(1) != "#" && ToBoolDefOff(line.section('=',-1)))
-	  ui.chkCrashShell->setChecked(1);
-	
-      } else if (line.contains(systemids[6])) {
-	if (line.trimmed().left(1) != "#" && !ToBoolDefOn(line.section('=',-1)))
-	  ui.chkShowStatus->setChecked(0);
-	
-      } else if (line.contains(systemids[7])) {
-	ui.cmbCrashVT->setCurrentIndex(0);
-	if (line.trimmed().left(1) != "#" && !line.section("=",-1).trimmed().isEmpty())
-	  if (line.section("=",-1).trimmed().toInt() == -1)
-	    ui.cmbCrashVT->setCurrentIndex(ui.cmbCrashVT->findText("Off"));
-	  else
-	    ui.cmbCrashVT->setCurrentIndex(ui.cmbCrashVT->findText(line.section("=",-1).trimmed()));
-	  
-      } else if (line.contains(systemids[8])) {
-	  ui.leCPUAffinity->setText(line.section('=',-1).trimmed());
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	    ui.chkCPUAffinity->setChecked(1);
-	  else
-	    ui.leCPUAffinity->setEnabled(0);
-
-      } else if (line.contains(systemids[9])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	    ui.leDefControllers->setText(line.section('=',-1).trimmed());
-	  else
-	    ui.leDefControllers->setText("cpu");
-	  
-      } else if (line.contains(systemids[10])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	  ui.cmbDefStdOutput->setCurrentIndex(ui.cmbDefStdOutput->findText(line.section("=",-1).trimmed().toLower()));
-	
-      } else if (line.contains(systemids[11])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	  ui.cmbDefStdError->setCurrentIndex(ui.cmbDefStdError->findText(line.section("=",-1).trimmed().toLower()));
-	
-      } else if (line.contains(systemids[12])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	    ui.leJoinControllers->setText(line.section('=',-1).trimmed());
-	  else
-	    ui.leJoinControllers->setText("cpu,cpuacct");
-	  
-      } else if (line.contains(systemids[13])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    QRegExp nmbrs("[0-9]+");
-	    QRegExp timeunit("ms|min|h|d|w");
-	    ui.spnRuntimeWatchdog->setValue(line.section("=",-1).trimmed().section(timeunit,0,0).toInt());
-	    if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "ms") {
-	      ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("milliseconds"));
-	    } else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "min") {
-	      ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("minutes"));
-	    } else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "h") {
-	      ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("hours"));
-	    } else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "d") {
-	      ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("days"));
-	    } else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "w") {
-	      ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("weeks"));
-	    } else {
-	      ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("seconds"));
-	    }
-	  }
-      
-      } else if (line.contains(systemids[14])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    QRegExp nmbrs("[0-9]+");
-	    QRegExp timeunit("ms|min|h|d|w");
-	    ui.spnShutdownWatchdog->setValue(line.section("=",-1).trimmed().section(timeunit,0,0).toInt());
-	    if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "ms")
-	      ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("milliseconds"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "min")
-	      ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("minutes"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "h")
-	      ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("hours"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "d")
-	      ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("days"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "w")
-	      ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("weeks"));
-	    else
-	      ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("seconds"));
-	  }
-	
-      } else if (line.contains(systemids[15])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	    ui.leCapBoundSet->setText(line.section('=',-1).trimmed());
-	  
-      } else if (line.contains(systemids[16])) {
-	  ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("nanoseconds"));
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    QRegExp nmbrs("[0-9]+");
-	    QRegExp timeunit("ms|s|min|h|d|w");
-	    ui.spnTimerSlack->setValue(line.section("=",-1).trimmed().section(timeunit,0,0).toInt());
-	    if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "ms")
-	      ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("milliseconds"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "s")
-	      ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("seconds"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "min")
-	      ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("minutes"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "h")
-	      ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("hours"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "d")
-	      ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("days"));
-	    else if (line.section("=",-1).trimmed().section(nmbrs,-1,-1) == "w")
-	      ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("weeks"));
-	  }
-	  
-      } else if (line.contains(systemids[17])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-     	    QRegExp timeunit("s|min");
-	    if (line.contains("min"))
-	    {
-	      int min = line.section('=',-1).trimmed().section(timeunit,0,0).trimmed().toInt();
-	      qDebug() << "min: " << min;
-	      int sec = line.section('=',-1).trimmed().section(timeunit,1,1).trimmed().toInt();
-	      qDebug() << "sec: " << sec;
-              int secFinal = min * 60 + sec;
-              qDebug() << "secFinal: " << secFinal;
-              timeoutSettings["DefaultTimeoutStartSec"] = secFinal;
-	    } else {
-              timeoutSettings["DefaultTimeoutStartSec"] = line.section('=',-1).trimmed().toInt();
-	    }
-          }
-          
-      } else if (line.contains(systemids[18])) {
-          if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-            QRegExp timeunit("s|min");
-            if (line.contains("min"))
-            {
-              int min = line.section("=",-1).trimmed().section(timeunit,0,0).trimmed().toInt();
-              qDebug() << "min: " << min;
-              int sec = line.section("=",-1).trimmed().section(timeunit,1,1).trimmed().toInt();
-              qDebug() << "sec: " << sec;
-              int secFinal = min * 60 + sec;
-              qDebug() << "secFinal: " << secFinal;
-              timeoutSettings["DefaultTimeoutStopSec"] = secFinal;
-            } else {
-              timeoutSettings["DefaultTimeoutStopSec"] = line.section("=",-1).trimmed().toInt();
-            }
-          }
-          
-      } else if (line.contains(systemids[19])) {
-          if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-            QRegExp timeunit("s|min");
-            if (line.contains("min"))
-            {
-              int min = line.section("=",-1).trimmed().section(timeunit,0,0).trimmed().toInt();
-              qDebug() << "min: " << min;
-              int sec = line.section("=",-1).trimmed().section(timeunit,1,1).trimmed().toInt();
-              qDebug() << "sec: " << sec;
-              int secFinal = min * 60 + sec;
-              qDebug() << "secFinal: " << secFinal;
-              timeoutSettings["DefaultRestartSec"] = secFinal;
-            } else {
-              timeoutSettings["DefaultRestartSec"] = line.section('=',-1).trimmed().toInt();
-            }
-          }
-
-      } else if (line.contains(systemids[20])) {
-          if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-            timeoutSettings["DefaultStartLimitInterval"] = line.section('=',-1).trimmed().section('s',0,0).trimmed().toInt();
-          }
-          
-      } else if (line.contains(systemids[21])) {
-          if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-            timeoutSettings["DefaultStartLimitBurst"] = line.section("=",-1).trimmed().toInt();
-          }
-
-      } else if (line.contains(systemids[38])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    QString content = line.section('=',1).trimmed();
-
-	    while (!content.trimmed().isEmpty())
-	    {
-	      // If first character is quotation sign
-	      if (content.trimmed().left(1) == "\"") {
-		
-		// read variable name and value
-		QPair<QString,QString> i;
-		i.first = content.section('\"',1,1).section('=',0,0);
-		i.second = content.section('\"',1,1).section('=',-1);
-		environ.append(i);
-			
-		// remove the read variable from content
-		content = content.remove("\"" + content.section('\"',1,1) + "\"");
-		
-	      } else {  // if first character is not quotation sign
-		QPair<QString,QString> i;
-		
-		i.first = content.section('=',0,0).trimmed();
-		i.second = content.section('=',1,1).trimmed().section(QRegExp("\\s+"),0,0);
-		environ.append(i);
-		
-		// remove the read variable from the string
-		content = content.remove(content.section(QRegExp("\\s+"),0,0));
-	      }
-	      // Trim any extra whitespace
-	      content = content.trimmed();
-	    }
-
-	  }	  
-	 
-      } // if line contains
-      
-      // default resource limits
-      for (int i = 0; i <= 15; i++)
+    while(!line.isNull())
+    {
+      for (int i = 0; i < confOptList.size(); ++i)
       {
-	if (line.contains(systemids[i + 22]))
-	{
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	    resLimits[QString(line.section('=',0,0).trimmed())] = line.section("=",-1).trimmed();
-	  else
-	    resLimits[systemids[i + 22]] = 0;
-	}
+        if (confOptList.at(i) == confOption(line.section("=",0,0).trimmed()))
+        {        
+          confOptList[i].setValueFromFile(line);
+          break;          
+        }
       }
 
       line = in.readLine();
@@ -635,457 +404,134 @@ void kcmsystemd::readSystemConf()
         
   } // if file open
   else 
-    KMessageBox::error(this, i18n("Failed to read %1/system.conf. Using default values.", etcDir));   
+    KMessageBox::error(this, i18n("Failed to read %1/system.conf. Using default values.", etcDir));
 }
 
 void kcmsystemd::readJournaldConf()
 {
-  // Set keywords for parsing journald.conf:
-  QStringList journalids = QStringList() << "Storage" << "Compress" << "Seal"
-    << "SplitMode" << "SyncIntervalSec" << "RateLimitInterval" << "RateLimitBurst"
-    << "SystemMaxUse" << "SystemKeepFree" << "SystemMaxFileSize" << "RuntimeMaxUse"
-    << "RuntimeKeepFree" << "RuntimeMaxFileSize" << "MaxRetentionSec" << "MaxFileSec"
-    << "ForwardToSyslog" << "ForwardToKMsg" << "ForwardToConsole" << "TTYPath"
-    << "MaxLevelStore" << "MaxLevelSyslog" << "MaxLevelKMsg" << "MaxLevelConsole";
+  // QFile systemfile (etcDir + "/system.conf");
+  QFile file ("/home/ragnar/projects/kcmsystemd/confread/journald.conf");
   
-  QFile journaldfile (etcDir + "/journald.conf");
-
-  if (journaldfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    QTextStream in(&journaldfile);
-    QString line = in.readLine();
-
-    while(!line.isNull()) {
-    
-      if (line.contains(journalids[0])) {
-	if (line.trimmed().left(1) != "#" && !line.section("=",-1).trimmed().isEmpty())
-	  ui.cmbStorage->setCurrentIndex(ui.cmbStorage->findText(line.section("=",-1).trimmed().toLower()));
-      
-      } else if (line.contains(journalids[1])) {
-	if (line.trimmed().left(1) != "#" && !ToBoolDefOn(line.section('=',-1)))
-	  ui.chkCompressLogs->setChecked(0);
-	
-      } else if (line.contains(journalids[2])) {
-	if (line.trimmed().left(1) != "#" && !ToBoolDefOn(line.section('=',-1)))
-	  ui.chkFwdSecureSealing->setChecked(0);
-      
-      } else if (line.contains(journalids[3])) {
-	if (line.trimmed().left(1) != "#" && line.section('=',-1).trimmed().toLower() == "uid")
-	  ui.radUID->setChecked(1);
-	else if (line.trimmed().left(1) != "#" && line.section('=',-1).trimmed().toLower() == "none")
-	  ui.radNone->setChecked(1);
-	
-      } else if (line.contains(journalids[4])) {
-	ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("minutes"));
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp timeunit("ms|s|m|h|d|w");
-	  ui.spnSync->setValue(line.section("=",-1).trimmed().section(timeunit,0,0).toInt());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "ms") {
-	    ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("milliseconds"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "s" || line.section("=",-1).section(nmbrs,-1,-1).trimmed().isEmpty()) {
-	    ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("seconds"));    
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "min") {
-	    ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("minutes"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "h") {
-	    ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("hours"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "d") {
-	    ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("days"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "w") {
-	    ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("weeks"));
-	  }
-	}
-
-      } else if (line.contains(journalids[5])) {
-	ui.cmbRateInterval->setCurrentIndex(ui.cmbRateInterval->findText("seconds"));
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp timeunit("us|ms|s|min|h");
-	  ui.spnRateInterval->setValue(line.section("=",-1).trimmed().section(timeunit,0,0).toInt());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "us") {
-	      ui.cmbRateInterval->setCurrentIndex(ui.cmbRateInterval->findText("microseconds"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "ms") {
-	      ui.cmbRateInterval->setCurrentIndex(ui.cmbRateInterval->findText("milliseconds"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "s") {
-	      ui.cmbRateInterval->setCurrentIndex(ui.cmbRateInterval->findText("seconds"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "min") {
-	      ui.cmbRateInterval->setCurrentIndex(ui.cmbRateInterval->findText("minutes"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "h") {
-	      ui.cmbRateInterval->setCurrentIndex(ui.cmbRateInterval->findText("hours"));
-	  }
-	}
-      
-      } else if (line.contains(journalids[6])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.spnBurst->setValue(line.section("=",-1).trimmed().toInt());
-	}
-
-      } else if (line.contains(journalids[7])) {
-        if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	{ 
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp sizeF("k|m|g|t|p|e|K|M|G|T|P|E");
-	  perDiskUsageValue = (line.section("=",-1).trimmed().section(sizeF,0,0).toFloat());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "K")
-	    perDiskUsageValue = perDiskUsageValue / 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "M")
-	    perDiskUsageValue = perDiskUsageValue * 1;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "G")
-	    perDiskUsageValue = perDiskUsageValue * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "T")
-	    perDiskUsageValue = perDiskUsageValue * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "P")
-	    perDiskUsageValue = perDiskUsageValue * 1024 * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "E")
-	    perDiskUsageValue = perDiskUsageValue * 1024 * 1024 * 1024 * 1024;
-	  else
-	    perDiskUsageValue = perDiskUsageValue / 1024 / 1024;
-	  // only run if we are using persistent storage:
-	  if (isPersistent)
-	    ui.spnDiskUsage->setValue(perDiskUsageValue + 0.5);
-	}
-	
-      } else if (line.contains(journalids[8])) {
-        if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	{ 
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp sizeF("k|m|g|t|p|e|K|M|G|T|P|E");
-	  perDiskFreeValue = (line.section("=",-1).trimmed().section(sizeF,0,0).toFloat());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "K")
-	    perDiskFreeValue = perDiskFreeValue / 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "M")
-	    perDiskFreeValue = perDiskFreeValue * 1;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "G")
-	    perDiskFreeValue = perDiskFreeValue * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "T")
-	    perDiskFreeValue = perDiskFreeValue * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "P")
-	    perDiskFreeValue = perDiskFreeValue * 1024 * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "E")
-	    perDiskFreeValue = perDiskFreeValue * 1024 * 1024 * 1024 * 1024;
-	  else
-	    perDiskFreeValue = perDiskFreeValue / 1024 / 1024;
-	  // only run if we are using persistent storage:
-	  if (isPersistent)
-	    ui.spnDiskFree->setValue(perDiskFreeValue + 0.5);
-	}
-	
-      } else if (line.contains(journalids[9])) {
-        if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	{ 
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp sizeF("k|m|g|t|p|e|K|M|G|T|P|E");
-	  perSizeFilesValue = (line.section("=",-1).trimmed().section(sizeF,0,0).toFloat());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "K")
-	    perSizeFilesValue = perSizeFilesValue / 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "M")
-	    perSizeFilesValue = perSizeFilesValue * 1;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "G")
-	    perSizeFilesValue = perSizeFilesValue * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "T")
-	    perSizeFilesValue = perSizeFilesValue * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "P")
-	    perSizeFilesValue = perSizeFilesValue * 1024 * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "E")
-	    perSizeFilesValue = perSizeFilesValue * 1024 * 1024 * 1024 * 1024;
-	  else
-	    perSizeFilesValue = perSizeFilesValue / 1024 / 1024;
-	  // only run if we are using persistent storage:
-	  if (isPersistent)
-	    ui.spnSizeFiles->setValue(perSizeFilesValue + 0.5);
-	}
-	
-      } else if (line.contains(journalids[10])) {
-        if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	{ 
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp sizeF("k|m|g|t|p|e|K|M|G|T|P|E");
-	  volDiskUsageValue = (line.section("=",-1).trimmed().section(sizeF,0,0).toFloat());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "K")
-	    volDiskUsageValue = volDiskUsageValue / 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "M")
-	    volDiskUsageValue = volDiskUsageValue * 1;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "G")
-	    volDiskUsageValue = volDiskUsageValue * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "T")
-	    volDiskUsageValue = volDiskUsageValue * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "P")
-	    volDiskUsageValue = volDiskUsageValue * 1024 * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "E")
-	    volDiskUsageValue = volDiskUsageValue * 1024 * 1024 * 1024 * 1024;
-	  else
-	    volDiskUsageValue = volDiskUsageValue / 1024 / 1024;
-	  // only run if we are using volatile storage:
-	  if (!isPersistent)
-	    ui.spnDiskUsage->setValue(volDiskUsageValue + 0.5);
-	}
-	
-      } else if (line.contains(journalids[11])) {
-        if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	{ 
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp sizeF("k|m|g|t|p|e|K|M|G|T|P|E");
-	  volDiskFreeValue = (line.section("=",-1).trimmed().section(sizeF,0,0).toFloat());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "K")
-	    volDiskFreeValue = volDiskFreeValue / 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "M")
-	    volDiskFreeValue = volDiskFreeValue * 1;	  
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "G")
-	    volDiskFreeValue = volDiskFreeValue * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "T")
-	    volDiskFreeValue = volDiskFreeValue * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "P")
-	    volDiskFreeValue = volDiskFreeValue * 1024 * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "E")
-	    volDiskFreeValue = volDiskFreeValue * 1024 * 1024 * 1024 * 1024;
-	  else
-	    volDiskFreeValue = volDiskFreeValue / 1024 / 1024;
-	  // only run if we are using volatile storage:
-	  if (!isPersistent)
-	    ui.spnDiskFree->setValue(volDiskFreeValue + 0.5);
-	}
-	
-      } else if (line.contains(journalids[12])) {
-        if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	{ 
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp sizeF("k|m|g|t|p|e|K|M|G|T|P|E");
-	  volSizeFilesValue = (line.section("=",-1).trimmed().section(sizeF,0,0).toFloat());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "K")
-	    volSizeFilesValue = volSizeFilesValue / 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "M")
-	    volSizeFilesValue = volSizeFilesValue * 1;	  
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "G")
-	    volSizeFilesValue = volSizeFilesValue * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "T")
-	    volSizeFilesValue = volSizeFilesValue * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "P")
-	    volSizeFilesValue = volSizeFilesValue * 1024 * 1024 * 1024;
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toUpper() == "E")
-	    volSizeFilesValue = volSizeFilesValue * 1024 * 1024 * 1024 * 1024;
-	  else
-	    volSizeFilesValue = volSizeFilesValue / 1024 / 1024;
-	  // only run if we are using volatile storage:
-	  if (!isPersistent)
-	    ui.spnSizeFiles->setValue(volSizeFilesValue + 0.5);
-	}
-	
-      } else if (line.contains(journalids[13])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.chkMaxRetention->setChecked(1);
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp timeunit("m|h|day|week|month|year");
-	  ui.spnMaxRetention->setValue(line.section("=",-1).trimmed().section(timeunit,0,0).toInt());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "m") {
-	      ui.cmbMaxRetention->setCurrentIndex(ui.cmbMaxRetention->findText("minutes"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "h") {
-	      ui.cmbMaxRetention->setCurrentIndex(ui.cmbMaxRetention->findText("hours"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "day") {
-	      ui.cmbMaxRetention->setCurrentIndex(ui.cmbMaxRetention->findText("days"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "week") {
-	      ui.cmbMaxRetention->setCurrentIndex(ui.cmbMaxRetention->findText("weeks"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "month") {
-	      ui.cmbMaxRetention->setCurrentIndex(ui.cmbMaxRetention->findText("months"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "year") {
-	      ui.cmbMaxRetention->setCurrentIndex(ui.cmbMaxRetention->findText("years"));
-	  }
-	}
- 
-      } else if (line.contains(journalids[14])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.chkMaxFile->setChecked(1);
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp timeunit("m|h|day|week|month|year");
-	  ui.spnMaxFile->setValue(line.section("=",-1).section(timeunit,0,0).trimmed().toInt());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "m") {
-	      ui.cmbMaxFile->setCurrentIndex(ui.cmbMaxFile->findText("minutes"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "h") {
-	      ui.cmbMaxFile->setCurrentIndex(ui.cmbMaxFile->findText("hours"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "day") {
-	      ui.cmbMaxFile->setCurrentIndex(ui.cmbMaxFile->findText("days"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "week") {
-	      ui.cmbMaxFile->setCurrentIndex(ui.cmbMaxFile->findText("weeks"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "month") {
-	      ui.cmbMaxFile->setCurrentIndex(ui.cmbMaxFile->findText("months"));
-	  } else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "year") {
-	      ui.cmbMaxFile->setCurrentIndex(ui.cmbMaxFile->findText("years"));
-	  }
-	}
-	
-      } else if (line.contains(journalids[15])) {
-	if (line.trimmed().left(1) != "#" && !ToBoolDefOn(line.section('=',-1)))
-	  ui.chkFwdSyslog->setChecked(0);
-	
-      } else if (line.contains(journalids[16])) {
-	if (line.trimmed().left(1) != "#" && ToBoolDefOff(line.section('=',-1)))
-	  ui.chkFwdKmsg->setChecked(1);
-	
-      } else if (line.contains(journalids[17])) {
-	if (line.trimmed().left(1) != "#" && ToBoolDefOff(line.section('=',-1)))
-	{
-	  ui.chkFwdConsole->setChecked(1);
-	  ui.leTTYPath->setEnabled(1);
-	}
-	
-      } else if (line.contains(journalids[18])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    ui.leTTYPath->setText(line.section('=',-1).trimmed());
-	  }
-	
-      } else if (line.contains(journalids[19])) {
-	ui.cmbLevelStore->setCurrentIndex(7);
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.cmbLevelStore->setCurrentIndex(ui.cmbLevelStore->findText(line.section("=",-1).trimmed().toLower()));
-        }
-        
-      } else if (line.contains(journalids[20])) {
-	ui.cmbLevelSyslog->setCurrentIndex(7);
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.cmbLevelSyslog->setCurrentIndex(ui.cmbLevelSyslog->findText(line.section("=",-1).trimmed().toLower()));
-        }
-        
-      } else if (line.contains(journalids[21])) {
-	ui.cmbLevelKmsg->setCurrentIndex(5);
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.cmbLevelKmsg->setCurrentIndex(ui.cmbLevelKmsg->findText(line.section("=",-1).trimmed().toLower()));
-        }
-        
-      } else if (line.contains(journalids[22])) {
-	ui.cmbLevelConsole->setCurrentIndex(6);
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.cmbLevelConsole->setCurrentIndex(ui.cmbLevelConsole->findText(line.section("=",-1).trimmed().toLower()));
-        }
-        	
-      } // if line contains...
-      line = in.readLine();
-
-    } // read lines until empty
-  } // if file open 
-  else 
-    KMessageBox::error(this, i18n("Failed to read %1/journald.conf. Using default values.", etcDir));
-  
-}
-
-void kcmsystemd::readLogindConf()
-{
-  // Set keywords for parsing logind.conf:
-  QStringList loginids = QStringList() << "NAutoVTs" << "ReserveVT" << "KillUserProcesses"
-  << "KillOnlyUsers" << "KillExcludeUsers" << "Controllers" << "ResetControllers" 
-  << "InhibitDelayMaxSec" << "HandlePowerKey" << "HandleSuspendKey" << "HandleHibernateKey" 
-  << "HandleLidSwitch" << "PowerKeyIgnoreInhibited" << "SuspendKeyIgnoreInhibited" 
-  << "HibernateKeyIgnoreInhibited" << "LidSwitchIgnoreInhibited" << "IdleAction=" 
-  << "IdleActionSec";
-
-  QFile file (etcDir + "/logind.conf");
-
   if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QTextStream in(&file);
     QString line = in.readLine();
 
-    while(!line.isNull()) {
-      
-      if (line.contains(loginids[0])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.spnAutoVTs->setValue(line.section("=",-1).trimmed().toInt());
-	}
-	
-      } else if (line.contains(loginids[1])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.spnReserveVT->setValue(line.section("=",-1).trimmed().toInt());
-	}
-	
-      } else if (line.contains(loginids[2])) {
-	if (line.trimmed().left(1) != "#" && ToBoolDefOff(line.section('=',-1)))
-	  ui.chkKillUserProc->setChecked(1);
-	
-      } else if (line.contains(loginids[3])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    ui.leKillOnlyUsers->setText(line.section('=',-1).trimmed());
-	  }
-	  
-      } else if (line.contains(loginids[4])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    ui.leKillExcludeUsers->setText(line.section('=',-1).trimmed());
-	  }
-	
-      } else if (line.startsWith(loginids[5])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    ui.leControllers->setText(line.section('=',-1).trimmed());
-	  }
-	  
-      } else if (line.contains(loginids[6])) {
-	  if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	    ui.leResetControllers->setText(line.section('=',-1).trimmed());
-	  }
-	
-      } else if (line.contains(loginids[7])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.spnInhibDelayMax->setValue(line.section("=",-1).trimmed().toInt());
-	}
-	
-      } else if (line.contains(loginids[8])) {
-	ui.cmbPowerKey->setCurrentIndex(1);
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.cmbPowerKey->setCurrentIndex(ui.cmbPowerKey->findText(line.section("=",-1).trimmed().toLower()));
+    while(!line.isNull())
+    {
+      for (int i = 0; i < confOptList.size(); ++i)
+      {
+        if (confOptList.at(i) == confOption(line.section("=",0,0).trimmed()))
+        {        
+          confOptList[i].setValueFromFile(line);
+          break;          
         }
-        
-      } else if (line.contains(loginids[9])) {
-	ui.cmbSuspendKey->setCurrentIndex(5);
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.cmbSuspendKey->setCurrentIndex(ui.cmbSuspendKey->findText(line.section("=",-1).trimmed().toLower()));
-        }
-        
-      } else if (line.contains(loginids[10])) {
-	ui.cmbHibernateKey->setCurrentIndex(6);
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.cmbHibernateKey->setCurrentIndex(ui.cmbHibernateKey->findText(line.section("=",-1).trimmed().toLower()));
-        }
-        
-      } else if (line.contains(loginids[11])) {
-	ui.cmbLidSwitch->setCurrentIndex(5);
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  ui.cmbLidSwitch->setCurrentIndex(ui.cmbLidSwitch->findText(line.section("=",-1).trimmed().toLower()));
-        }
+      }
 
-      } else if (line.contains(loginids[12])) {
-	if (line.trimmed().left(1) != "#" && ToBoolDefOff(line.section('=',-1)))
-	  ui.chkPowerKey->setChecked(1);
-	
-      } else if (line.contains(loginids[13])) {
-	if (line.trimmed().left(1) != "#" && ToBoolDefOff(line.section('=',-1)))
-	  ui.chkSuspendKey->setChecked(1);
-
-      } else if (line.contains(loginids[14])) {
-	if (line.trimmed().left(1) != "#" && ToBoolDefOff(line.section('=',-1)))
-	  ui.chkHibernateKey->setChecked(1);
-	
-      } else if (line.contains(loginids[15])) {
-	if (line.trimmed().left(1) != "#" && !ToBoolDefOn(line.section('=',-1)))
-	  ui.chkLidSwitch->setChecked(0);
-
-      } else if (line.contains(loginids[16])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty())
-	  ui.cmbIdleAction->setCurrentIndex(ui.cmbIdleAction->findText(line.section("=",-1).trimmed().toLower()));
-
-      } else if (line.contains(loginids[17])) {
-	if (line.trimmed().left(1) != "#" && !line.section('=',-1).trimmed().isEmpty()) {
-	  QRegExp nmbrs("[0-9]+");
-	  QRegExp timeunit("m|h");
-	  ui.spnIdleActionSec->setValue(line.section("=",-1).section(timeunit,0,0).trimmed().toInt());
-	  if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "m")
-	      ui.cmbIdleActionSec->setCurrentIndex(ui.cmbIdleActionSec->findText("minutes"));
-	  else if (line.section("=",-1).section(nmbrs,-1,-1).trimmed().toLower() == "h")
-	      ui.cmbIdleActionSec->setCurrentIndex(ui.cmbIdleActionSec->findText("hours"));
-	}
-
-      } // if line contains...
       line = in.readLine();
-
     } // read lines until empty
-  } // if file open 
+        
+  } // if file open
+  else 
+    KMessageBox::error(this, i18n("Failed to read %1/journald.conf. Using default values.", etcDir));
+}
+
+void kcmsystemd::readLogindConf()
+{
+  // QFile systemfile (etcDir + "/logind.conf");
+  QFile file ("/home/ragnar/projects/kcmsystemd/confread/logind.conf");
+  
+  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    QTextStream in(&file);
+    QString line = in.readLine();
+
+    while(!line.isNull())
+    { 
+      for (int i = 0; i < confOptList.size(); ++i)
+      {
+        if (confOptList.at(i) == confOption(line.section("=",0,0).trimmed()))
+        {        
+          confOptList[i].setValueFromFile(line);
+          break;          
+        }
+      }
+
+      line = in.readLine();
+    } // read lines until empty
+        
+  } // if file open
   else 
     KMessageBox::error(this, i18n("Failed to read %1/logind.conf. Using default values.", etcDir));
-  
 } 
+
+void kcmsystemd::applyToInterface()
+{
+  // Loop through all confOptions and update interface
+  foreach(confOption i, confOptList)
+  {
+    if (i.type == BOOL)
+    {
+      QCheckBox *chk = this->findChild<QCheckBox *>("chk" + i.name);
+      if (chk)
+        chk->setChecked(i.getValue().toBool());
+    }
+    else if (i.type == STRING)
+    {
+      QLineEdit *le = this->findChild<QLineEdit *>("le" + i.name);
+      if (le)
+        le->setText(i.getValue().toString());
+    }
+    else if (i.type == INTEGER)
+    {
+      QSpinBox *spn = this->findChild<QSpinBox *>("spn" + i.name);
+      if (spn)
+        spn->setValue(i.getValue().toInt());
+    }
+    else if (i.type == TIME)
+    {
+      QSpinBox *spn = this->findChild<QSpinBox *>("spn" + i.name);
+      if (spn)
+        spn->setValue(i.getValue().toInt());
+    }
+    else if (i.type == LIST)
+    {
+      QComboBox *cmb = this->findChild<QComboBox *>("cmb" + i.name);
+      if (cmb)
+        cmb->setCurrentIndex(i.possibleVals.indexOf(i.getValue().toString()));
+    }
+    else if (i.type == SIZE)
+    {
+      QString basename = i.name;
+      basename.remove(QRegExp("System|Runtime"));
+      QSpinBox *spn = this->findChild<QSpinBox *>("spn" + basename);
+      if (spn)
+      {
+        if (isPersistent && i.name.contains("System"))
+          spn->setValue(i.getValue().toULongLong());
+        else if (!isPersistent && i.name.contains("Runtime"))
+          spn->setValue(i.getValue().toULongLong());
+      }
+      QCheckBox *chk = this->findChild<QCheckBox *>("chk" + basename);
+      if (chk)
+      {
+        if ((isPersistent && i.name.contains("System")) || (!isPersistent && i.name.contains("Runtime")))
+        {
+          if (i.getValue() == i.defVal)
+            chk->setChecked(Qt::Checked);
+          else
+            chk->setChecked(Qt::Unchecked);
+        }
+      }      
+      
+    }
+    
+  }
+  
+  // Radiobutton
+  QRadioButton *rad = this->findChild<QRadioButton *>("rad" + confOptList.at(confOptList.indexOf(confOption("SplitMode"))).getValue().toString());
+  if (rad)
+    rad->setChecked(true);
+  
+}
 
 void kcmsystemd::setupUnitslist()
 {
@@ -1129,449 +575,72 @@ void kcmsystemd::setupUnitslist()
 
 void kcmsystemd::defaults()
 {
-  if (KMessageBox::warningYesNo(this, i18n("Are you sure you want to load the default settings?")) == 3)
+  if (KMessageBox::warningYesNo(this, i18n("Load deafult settings for all tabs?")) == KMessageBox::Yes)
   { 
     //defaults for system.conf
-    ui.cmbLogLevel->setCurrentIndex(ui.cmbLogLevel->findText("info"));
-    ui.cmbLogTarget->setCurrentIndex(ui.cmbLogTarget->findText("journal"));
-    ui.chkLogColor->setChecked(1);
-    ui.chkLogLocation->setChecked(1);
-    ui.chkDumpCore->setChecked(1);
-    ui.chkCrashShell->setChecked(0);
-    ui.chkShowStatus->setChecked(1);
-    ui.cmbCrashVT->setCurrentIndex(0);
-    ui.leCPUAffinity->setText("1 2");
-    ui.chkCPUAffinity->setChecked(0);
-    ui.leDefControllers->setText("cpu");
-    ui.cmbDefStdOutput->setCurrentIndex(ui.cmbDefStdOutput->findText("journal"));
-    ui.cmbDefStdError->setCurrentIndex(ui.cmbDefStdError->findText("inherit"));
-    ui.leJoinControllers->setText("cpu,cpuacct");
-    ui.spnRuntimeWatchdog->setValue(0);
-    ui.cmbRuntimeWatchdog->setCurrentIndex(ui.cmbRuntimeWatchdog->findText("seconds"));
-    ui.spnShutdownWatchdog->setValue(10);
-    ui.cmbShutdownWatchdog->setCurrentIndex(ui.cmbShutdownWatchdog->findText("minutes"));
-    ui.leCapBoundSet->setText("~");
-    ui.cmbTimerSlack->setCurrentIndex(ui.cmbTimerSlack->findText("nanoseconds"));
-    ui.spnTimerSlack->setValue(0);
-    for(QVariantMap::const_iterator iter = kcmsystemd::resLimits.begin(); iter != kcmsystemd::resLimits.end(); ++iter)
-      kcmsystemd::resLimits[QString(iter.key())] = 0;
-    environ.clear();
-    if (systemdVersion >= 209)
+    for (int i = 0; i < confOptList.size(); ++i)
     {
-      timeoutSettings["DefaultTimoutStartSec"] = 90;
-      timeoutSettings["DefaultTimeoutStopSec"] = 90;
-      timeoutSettings["DefaultRestartSec"] = 100;
-      timeoutSettings["DefaultStartLimitInterval"] = 10;
-      timeoutSettings["DefaultStartLimitBurst"] = 5;
+      confOptList[i].setValue(confOptList.at(i).defVal);
+      confOptList[i].active = false;
+      if (confOptList.at(i).type == RESLIMIT)
+      {
+        qDebug() << confOptList.at(i).name << ":" << confOptList.at(i).getValue();
+        confOption::resLimitsMap[confOptList.at(i).name] = confOptList.at(i).getValue();
+        
+      }
     }
-    
-    //defaults for journald.conf
-    ui.cmbStorage->setCurrentIndex(ui.cmbStorage->findText("auto"));
-    ui.chkCompressLogs->setChecked(1);
-    ui.chkFwdSecureSealing->setChecked(1);
-    ui.radLogin->setChecked(1);
-    ui.cmbSync->setCurrentIndex(ui.cmbSync->findText("minutes"));
-    ui.spnSync->setValue(5);
-    ui.cmbRateInterval->setCurrentIndex(ui.cmbRateInterval->findText("seconds"));
-    ui.spnRateInterval->setValue(10);
-    ui.spnBurst->setValue(200);
-    if (QDir("/var/log/journal").exists())
-    {
-      ui.spnDiskUsage->setValue(0.1 * partPersSizeMB);
-      ui.spnDiskFree->setValue(0.15 * partPersSizeMB);
-      ui.spnSizeFiles->setValue(0.0125 * partPersSizeMB);
-    }
-    else
-    {
-      ui.spnDiskUsage->setValue(0.1 * partVolaSizeMB);
-      ui.spnDiskFree->setValue(0.15 * partVolaSizeMB);
-      ui.spnSizeFiles->setValue(0.0125 * partVolaSizeMB);
-    }
-    ui.chkMaxRetention->setChecked(0);
-    ui.spnMaxRetention->setValue(0);
-    ui.cmbMaxRetention->setCurrentIndex(ui.cmbMaxRetention->findText("seconds"));
-    ui.chkMaxFile->setChecked(1);
-    ui.spnMaxFile->setValue(1);
-    ui.cmbMaxFile->setCurrentIndex(ui.cmbMaxFile->findText("months"));
-    ui.chkFwdSyslog->setChecked(1);
-    ui.chkFwdKmsg->setChecked(0);
-    ui.chkFwdConsole->setChecked(0);
-    ui.leTTYPath->setEnabled(0);
-    ui.leTTYPath->setText("/dev/console");
-    ui.cmbLevelStore->setCurrentIndex(ui.cmbLevelStore->findText("debug"));
-    ui.cmbLevelSyslog->setCurrentIndex(ui.cmbLevelSyslog->findText("debug"));
-    ui.cmbLevelKmsg->setCurrentIndex(ui.cmbLevelKmsg->findText("notice"));
-    ui.cmbLevelConsole->setCurrentIndex(ui.cmbLevelConsole->findText("info"));
-    
-    //defaults for logind.conf
-    ui.spnAutoVTs->setValue(6);
-    ui.spnReserveVT->setValue(6);
-    ui.chkKillUserProc->setChecked(0);
-    ui.leKillOnlyUsers->setText("");
-    ui.leKillExcludeUsers->setText("root");
-    ui.leControllers->setText("");
-    ui.leResetControllers->setText("cpu");
-    ui.spnInhibDelayMax->setValue(5);
-    ui.cmbPowerKey->setCurrentIndex(ui.cmbPowerKey->findText("poweroff"));
-    ui.cmbSuspendKey->setCurrentIndex(ui.cmbSuspendKey->findText("suspend"));
-    ui.cmbHibernateKey->setCurrentIndex(ui.cmbHibernateKey->findText("hibernate"));
-    ui.cmbLidSwitch->setCurrentIndex(ui.cmbLidSwitch->findText("suspend"));
-    ui.chkPowerKey->setChecked(0);
-    ui.chkSuspendKey->setChecked(0);
-    ui.chkHibernateKey->setChecked(0);
-    ui.chkLidSwitch->setChecked(1);
-    ui.cmbIdleAction->setCurrentIndex(ui.cmbIdleAction->findText("ignore"));
-    ui.spnIdleActionSec->setValue(30);
-    ui.cmbIdleActionSec->setCurrentIndex(ui.cmbIdleActionSec->findText("minutes"));
+    applyToInterface();
   }
 }
 
 void kcmsystemd::save()
-{	
-  // prepare system.conf contents
+{
+  
   QString systemConfFileContents;
-  systemConfFileContents.append("# " + etcDir + "/system.conf\n# Generated by kcmsystemd control module.\n");
+  systemConfFileContents.append("# " + etcDir + "/system.conf\n# Generated by kcmsystemd control module v." + KCM_SYSTEMD_VERSION + ".\n");
   systemConfFileContents.append("[Manager]\n");
-  systemConfFileContents.append("LogLevel=" + ui.cmbLogLevel->currentText() + "\n");
-  systemConfFileContents.append("LogTarget=" + ui.cmbLogTarget->currentText() + "\n");
-  if (ui.chkLogColor->isChecked())
-    systemConfFileContents.append("LogColor=yes\n");
-  else
-    systemConfFileContents.append("LogColor=no\n");
-  if (ui.chkLogLocation->isChecked())
-    systemConfFileContents.append("LogLocation=yes\n");
-  else
-    systemConfFileContents.append("LogLocation=no\n");
-  if (ui.chkDumpCore->isChecked())
-    systemConfFileContents.append("DumpCore=yes\n");
-  else
-    systemConfFileContents.append("DumpCore=no\n");
-  if (ui.chkCrashShell->isChecked())
-    systemConfFileContents.append("CrashShell=yes\n");
-  else
-    systemConfFileContents.append("CrashShell=no\n");
-  if (ui.chkShowStatus->isChecked())
-    systemConfFileContents.append("ShowStatus=yes\n");
-  else
-    systemConfFileContents.append("ShowStatus=no\n");
-  if (ui.cmbCrashVT->currentText() == "Off")
-    systemConfFileContents.append("CrashChVT=-1\n");
-  else
-    systemConfFileContents.append("CrashChVT=" + ui.cmbCrashVT->currentText() + "\n");
-  if (ui.chkCPUAffinity->isChecked())
-    systemConfFileContents.append("CPUAffinity=" + ui.leCPUAffinity->text() + "\n");
-  else
-    systemConfFileContents.append("CPUAffinity=\n");
-  if (systemdVersion < 208)
-    systemConfFileContents.append("DefaultControllers=" + ui.leDefControllers->text() + "\n");
-  systemConfFileContents.append("DefaultStandardOutput=" + ui.cmbDefStdOutput->currentText() + "\n");
-  systemConfFileContents.append("DefaultStandardError=" + ui.cmbDefStdError->currentText() + "\n");
-  systemConfFileContents.append("JoinControllers=" + ui.leJoinControllers->text() + "\n");
-  systemConfFileContents.append("RuntimeWatchdogSec=" + ui.spnRuntimeWatchdog->cleanText());
-  switch (ui.cmbRuntimeWatchdog->currentIndex())
+  
+  foreach (confOption i, confOptList)
   {
-  case 0:
-    systemConfFileContents.append("ms\n");
-    break;
-  case 1:
-    systemConfFileContents.append("\n");
-    break;
-  case 2:
-    systemConfFileContents.append("min\n");
-    break;
-  case 3:
-    systemConfFileContents.append("h\n");
-    break;
-  case 4:
-    systemConfFileContents.append("d\n");
-    break;
-  case 5:
-    systemConfFileContents.append("w\n");
-  }
-  systemConfFileContents.append("ShutdownWatchdogSec=" + ui.spnShutdownWatchdog->cleanText());
-  switch (ui.cmbShutdownWatchdog->currentIndex())
-  {
-  case 0:
-    systemConfFileContents.append("ms\n");
-    break;
-  case 1:
-    systemConfFileContents.append("\n");
-    break;
-  case 2:
-    systemConfFileContents.append("min\n");
-    break;
-  case 3:
-    systemConfFileContents.append("h\n");
-    break;
-  case 4:
-    systemConfFileContents.append("d\n");
-    break;
-  case 5:
-    systemConfFileContents.append("w\n");
-  } 
-  systemConfFileContents.append("CapabilityBoundingSet=" + ui.leCapBoundSet->text() + "\n");
-  systemConfFileContents.append("TimerSlackNSec=" + ui.spnTimerSlack->cleanText());
-  switch (ui.cmbTimerSlack->currentIndex())
-  {
-  case 0:
-    systemConfFileContents.append("\n");
-    break;
-  case 1:
-    systemConfFileContents.append("ms\n");
-    break;
-  case 2:
-    systemConfFileContents.append("s\n");
-    break;
-  case 3:
-    systemConfFileContents.append("min\n");
-    break;
-  case 4:
-    systemConfFileContents.append("h\n");
-    break;
-  case 5:
-    systemConfFileContents.append("d\n");
-    break;
-  case 6:
-    systemConfFileContents.append("w\n");
+    if (i.file == SYSTEMD)
+      systemConfFileContents.append(i.getLineForFile());
   }
   
-  if (systemdVersion >= 209)
-  {
-    for(QVariantMap::const_iterator iter = timeoutSettings.begin(); iter != timeoutSettings.end(); ++iter)
-    {
-      systemConfFileContents.append(iter.key() + "=" + iter.value().toString());
-      if (iter.key() == "DefaultRestartSec")
-        systemConfFileContents.append("ms\n");
-      else
-        systemConfFileContents.append("\n");
-    }
-  }
-  
-  for(QVariantMap::const_iterator iter = resLimits.begin(); iter != resLimits.end(); ++iter)
-  {
-    if (iter.value() == 0)
-      systemConfFileContents.append(iter.key() + "=infinity\n");
-    else
-      systemConfFileContents.append(iter.key() + "=" + iter.value().toString() + "\n");
-  }
-  
-  systemConfFileContents.append("DefaultEnvironment=");
-  QListIterator<QPair<QString,QString> > i(kcmsystemd::environ);
-  while (i.hasNext())
-  {
-    if (i.peekNext().first.contains(" ") || i.peekNext().second.contains(" "))
-    {
-      systemConfFileContents.append("\"" + i.peekNext().first + "=" + i.peekNext().second + "\" ");
-      i.next();
-    } else {
-      systemConfFileContents.append(i.peekNext().first + "=" + i.peekNext().second + " ");
-      i.next();
-    }
-  }
-  
-  // prepare journald.conf contents
+  KMessageBox::information(this, systemConfFileContents);
+
   QString journaldConfFileContents;
-  journaldConfFileContents.append("# " + etcDir + "/journal.conf\n# Generated by kcmsystemd control module.\n");
+  journaldConfFileContents.append("# " + etcDir + "/journald.conf\n# Generated by kcmsystemd control module v." + KCM_SYSTEMD_VERSION + ".\n");
   journaldConfFileContents.append("[Journal]\n");
-  journaldConfFileContents.append("Storage=" + ui.cmbStorage->currentText() + "\n");
-  if (ui.chkCompressLogs->isChecked())
-    journaldConfFileContents.append("Compress=yes\n");
-  else
-    journaldConfFileContents.append("Compress=no\n");
-  if (ui.chkFwdSecureSealing->isChecked())
-    journaldConfFileContents.append("Seal=yes\n");
-  else
-    journaldConfFileContents.append("Seal=no\n");
-  if (ui.radLogin->isChecked())
-    journaldConfFileContents.append("SplitMode=login\n");
-  else if (ui.radUID->isChecked())
-    journaldConfFileContents.append("SplitMode=uid\n");
-  else if (ui.radNone->isChecked())
-    journaldConfFileContents.append("SplitMode=none\n");
-  journaldConfFileContents.append("SyncIntervalSec=" + ui.spnSync->cleanText());
-  switch (ui.cmbSync->currentIndex())
-  {
-  case 0:
-    journaldConfFileContents.append("\n");
-    break;
-  case 1:
-    journaldConfFileContents.append("m\n");
-    break;
-  case 2:
-    journaldConfFileContents.append("h\n");
-    break;
-  case 3:
-    journaldConfFileContents.append("d\n");
-    break;
-  case 4:
-    journaldConfFileContents.append("w\n");
-    break;
-  }
-  journaldConfFileContents.append("RateLimitInterval=" + ui.spnRateInterval->cleanText());
-  switch (ui.cmbRateInterval->currentIndex())
-  {
-  case 0:
-    journaldConfFileContents.append("us\n");
-    break;
-  case 1:
-    journaldConfFileContents.append("ms\n");
-    break;
-  case 2:
-    journaldConfFileContents.append("s\n");
-    break;
-  case 3:
-    journaldConfFileContents.append("m\n");
-    break;
-  case 4:
-    journaldConfFileContents.append("h\n");
-    break;
-  }
-  journaldConfFileContents.append("RateLimitBurst=" + ui.spnBurst->cleanText() + "\n");
-  // if  (ui.cmbStorage->currentIndex() == 1 || (ui.cmbStorage->currentIndex() == 2 && QDir("/var/log/journal").exists()))
-  if  (isPersistent)
-    journaldConfFileContents.append("SystemMaxUse=");
-  else if (ui.cmbStorage->currentIndex() == 0 || (ui.cmbStorage->currentIndex() == 2 && !QDir("/var/log/journal").exists()))
-    journaldConfFileContents.append("RuntimeMaxUse=");
-  journaldConfFileContents.append(ui.spnDiskUsage->cleanText() + "M\n");
-  if  (ui.cmbStorage->currentIndex() == 1 || (ui.cmbStorage->currentIndex() == 2 && QDir("/var/log/journal").exists()))
-    journaldConfFileContents.append("SystemKeepFree=");
-  else if (ui.cmbStorage->currentIndex() == 0 || (ui.cmbStorage->currentIndex() == 2 && !QDir("/var/log/journal").exists()))
-    journaldConfFileContents.append("RuntimeKeepFree=");
-  journaldConfFileContents.append(ui.spnDiskFree->cleanText() + "M\n");
-  if (ui.cmbStorage->currentIndex() == 1 || (ui.cmbStorage->currentIndex() == 2 && QDir("/var/log/journal").exists()))
-    journaldConfFileContents.append("SystemMaxFileSize=");
-  else if (ui.cmbStorage->currentIndex() == 0 || (ui.cmbStorage->currentIndex() == 2 && !QDir("/var/log/journal").exists()))
-    journaldConfFileContents.append("RuntimeMaxFileSize=");
-  journaldConfFileContents.append(ui.spnSizeFiles->cleanText() + "M\n");
-  if (ui.chkMaxRetention->isChecked()) {
-    journaldConfFileContents.append("MaxRetentionSec=" + ui.spnMaxRetention->cleanText());
-    switch (ui.cmbMaxRetention->currentIndex())
-    {
-    case 0:
-      journaldConfFileContents.append("\n");
-      break;
-    case 1:
-      journaldConfFileContents.append("m\n");
-      break;
-    case 2:
-      journaldConfFileContents.append("h\n");
-      break;
-    case 3:
-      journaldConfFileContents.append("day\n");
-      break;
-    case 4:
-      journaldConfFileContents.append("week\n");
-      break;
-    case 5:
-      journaldConfFileContents.append("month\n");
-      break;
-    case 6:
-      journaldConfFileContents.append("year\n");
-      break;
-    }
-  }
-  if (ui.chkMaxFile->isChecked()) {
-    journaldConfFileContents.append("MaxFileSec=" + ui.spnMaxFile->cleanText());
-    switch (ui.cmbMaxFile->currentIndex())
-    {
-    case 0:
-      journaldConfFileContents.append("\n");
-      break;
-    case 1:
-      journaldConfFileContents.append("m\n");
-      break;
-    case 2:
-      journaldConfFileContents.append("h\n");
-      break;
-    case 3:
-      journaldConfFileContents.append("day\n");
-      break;
-    case 4:
-      journaldConfFileContents.append("week\n");
-      break;
-    case 5:
-      journaldConfFileContents.append("month\n");
-      break;
-    case 6:
-      journaldConfFileContents.append("year\n");
-      break;
-    }
-  }
-  if (ui.chkFwdSyslog->isChecked())
-    journaldConfFileContents.append("ForwardToSyslog=yes\n");
-  else
-    journaldConfFileContents.append("ForwardToSyslog=no\n");
-  if (ui.chkFwdKmsg->isChecked())
-    journaldConfFileContents.append("ForwardToKMsg=yes\n");
-  else
-    journaldConfFileContents.append("ForwardToKMsg=no\n");
-  if (ui.chkFwdConsole->isChecked())
-    journaldConfFileContents.append("ForwardToConsole=yes\n");
-  else
-    journaldConfFileContents.append("ForwardToConsole=no\n");  
-  journaldConfFileContents.append("TTYPath=" + ui.leTTYPath->text() + "\n");
-  journaldConfFileContents.append("MaxLevelStore=" + ui.cmbLevelStore->currentText() + "\n");
-  journaldConfFileContents.append("MaxLevelSyslog=" + ui.cmbLevelSyslog->currentText() + "\n");
-  journaldConfFileContents.append("MaxLevelKMsg=" + ui.cmbLevelKmsg->currentText() + "\n");
-  journaldConfFileContents.append("MaxLevelConsole=" + ui.cmbLevelConsole->currentText() + "\n");
   
-  // prepare logind.conf contents
-  QString logindConfFileContents;
-  logindConfFileContents.append("# " + etcDir + "/logind.conf\n# Generated by kcmsystemd control module.\n");
-  logindConfFileContents.append("[Login]\n");
-  logindConfFileContents.append("NAutoVTs=" + ui.spnAutoVTs->cleanText() + "\n");
-  logindConfFileContents.append("ReserveVT=" + ui.spnReserveVT->cleanText() + "\n");
-  if (ui.chkKillUserProc->isChecked())
-    logindConfFileContents.append("KillUserProcesses=yes\n");
-  else
-    logindConfFileContents.append("KillUserProcesses=no\n");
-  logindConfFileContents.append("KillOnlyUsers=" + ui.leKillOnlyUsers->text() + "\n");
-  logindConfFileContents.append("KillExcludeUsers=" + ui.leKillExcludeUsers->text() + "\n");
-  if (systemdVersion < 207)
+  foreach (confOption i, confOptList)
   {
-    logindConfFileContents.append("Controllers=" + ui.leControllers->text() + "\n");
-    logindConfFileContents.append("ResetControllers=" + ui.leResetControllers->text() + "\n");
+    if (i.file == JOURNALD)
+      journaldConfFileContents.append(i.getLineForFile());
   }
-  logindConfFileContents.append("InhibitDelayMaxSec=" + ui.spnInhibDelayMax->cleanText() + "\n");
-  logindConfFileContents.append("HandlePowerKey=" + ui.cmbPowerKey->currentText() + "\n");
-  logindConfFileContents.append("HandleSuspendKey=" + ui.cmbSuspendKey->currentText() + "\n");
-  logindConfFileContents.append("HandleHibernateKey=" + ui.cmbHibernateKey->currentText() + "\n");
-  logindConfFileContents.append("HandleLidSwitch=" + ui.cmbLidSwitch->currentText() + "\n");
-  if (ui.chkPowerKey->isChecked())
-    logindConfFileContents.append("PowerKeyIgnoreInhibited=yes\n");
-  else
-    logindConfFileContents.append("PowerKeyIgnoreInhibited=no\n");
-  if (ui.chkSuspendKey->isChecked())
-    logindConfFileContents.append("SuspendKeyIgnoreInhibited=yes\n");
-  else
-    logindConfFileContents.append("SuspendKeyIgnoreInhibited=no\n");
-  if (ui.chkHibernateKey->isChecked())
-    logindConfFileContents.append("HibernateKeyIgnoreInhibited=yes\n");
-  else
-    logindConfFileContents.append("HibernateKeyIgnoreInhibited=no\n");
-  if (ui.chkLidSwitch->isChecked())
-    logindConfFileContents.append("LidSwitchIgnoreInhibited=yes\n");
-  else
-    logindConfFileContents.append("LidSwitchIgnoreInhibited=no\n");
-  logindConfFileContents.append("IdleAction=" + ui.cmbIdleAction->currentText() + "\n");
-  logindConfFileContents.append("IdleActionSec=" + ui.spnIdleActionSec->cleanText());
-  switch (ui.cmbIdleActionSec->currentIndex())
+  
+  KMessageBox::information(this, journaldConfFileContents);
+  
+  
+  QString logindConfFileContents;
+  logindConfFileContents.append("# " + etcDir + "/logind.conf\n# Generated by kcmsystemd control module v." + KCM_SYSTEMD_VERSION + ".\n");
+  logindConfFileContents.append("[Login]\n");
+  
+  foreach (confOption i, confOptList)
   {
-  case 0:
-    logindConfFileContents.append("\n");
-    break;
-  case 1:
-    logindConfFileContents.append("m\n");
-    break;
-  case 2:
-    logindConfFileContents.append("h\n");
-    break;
-  }  
+    if (i.file == LOGIND)
+      logindConfFileContents.append(i.getLineForFile());
+  }
+  
+  KMessageBox::information(this, logindConfFileContents);
+  
+
+  /*
   
   // Declare a QVariantMap with arguments for the helper
   QVariantMap helperArgs;
   if (QDir(etcDir).exists()) {
-    helperArgs["etcDir"] = etcDir;
+    // helperArgs["etcDir"] = etcDir;
+    helperArgs["etcDir"] = "/home/ragnar/projects/kcmsystemd/confread";
   } else {
     // Failed to find systemd config directory
     KMessageBox::error(this, i18n("Unable to find directory for configuration files."));
@@ -1595,135 +664,216 @@ void kcmsystemd::save()
       KMessageBox::error(this, i18n("Unable to write the (%1) file:\n%2", reply.data()["filename"].toString(), reply.data()["errorDescription"].toString()));
   } else // Writing succeeded
     KMessageBox::information(this, i18n("Configuration files succesfully written to: %1", helperArgs["etcDir"].toString()));
+  
+  */
 }
 
-void kcmsystemd::slotDefaultChanged()
+void kcmsystemd::slotUpdateConfOption()
 {
-  emit changed(true);
-}
+  QString name = QObject::sender()->objectName().remove(QRegExp("^(chk|spn|cmb|le)"));
+  confOptList[confOptList.indexOf(confOption(name))].active = true;
+  
+  if (QObject::sender()->objectName().contains(QRegExp("^(chk|spn|cmb|le)")))
+  {    
+    if (QObject::sender()->objectName().contains(QRegExp("^chk")))
+    {
+      // Checkboxes
+      QCheckBox *chk = this->findChild<QCheckBox *>(QObject::sender()->objectName());
+      if (chk)
+      {
+        // qDebug() << name << " changed to " << chk->isChecked();
+        confOptList[confOptList.indexOf(confOption(name))].setValue(chk->isChecked());
+      }
+      
+    } else if (QObject::sender()->objectName().contains(QRegExp("^spn")))
+    {
+      // Spinboxes
+      QSpinBox *spn = this->findChild<QSpinBox *>(QObject::sender()->objectName());
+      if (spn)
+      {
+        // qDebug() << name << " changed to " << spn->value();
+        confOptList[confOptList.indexOf(confOption(name))].setValue(spn->value());
+      }
+    
+    } else if (QObject::sender()->objectName().contains(QRegExp("^cmb")))
+    {
+      // Comboboxes
+      QComboBox *cmb = this->findChild<QComboBox *>(QObject::sender()->objectName());
+      if (cmb)
+      {
+        // qDebug() << name << " changed to " << cmb->currentText();
+        if (cmb->objectName() == "cmbCrashChVT" && cmb->currentText() == "Off")
+          confOptList[confOptList.indexOf(confOption(name))].setValue("-1");
+        else
+          confOptList[confOptList.indexOf(confOption(name))].setValue(cmb->currentText());
+      }
+    } else if (QObject::sender()->objectName().contains(QRegExp("^le")))
+    {
+      // Lineedits
+      QLineEdit *le = this->findChild<QLineEdit *>(QObject::sender()->objectName());
+      if (le)
+      {
+        // qDebug() << name << " changed to " << le->text();
+        confOptList[confOptList.indexOf(confOption(name))].setValue(le->text());
+      }
+    }
 
-void kcmsystemd::slotCPUAffinityChanged()
-{
-  if ( ui.chkCPUAffinity->isChecked())
-    ui.leCPUAffinity->setEnabled(1);
-  else
-    ui.leCPUAffinity->setEnabled(0); 
+  }
   emit changed(true);
+  
 }
 
 void kcmsystemd::slotStorageChanged()
 {
-  // no storage of logs
-  if ( ui.cmbStorage->currentIndex() == 3) {
+  if (ui.cmbStorage->currentText() == "none") {
+    // no storage of logs
     ui.grpSizeRotation->setEnabled(0);
     ui.grpTimeRotation->setEnabled(0);
-    ui.grpSplitLogFiles->setEnabled(0);
-  // storage of logs
+    ui.grpSplitMode->setEnabled(0);
+  
   } else {
+    // storage of logs
     ui.grpSizeRotation->setEnabled(1);
     ui.grpTimeRotation->setEnabled(1);
-    ui.grpSplitLogFiles->setEnabled(1);
+    ui.grpSplitMode->setEnabled(1);
 
-    // using persistent storage:
-    if (ui.cmbStorage->currentIndex() == 1 || (ui.cmbStorage->currentIndex() == 2 && QDir("/var/log/journal").exists())) {
+    
+    if (ui.cmbStorage->currentText() == "persistent" || (ui.cmbStorage->currentText() == "auto" && varLogDirExists)) {
+      // using persistent storage:
       isPersistent = true;
-      ui.spnDiskUsage->setMaximum(partPersSizeMB);
-      ui.spnDiskUsage->setValue(perDiskUsageValue + 0.5);
-      ui.spnDiskFree->setMaximum(partPersSizeMB);
-      ui.spnDiskFree->setValue(perDiskFreeValue + 0.5);
-      ui.spnSizeFiles->setMaximum(partPersSizeMB);
-      ui.spnSizeFiles->setValue(perSizeFilesValue + 0.5);
-    // using volatile storage:
-    } else if (ui.cmbStorage->currentIndex() == 0 || (ui.cmbStorage->currentIndex() == 2 && !QDir("/var/log/journal").exists())) {
+      ui.spnMaxUse->setMaximum(partPersSizeMB);
+      ui.spnMaxUse->setValue(confOptList.at(confOptList.indexOf(confOption("SystemMaxUse"))).getValue().toULongLong());
+      ui.spnKeepFree->setMaximum(partPersSizeMB);
+      ui.spnKeepFree->setValue(confOptList.at(confOptList.indexOf(confOption("SystemKeepFree"))).getValue().toULongLong());
+      ui.spnMaxFileSize->setMaximum(partPersSizeMB);
+      ui.spnMaxFileSize->setValue(confOptList.at(confOptList.indexOf(confOption("SystemMaxFileSize"))).getValue().toULongLong());
+      
+      if (confOptList[confOptList.indexOf(confOption("SystemMaxUse"))].isDefault())
+        ui.chkMaxUse->setCheckState(Qt::Checked);
+      else
+        ui.chkMaxUse->setCheckState(Qt::Unchecked);
+      if (confOptList[confOptList.indexOf(confOption("SystemKeepFree"))].isDefault())
+        ui.chkKeepFree->setCheckState(Qt::Checked);
+      else
+        ui.chkKeepFree->setCheckState(Qt::Unchecked);
+      if (confOptList[confOptList.indexOf(confOption("SystemMaxFileSize"))].isDefault())
+        ui.chkMaxFileSize->setCheckState(Qt::Checked);
+      else
+        ui.chkMaxFileSize->setCheckState(Qt::Unchecked);
+      
+    } else if (ui.cmbStorage->currentText() == "volatile" || (ui.cmbStorage->currentText() == "auto" && !varLogDirExists)) {
+      // using volatile storage:
       isPersistent = false;
-      ui.spnDiskUsage->setValue(volDiskUsageValue + 0.5);
-      ui.spnDiskUsage->setMaximum(partVolaSizeMB);
-      ui.spnDiskFree->setValue(volDiskFreeValue + 0.5);
-      ui.spnDiskFree->setMaximum(partVolaSizeMB);
-      ui.spnSizeFiles->setValue(volSizeFilesValue + 0.5);
-      ui.spnSizeFiles->setMaximum(partVolaSizeMB);
+      ui.spnMaxUse->setValue(confOptList.at(confOptList.indexOf(confOption("RuntimeMaxUse"))).getValue().toULongLong());
+      ui.spnMaxUse->setMaximum(partVolaSizeMB);
+      ui.spnKeepFree->setValue(confOptList.at(confOptList.indexOf(confOption("RuntimeKeepFree"))).getValue().toULongLong());
+      ui.spnKeepFree->setMaximum(partVolaSizeMB);
+      ui.spnMaxFileSize->setValue(confOptList.at(confOptList.indexOf(confOption("RuntimeMaxFileSize"))).getValue().toULongLong());
+      ui.spnMaxFileSize->setMaximum(partVolaSizeMB);
+      if (confOptList[confOptList.indexOf(confOption("RuntimeMaxUse"))].isDefault())
+        ui.chkMaxUse->setCheckState(Qt::Checked);
+      else
+        ui.chkMaxUse->setCheckState(Qt::Unchecked);
+      if (confOptList[confOptList.indexOf(confOption("RuntimeKeepFree"))].isDefault())
+        ui.chkKeepFree->setCheckState(Qt::Checked);
+      else
+        ui.chkKeepFree->setCheckState(Qt::Unchecked);
+      if (confOptList[confOptList.indexOf(confOption("RuntimeMaxFileSize"))].isDefault())
+        ui.chkMaxFileSize->setCheckState(Qt::Checked);
+      else
+        ui.chkMaxFileSize->setCheckState(Qt::Unchecked);
     }
   }
   emit changed(true);
 }
 
-void kcmsystemd::slotSpnDiskUsageChanged()
+void kcmsystemd::slotStorageChkBoxes(int state)
 {
-  if (isPersistent)
-    perDiskUsageValue = ui.spnDiskUsage->value();
-  else
-    volDiskUsageValue = ui.spnDiskUsage->value();
-  emit changed(true);
-}
+  QString basename = QString(QObject::sender()->objectName().remove("chk"));
+ 
+  if (state == Qt::Checked)
+  {
+    confOptList[confOptList.indexOf(confOption("System" + basename))].active = false;
+    confOptList[confOptList.indexOf(confOption("Runtime" + basename))].active = false;
+    
+    QList<QWidget *> lst = this->findChildren<QWidget *>(QRegExp("(lbl|spn)" + basename + "\\d?"));
+    foreach (QWidget *wdgt, lst)
+      wdgt->setEnabled(false);
 
-void kcmsystemd::slotSpnDiskFreeChanged()
-{
-  if (isPersistent)
-    perDiskFreeValue = ui.spnDiskFree->value();
+  }
   else
-    volDiskFreeValue = ui.spnDiskFree->value();
-  emit changed(true);
-}
-
-void kcmsystemd::slotSpnSizeFilesChanged()
-{
-  if (isPersistent)
-    perSizeFilesValue = ui.spnSizeFiles->value();
-  else
-    volSizeFilesValue = ui.spnSizeFiles->value();
-  emit changed(true);
-}
-
-void kcmsystemd::slotMaxRetentionChanged()
-{
-  if ( ui.chkMaxRetention->isChecked()) {
-    ui.spnMaxRetention->setEnabled(1);
-    ui.cmbMaxRetention->setEnabled(1);
-  } else {
-    ui.spnMaxRetention->setEnabled(0);
-    ui.cmbMaxRetention->setEnabled(0);
+  {
+   
+    if (isPersistent)
+    {
+      confOptList[confOptList.indexOf(confOption("System" + basename))].active = true;
+      confOptList[confOptList.indexOf(confOption("Runtime" + basename))].active = false;
+    }
+    else
+    {
+      confOptList[confOptList.indexOf(confOption("System" + basename))].active = false;
+      confOptList[confOptList.indexOf(confOption("Runtime" + basename))].active = true;
+    }
+    QList<QWidget *> lst = this->findChildren<QWidget *>(QRegExp("(lbl|spn)" + basename + "\\d?"));
+    foreach (QWidget *wdgt, lst)
+      wdgt->setEnabled(true);
   }
   emit changed(true);
 }
 
-void kcmsystemd::slotMaxFileChanged()
+void kcmsystemd::slotSpnMaxUseChanged()
 {
-  if ( ui.chkMaxFile->isChecked()) {
-    ui.spnMaxFile->setEnabled(1);
-    ui.cmbMaxFile->setEnabled(1);
-  } else {
-    ui.spnMaxFile->setEnabled(0);
-    ui.cmbMaxFile->setEnabled(0);
-  }
+  if (isPersistent)
+    confOptList[confOptList.indexOf(confOption("SystemMaxUse"))].setValue(ui.spnMaxUse->value());
+  else
+    confOptList[confOptList.indexOf(confOption("RuntimeMaxUse"))].setValue(ui.spnMaxUse->value());
+  emit changed(true);
+}
+
+void kcmsystemd::slotSpnKeepFreeChanged()
+{
+  if (isPersistent)
+    confOptList[confOptList.indexOf(confOption("SystemKeepFree"))].setValue(ui.spnKeepFree->value());
+  else
+    confOptList[confOptList.indexOf(confOption("RuntimeKeepFree"))].setValue(ui.spnKeepFree->value());
+  emit changed(true);
+}
+
+void kcmsystemd::slotSpnMaxFileSizeChanged()
+{
+  if (isPersistent)
+    confOptList[confOptList.indexOf(confOption("SystemMaxFileSize"))].setValue(ui.spnMaxFileSize->value());
+  else
+    confOptList[confOptList.indexOf(confOption("RuntimeMaxFileSize"))].setValue(ui.spnMaxFileSize->value());
   emit changed(true);
 }
 
 void kcmsystemd::slotFwdToSyslogChanged()
 {
-  if ( ui.chkFwdSyslog->isChecked())
-    ui.cmbLevelSyslog->setEnabled(1);
+  if ( ui.chkForwardToSyslog->isChecked())
+    ui.cmbMaxLevelSyslog->setEnabled(true);
   else
-    ui.cmbLevelSyslog->setEnabled(0);
+    ui.cmbMaxLevelSyslog->setEnabled(false);
   emit changed(true);
 }
 
 void kcmsystemd::slotFwdToKmsgChanged()
 {
-  if ( ui.chkFwdKmsg->isChecked())
-    ui.cmbLevelKmsg->setEnabled(1);
+  if ( ui.chkForwardToKMsg->isChecked())
+    ui.cmbMaxLevelKMsg->setEnabled(true);
   else
-    ui.cmbLevelKmsg->setEnabled(0);
+    ui.cmbMaxLevelKMsg->setEnabled(false);
   emit changed(true);
 }
 
 void kcmsystemd::slotFwdToConsoleChanged()
 {
-  if ( ui.chkFwdConsole->isChecked()) {
-    ui.leTTYPath->setEnabled(1);
-    ui.cmbLevelConsole->setEnabled(1);
+  if ( ui.chkForwardToConsole->isChecked()) {
+    ui.leTTYPath->setEnabled(true);
+    ui.cmbMaxLevelConsole->setEnabled(true);
   } else {
-    ui.leTTYPath->setEnabled(0);
-    ui.cmbLevelConsole->setEnabled(0);
+    ui.leTTYPath->setEnabled(false);
+    ui.cmbMaxLevelConsole->setEnabled(false);
   }
   emit changed(true);
 }
@@ -1736,57 +886,98 @@ void kcmsystemd::slotKdeConfig()
 
 void kcmsystemd::slotKillUserProcessesChanged()
 {
-  if ( ui.chkKillUserProc->isChecked()) {
-    ui.leKillOnlyUsers->setEnabled(1);
-    ui.leKillExcludeUsers->setEnabled(1);
+  if ( ui.chkKillUserProcesses->isChecked()) {
+    ui.leKillOnlyUsers->setEnabled(true);
+    ui.leKillExcludeUsers->setEnabled(true);
   } else {
-    ui.leKillOnlyUsers->setEnabled(0);
-    ui.leKillExcludeUsers->setEnabled(0);
+    ui.leKillOnlyUsers->setEnabled(false);
+    ui.leKillExcludeUsers->setEnabled(false);
   }
   emit changed(true);
 }
 
 void kcmsystemd::slotOpenResourceLimits()
 {
-  QPointer<ResLimitsDialog> resDialog = new ResLimitsDialog(this);
-  resDialog->exec();
+  QPointer<ResLimitsDialog> resDialog = new ResLimitsDialog(this,
+                                                            Qt::Dialog,
+                                                            confOption::resLimitsMap);
+  
+  if (resDialog->exec() == QDialog::Accepted)
+  {
+    confOption::setResLimitsMap(resDialog->getResLimits());
+    
+    for(QVariantMap::const_iterator iter = confOption::resLimitsMap.begin(); iter != confOption::resLimitsMap.end(); ++iter)
+      confOptList[confOptList.indexOf(confOption(iter.key()))].setValue(iter.value());
+  }
+
+  if (resDialog->getChanged())
+    emit changed(true);  
+  
   delete resDialog;
-  if (resLimitsChanged)
-    emit changed(true);
 }
 
 void kcmsystemd::slotOpenEnviron()
 {
-  QPointer<EnvironDialog> environDialog = new EnvironDialog(this);
-  environDialog->exec();
+  QPointer<EnvironDialog> environDialog = new EnvironDialog(this,
+                                                            Qt::Dialog,
+                                                            confOptList.at(confOptList.indexOf(confOption("DefaultEnvironment"))).getValue().toString());
+  if (environDialog->exec() == QDialog::Accepted)
+  {
+    confOptList[confOptList.indexOf(confOption("DefaultEnvironment"))].setValue(environDialog->getEnviron());
+  }
+    
+  if (environDialog->getChanged())
+    emit changed(true);
+  
   delete environDialog;
-  if (environChanged)
-    emit changed(true);
+    
 }
 
-void kcmsystemd::slotOpenTimeouts()
+void kcmsystemd::slotOpenAdvanced()
 {
-  QPointer<TimeoutsDialog> timeoutsDialog = new TimeoutsDialog(this);
-  timeoutsDialog->exec();
-  delete timeoutsDialog;
-  if (timeoutsChanged)
-    emit changed(true);
-}
+  QVariantMap args;
+  args["systemdVersion"] = systemdVersion;
+  args["JoinControllers"] = confOptList.at(confOptList.indexOf(confOption("JoinControllers"))).getValue();
+  if (systemdVersion < 208)
+    args["DefaultControllers"] = confOptList.at(confOptList.indexOf(confOption("DefaultControllers"))).getValue();
+  args["TimerSlackNSec"] = confOptList.at(confOptList.indexOf(confOption("TimerSlackNSec"))).getValue();
+  args["RuntimeWatchdogSec"] = confOptList.at(confOptList.indexOf(confOption("RuntimeWatchdogSec"))).getValue();
+  args["ShutdownWatchdogSec"] = confOptList.at(confOptList.indexOf(confOption("ShutdownWatchdogSec"))).getValue();
+  args["CPUAffinity"] = confOptList.at(confOptList.indexOf(confOption("CPUAffinity"))).getValue();
+  args["CPUAffinityActive"] = confOptList.at(confOptList.indexOf(confOption("CPUAffinity"))).active;
+  if (systemdVersion >= 209)
+  {
+    args["SystemCallArchitectures"] = confOptList.at(confOptList.indexOf(confOption("SystemCallArchitectures"))).getValue();
+    args["SystemCallArchitecturesActive"] = confOptList.at(confOptList.indexOf(confOption("SystemCallArchitectures"))).active;
+  }
+  args["CapabilityBoundingSet"] = confOptList.at(confOptList.indexOf(confOption("CapabilityBoundingSet"))).getValue();
+  args["CapabilityBoundingSetActive"] = confOptList.at(confOptList.indexOf(confOption("CapabilityBoundingSet"))).active;
+  
+  QPointer<AdvancedDialog> advancedDialog = new AdvancedDialog(this, Qt::Dialog, args);
+ 
+  if (advancedDialog->exec() == QDialog::Accepted)
+  {
+    confOptList[confOptList.indexOf(confOption("JoinControllers"))].setValue(advancedDialog->getJoinControllers());
+    if (systemdVersion < 208)
+      confOptList[confOptList.indexOf(confOption("DefaultControllers"))].setValue(advancedDialog->getDefaultControllers());
+    confOptList[confOptList.indexOf(confOption("TimerSlackNSec"))].setValue(advancedDialog->getTimerSlack());
+    confOptList[confOptList.indexOf(confOption("RuntimeWatchdogSec"))].setValue(advancedDialog->getRuntimeWatchdog());
+    confOptList[confOptList.indexOf(confOption("ShutdownWatchdogSec"))].setValue(advancedDialog->getShutdownWatchdog());
+    confOptList[confOptList.indexOf(confOption("CPUAffinity"))].setValue(advancedDialog->getCPUAffinity());
+    confOptList[confOptList.indexOf(confOption("CPUAffinity"))].active = advancedDialog->getCPUAffActive();
+    if (systemdVersion >= 209)
+    {
+      confOptList[confOptList.indexOf(confOption("SystemCallArchitectures"))].setValue(advancedDialog->getSystemCallArchitectures());
+      confOptList[confOptList.indexOf(confOption("SystemCallArchitectures"))].active = advancedDialog->getSysCallActive();
+    }
+    confOptList[confOptList.indexOf(confOption("CapabilityBoundingSet"))].setValue(advancedDialog->getCapabilities());
+    confOptList[confOptList.indexOf(confOption("CapabilityBoundingSet"))].active = advancedDialog->getCapActive();
+        
+    if (advancedDialog->getChanged())
+      emit changed(true);
+  }
 
-bool kcmsystemd::ToBoolDefOff(QString astring)
-{
-  if (astring.trimmed().toLower() == "yes" || astring.trimmed().toLower() == "true" || astring.trimmed().toLower() == "on"|| astring.trimmed() == "1")
-    return 1;
-  else
-    return 0;
-}
-
-bool kcmsystemd::ToBoolDefOn(QString astring)
-{
-  if (astring.trimmed().toLower() == "no" || astring.trimmed().toLower() == "false" || astring.trimmed().toLower() == "off"|| astring.trimmed() == "0")
-    return 0;
-  else
-    return 1;
+  delete advancedDialog;
 }
 
 void kcmsystemd::slotTblRowChanged(const QModelIndex &current, const QModelIndex &previous)

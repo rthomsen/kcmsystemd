@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CapabilitiesDialog</class>
+ <widget class="QWidget" name="CapabilitiesDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>536</width>
+    <height>384</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Set capabilities for the systemd daemon and its children:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QCheckBox" name="chkCapabilities">
+     <property name="text">
+      <string>Enable</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="11" column="0">
+    <widget class="QFrame" name="frmCapabilities">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="chkCAP_AUDIT_WRITE">
+        <property name="text">
+         <string>CAP_AUDIT_WRITE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="chkCAP_BLOCK_SUSPEND">
+        <property name="text">
+         <string>CAP_BLOCK_SUSPEND</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QCheckBox" name="chkCAP_DAC_READ_SEARCH_2">
+        <property name="text">
+         <string>CAP_FOWNER</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QCheckBox" name="chkCAP_KILL">
+        <property name="text">
+         <string>CAP_KILL</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="chkCAP_AUDIT_CONTROL">
+        <property name="text">
+         <string>CAP_AUDIT_CONTROL</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QCheckBox" name="chkCAP_DAC_READ_SEARCH">
+        <property name="text">
+         <string>CAP_DAC_READ_SEARCH</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QCheckBox" name="chkCAP_CHOWN">
+        <property name="text">
+         <string>CAP_CHOWN</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="chkCAP_DAC_OVERRIDE">
+        <property name="text">
+         <string>CAP_DAC_OVERRIDE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="chkCAP_FSETID">
+        <property name="text">
+         <string>CAP_FSETID</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QCheckBox" name="chkCAP_IPC_LOCK_2">
+        <property name="text">
+         <string>CAP_IPC_OWNER</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QCheckBox" name="chkCAP_IPC_LOCK">
+        <property name="text">
+         <string>CAP_IPC_LOCK</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QCheckBox" name="chkCAP_LEASE">
+        <property name="text">
+         <string>CAP_LEASE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QCheckBox" name="chkCAP_NET_BIND_BROADCAST">
+        <property name="text">
+         <string>CAP_NET_BIND_BROADCAST</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="chkCAP_NET_BIND_SERVICE">
+        <property name="text">
+         <string>CAP_NET_BIND_SERVICE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QCheckBox" name="chkCAP_NET_RAW">
+        <property name="text">
+         <string>CAP_NET_RAW</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0">
+       <widget class="QCheckBox" name="chkCAP_LINUX_IMMUTABLE">
+        <property name="text">
+         <string>CAP_LINUX_IMMUTABLE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="chkCAP_MAC_OVERRIDE">
+        <property name="text">
+         <string>CAP_MAC_OVERRIDE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="chkCAP_MKNOD">
+        <property name="text">
+         <string>CAP_MKNOD</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="chkCAP_MAC_ADMIN">
+        <property name="text">
+         <string>CAP_MAC_ADMIN</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="chkCAP_NET_ADMIN">
+        <property name="text">
+         <string>CAP_NET_ADMIN</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QCheckBox" name="chkCAP_SETGID">
+        <property name="text">
+         <string>CAP_SETGID</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QCheckBox" name="chkCAP_SETFCAP">
+        <property name="text">
+         <string>CAP_SETFCAP</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QCheckBox" name="chkCAP_SETPCAP">
+        <property name="text">
+         <string>CAP_SETPCAP</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="1">
+       <widget class="QCheckBox" name="chkCAP_SETUID">
+        <property name="text">
+         <string>CAP_SETUID</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1">
+       <widget class="QCheckBox" name="chkCAP_SYS_ADMIN">
+        <property name="text">
+         <string>CAP_SYS_ADMIN</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="1">
+       <widget class="QCheckBox" name="chkCAP_SYS_BOOT">
+        <property name="text">
+         <string>CAP_SYS_BOOT</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_CHROOT">
+        <property name="text">
+         <string>CAP_SYS_CHROOT</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_MODULE">
+        <property name="text">
+         <string>CAP_SYS_MODULE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_NICE">
+        <property name="text">
+         <string>CAP_SYS_NICE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_PACCT">
+        <property name="text">
+         <string>CAP_SYS_PACCT</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_PTRACE">
+        <property name="text">
+         <string>CAP_SYS_PTRACE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_RAWIO">
+        <property name="text">
+         <string>CAP_SYS_RAWIO</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_RESOURCE">
+        <property name="text">
+         <string>CAP_SYS_RESOURCE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_TIME">
+        <property name="text">
+         <string>CAP_SYS_TIME</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYS_TTY_CONFIG">
+        <property name="text">
+         <string>CAP_SYS_TTY_CONFIG</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="2">
+       <widget class="QCheckBox" name="chkCAP_SYSLOG">
+        <property name="text">
+         <string>CAP_SYSLOG</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="2">
+       <widget class="QCheckBox" name="chkCAP_WAKE_ALARM">
+        <property name="text">
+         <string>CAP_WAKE_ALARM</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>chkCapabilities</tabstop>
+  <tabstop>chkCAP_AUDIT_CONTROL</tabstop>
+  <tabstop>chkCAP_MAC_ADMIN</tabstop>
+  <tabstop>chkCAP_SYS_CHROOT</tabstop>
+  <tabstop>chkCAP_AUDIT_WRITE</tabstop>
+  <tabstop>chkCAP_MAC_OVERRIDE</tabstop>
+  <tabstop>chkCAP_SYS_MODULE</tabstop>
+  <tabstop>chkCAP_BLOCK_SUSPEND</tabstop>
+  <tabstop>chkCAP_MKNOD</tabstop>
+  <tabstop>chkCAP_SYS_NICE</tabstop>
+  <tabstop>chkCAP_CHOWN</tabstop>
+  <tabstop>chkCAP_NET_ADMIN</tabstop>
+  <tabstop>chkCAP_SYS_PACCT</tabstop>
+  <tabstop>chkCAP_DAC_OVERRIDE</tabstop>
+  <tabstop>chkCAP_NET_BIND_SERVICE</tabstop>
+  <tabstop>chkCAP_SYS_PTRACE</tabstop>
+  <tabstop>chkCAP_DAC_READ_SEARCH</tabstop>
+  <tabstop>chkCAP_NET_BIND_BROADCAST</tabstop>
+  <tabstop>chkCAP_SYS_RAWIO</tabstop>
+  <tabstop>chkCAP_DAC_READ_SEARCH_2</tabstop>
+  <tabstop>chkCAP_NET_RAW</tabstop>
+  <tabstop>chkCAP_SYS_RESOURCE</tabstop>
+  <tabstop>chkCAP_FSETID</tabstop>
+  <tabstop>chkCAP_SETGID</tabstop>
+  <tabstop>chkCAP_SYS_TIME</tabstop>
+  <tabstop>chkCAP_IPC_LOCK</tabstop>
+  <tabstop>chkCAP_SETFCAP</tabstop>
+  <tabstop>chkCAP_SYS_TTY_CONFIG</tabstop>
+  <tabstop>chkCAP_IPC_LOCK_2</tabstop>
+  <tabstop>chkCAP_SETPCAP</tabstop>
+  <tabstop>chkCAP_SYSLOG</tabstop>
+  <tabstop>chkCAP_KILL</tabstop>
+  <tabstop>chkCAP_SETUID</tabstop>
+  <tabstop>chkCAP_WAKE_ALARM</tabstop>
+  <tabstop>chkCAP_LEASE</tabstop>
+  <tabstop>chkCAP_SYS_ADMIN</tabstop>
+  <tabstop>chkCAP_LINUX_IMMUTABLE</tabstop>
+  <tabstop>chkCAP_SYS_BOOT</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

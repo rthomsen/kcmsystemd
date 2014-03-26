@@ -15,24 +15,45 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************/
 
-#ifndef TIMEOUTS_H
-#define TIMEOUTS_H
+#ifndef ADVANCED_H
+#define ADVANCED_H
  
-#include "ui_timeouts.h"
+#include "ui_advanced.h"
  
-class TimeoutsDialog : public KDialog
+class AdvancedDialog : public KDialog
 {
   Q_OBJECT
 
   public:
-    explicit TimeoutsDialog(QWidget *parent=0, Qt::WFlags flags = 0);
-
-  private slots:
+    explicit AdvancedDialog(QWidget *parent = 0, 
+                            Qt::WFlags flags = 0,
+                            QVariantMap args = QVariantMap());
+    
+    bool getChanged();
+    QString getJoinControllers();
+    QString getDefaultControllers();
+    qulonglong getTimerSlack();
+    qulonglong getRuntimeWatchdog();
+    qulonglong getShutdownWatchdog();
+    QVariantMap getCPUAffinity();
+    bool getCPUAffActive();
+    QVariantMap getSystemCallArchitectures();
+    bool getSysCallActive();
+    QVariantMap getCapabilities();
+    bool getCapActive();
+  
+  private slots:  
     virtual void slotButtonClicked(int button);
     void slotChanged();
+    void slotChkCPUAffinityChanged();
+    void slotChkSystemCallArchitecturesChanged();
+    void slotOpenCapabilities();
  
   private:
-    Ui::TimeoutsDialog ui;
+    bool changed;
+    QVariantMap tempCap;
+    bool tempCapActive;
+    Ui::AdvancedDialog ui;
 };
  
 #endif

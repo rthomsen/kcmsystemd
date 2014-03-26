@@ -15,22 +15,52 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************/
 
-#include "environ.h"
 #include "kcmsystemd.h"
+#include "environ.h"
 
-int addedVars = 0;
-
-EnvironDialog::EnvironDialog (QWidget* parent, Qt::WFlags flags) : KDialog ( parent)
+EnvironDialog::EnvironDialog (QWidget* parent,
+                              Qt::WFlags flags,
+                              QString rvalPassed) : KDialog ( parent)
 {
   // Initialize dialog window
-  addedVars = 0;
   QWidget *widget = new QWidget(this);
   ui.setupUi(widget);
   setMainWidget( widget );
   setWindowTitle(i18n("Set environment variables"));
-
+  
+  addedVars = 0;
+  changed = false;
+  
+  while (!rvalPassed.trimmed().isEmpty())
+  {
+    // If first character is quotation sign
+    if (rvalPassed.trimmed().left(1) == "\"") {
+      
+      // read variable name and value
+      QPair<QString,QString> i;
+      i.first = rvalPassed.section('\"',1,1).section('=',0,0);
+      i.second = rvalPassed.section('\"',1,1).section('=',-1);
+      environ.append(i);
+              
+      // remove the read variable from rvalPassed
+      rvalPassed = rvalPassed.remove("\"" + rvalPassed.section('\"',1,1) + "\"");
+      
+    } else {  // if first character is not quotation sign
+      QPair<QString,QString> i;
+      
+      i.first = rvalPassed.section('=',0,0).trimmed();
+      i.second = rvalPassed.section('=',1,1).trimmed().section(QRegExp("\\s+"),0,0);
+      environ.append(i);
+      
+      // remove the read variable from the string
+      rvalPassed = rvalPassed.remove(rvalPassed.section(QRegExp("\\s+"),0,0));
+    }
+    // Trim any extra whitespace
+    rvalPassed = rvalPassed.trimmed();
+  }
+  
   // create line edits for variables read from system.conf
-  QListIterator<QPair<QString,QString> > i(kcmsystemd::environ);
+  QListIterator<QPair<QString,QString> > i(environ);
   while (i.hasNext())
   {
     addedVars++;
@@ -40,45 +70,6 @@ EnvironDialog::EnvironDialog (QWidget* parent, Qt::WFlags flags) : KDialog ( par
   
   // button for adding a new variable
   connect(ui.btnNewVariable, SIGNAL(clicked()), this, SLOT(slotNewVariable()));
-}
-
-void EnvironDialog::slotButtonClicked(int button)
-{
-  if (button == KDialog::Ok)
-  {
-    // empty "environ"
-    kcmsystemd::environ.clear();
-    
-    QPair<QString,QString> i;
-    
-    // find all QLineEdits that contain "Name"
-    QList<QLineEdit *> list = this->findChildren<QLineEdit *>();
-    foreach(QLineEdit *Name, list)
-    {
-      if (Name->objectName().contains("Name"))
-      {
-	QLineEdit *Value = this->findChild<QLineEdit *>(Name->objectName().section("Name",0,0) + "Value");
-
-	// If qlineedits not empty append them to "environ"
-	if (!Name->text().trimmed().isEmpty() && !Value->text().trimmed().isEmpty())
-	{
-	  i.first = Name->text();
-	  i.second = Value->text();
-	  kcmsystemd::environ.append(i);
-	}
-      }
-    }    
-  }
-  KDialog::slotButtonClicked(button);
-}
-
-// slot for button to add new variable
-void EnvironDialog::slotNewVariable()
-{
-  // each variable needs a numeric identifier so we can loop through them
-  addedVars++;
-  addNewVariable(addedVars,QString(""),QString(""));
-  kcmsystemd::environChanged = 1;
 }
 
 void EnvironDialog::addNewVariable(int index, QString name, QString value)
@@ -111,6 +102,70 @@ void EnvironDialog::addNewVariable(int index, QString name, QString value)
   connect(signalMapper, SIGNAL(mapped(const int &)), this, SLOT(slotRemoveVariable(const int &)));
 }
 
+bool EnvironDialog::getChanged()
+{
+  return changed;
+}
+
+QString EnvironDialog::getEnviron()
+{
+  QString newDefEnviron;
+  
+  // empty "environ"
+  environ.clear();
+  
+  QPair<QString,QString> singleVar;
+  
+  // find all QLineEdits that contain "Name"
+  QList<QLineEdit *> leList = this->findChildren<QLineEdit *>();
+  foreach(QLineEdit *Name, leList)
+  {
+    if (Name->objectName().contains("Name"))
+    {
+      QLineEdit *Value = this->findChild<QLineEdit *>(Name->objectName().section("Name",0,0) + "Value");
+
+      // If qlineedits not empty append them to "environ"
+      if (!Name->text().trimmed().isEmpty() && !Value->text().trimmed().isEmpty())
+      {
+        singleVar.first = Name->text();
+        singleVar.second = Value->text();
+        environ.append(singleVar);
+      }
+    }
+  }   
+  
+  QListIterator<QPair<QString,QString> > list(environ);
+  while (list.hasNext())
+  {
+    if (list.peekNext().first.contains(" ") || list.peekNext().second.contains(" "))
+    {
+      newDefEnviron.append("\"" + list.peekNext().first + "=" + list.peekNext().second + "\" ");
+      list.next();
+    } else {
+      newDefEnviron.append(list.peekNext().first + "=" + list.peekNext().second + " ");
+      list.next();
+    }
+  }
+  
+  return newDefEnviron.trimmed();
+}
+
+void EnvironDialog::slotButtonClicked(int button)
+{
+  if (button == KDialog::Ok)
+  {}
+  KDialog::slotButtonClicked(button);
+}
+
+// slot for button to add new variable
+void EnvironDialog::slotNewVariable()
+{
+  // each variable needs a numeric identifier so we can loop through them
+  addedVars++;
+  addNewVariable(addedVars,QString(""),QString(""));
+  changed = true;
+}
+
 void EnvironDialog::slotRemoveVariable(const int &index)
 {
   QLineEdit *varName = this->findChild<QLineEdit *>(QString::number(index)+"Name");
@@ -130,6 +185,6 @@ void EnvironDialog::slotRemoveVariable(const int &index)
     varBtn->hide();
     delete varBtn;
   addedVars--;
-  kcmsystemd::environChanged = 1;
+  changed = true;
   layout()->setSizeConstraint(QLayout::SetFixedSize);
 }

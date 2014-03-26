@@ -15,10 +15,10 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************/
 
-#include "reslimits.h"
 #include "kcmsystemd.h"
+#include "reslimits.h"
 
-ResLimitsDialog::ResLimitsDialog (QWidget* parent, Qt::WFlags flags) : KDialog ( parent)
+ResLimitsDialog::ResLimitsDialog (QWidget* parent, Qt::WFlags flags, QVariantMap resLimitsMap) : KDialog ( parent)
 {
   // Setup the dialog window
   QWidget *widget = new QWidget(this);
@@ -26,41 +26,51 @@ ResLimitsDialog::ResLimitsDialog (QWidget* parent, Qt::WFlags flags) : KDialog (
   setMainWidget( widget );
   setWindowTitle(i18n("Set default resource limits"));
   
+  changed = false;
+  
+  QList<QCheckBox *> listChk = this->findChildren<QCheckBox *>();
+  foreach(QCheckBox *chk, listChk)
+    connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotChkChanged()));
+  
   // Initialize all the spinboxes from "resLimits"
-  for(QVariantMap::const_iterator iter = kcmsystemd::resLimits.begin(); iter != kcmsystemd::resLimits.end(); ++iter)
+  for(QVariantMap::const_iterator iter = resLimitsMap.begin(); iter != resLimitsMap.end(); ++iter)
     {
-      QSpinBox *a = this->findChild<QSpinBox *>("spn" + QString(iter.key()));
-      if (a)
-	a->setValue(iter.value().toInt());
+      // qDebug() << iter.key() << " = " << iter.value();
+      
+      if (iter.value().toString() == "infinity")
+        this->findChild<QCheckBox *>("chk" + iter.key())->setChecked(false);
+      else
+      {
+        this->findChild<QCheckBox *>("chk" + iter.key())->setChecked(true);
+    
+        QSpinBox *spn = this->findChild<QSpinBox *>("spn" + QString(iter.key()));
+        if(spn)
+        {
+          spn->setValue(iter.value().toUInt());
+        }
+
+        
+      }
     }
  
-  // Connect all the spinboxes to the slotChanged slot
-  connect(ui.spnDefaultLimitCPU, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitFSIZE, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitDATA, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitSTACK, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitCORE, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitRSS, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitNOFILE, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitAS, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitNPROC, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitMEMLOCK, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitLOCKS, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitSIGPENDING, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitMSGQUEUE, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitNICE, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitRTPRIO, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  connect(ui.spnDefaultLimitRTTIME, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
+  // Connect all the spinboxes to the slotChanged slot  
+  // QList<QSpinBox *> listSpin = ;
+  foreach(QSpinBox *spn, this->findChildren<QSpinBox *>())
+    connect(spn, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
+  
+
+  foreach(QCheckBox *chk, this->findChildren<QCheckBox *>())
+    connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotChanged()));
+  
+
+
 }
 
 void ResLimitsDialog::slotButtonClicked(int button)
 {
   if (button == KDialog::Ok)
   {
-    // write integers from spinboxes to QVariantMap "resLimits"
-    QList<QSpinBox *> list = this->findChildren<QSpinBox *>();
-    foreach(QSpinBox *Name, list)
-      kcmsystemd::resLimits[Name->objectName().remove("spn")] = Name->value();  
+
   }
   KDialog::slotButtonClicked(button);
 }
@@ -68,5 +78,41 @@ void ResLimitsDialog::slotButtonClicked(int button)
 void ResLimitsDialog::slotChanged()
 {
   // If the user changes any spinbox, set the resLimitsChanged variable to true
-  kcmsystemd::resLimitsChanged = 1;
+  changed = true;
+}
+
+bool ResLimitsDialog::getChanged()
+{
+  return changed;
+}
+
+QVariantMap ResLimitsDialog::getResLimits()
+{
+  QVariantMap newResLimitsMap;
+  // write integers from spinboxes to a QVariantMap
+  QList<QSpinBox *> list = this->findChildren<QSpinBox *>();
+  foreach(QSpinBox *spin, list)
+  {
+    QCheckBox *chk = this->findChild<QCheckBox *>("chk" + spin->objectName().remove("spn"));
+    if (chk->isChecked())
+      newResLimitsMap[spin->objectName().remove("spn")] = spin->value();
+    else
+      newResLimitsMap[spin->objectName().remove("spn")] = "infinity";
+  }
+  
+  return newResLimitsMap;
+}
+
+void ResLimitsDialog::slotChkChanged()
+{
+  QString name = QObject::sender()->objectName().remove("chk");
+  
+  QCheckBox *chk = this->findChild<QCheckBox *>("chk" + name);
+  QSpinBox *spin = this->findChild<QSpinBox *>("spn" + name);
+  
+  if (chk->isChecked())
+    spin->setEnabled(true);
+  else
+    spin->setEnabled(false);
+
 }

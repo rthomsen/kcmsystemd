@@ -15,33 +15,32 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************/
 
-#ifndef ENVIRON_H
-#define ENVIRON_H
+#ifndef CAPABILITIES_H
+#define CAPABILITIES_H
  
-#include "ui_environ.h"
+#include "ui_capabilities.h"
  
-class EnvironDialog : public KDialog
+class CapabilitiesDialog : public KDialog
 {
   Q_OBJECT
 
   public:
-    explicit EnvironDialog(QWidget *parent=0,
-                           Qt::WFlags flags = 0,
-                           QString environ = "");
-    void addNewVariable(int, QString, QString);    
+    explicit CapabilitiesDialog(QWidget *parent=0,
+                                Qt::WFlags flags = 0,
+                                QVariantMap capabilities = QVariantMap(),
+                                bool capActive = false);
     bool getChanged();
-    QString getEnviron();
-  
-  private:
-    Ui::EnvironDialog ui;
-    int addedVars;
-    bool changed;
-    QList<QPair<QString, QString> > environ;
-    
+    QVariantMap getCapabilities();
+    bool getCapActive();
+
   private slots:
-    void slotButtonClicked(int button);
-    void slotNewVariable();
-    void slotRemoveVariable(const int &index);
+    virtual void slotButtonClicked(int button);
+    void slotChanged();
+    void slotChkCapabilitiesChanged();
+ 
+  private:
+    bool changed;
+    Ui::CapabilitiesDialog ui;
 };
  
 #endif

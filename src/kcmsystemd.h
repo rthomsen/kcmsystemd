@@ -24,6 +24,7 @@
 
 #include <KCModule>
 #include "ui_kcmsystemd.h"
+#include "confoption.h"
 
 // struct for storing units retrieved from systemd via DBus
 struct SystemdUnit
@@ -66,12 +67,7 @@ class kcmsystemd : public KCModule
     void defaults();
     void load();
     void save();
-    static QList<QPair<QString, QString> > environ;
-    static QVariantMap resLimits, timeoutSettings;
-    static bool resLimitsChanged;
-    static bool environChanged;
-    static bool timeoutsChanged;
-    
+        
   private:
     Ui::kcmsystemd ui;
     void setupSignalSlots();
@@ -80,30 +76,28 @@ class kcmsystemd : public KCModule
     void readSystemConf();
     void readJournaldConf();
     void readLogindConf();
+    void applyToInterface();
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
     bool eventFilter(QObject *, QEvent*);
     void updateUnitProps(QString);
     void updateUnitCount();
+    void setupConfigParms();
     QProcess *kdeConfig;
     QVariantMap unitpaths;
     QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct;
     QStandardItemModel *unitsModel;
     QList<SystemdUnit> unitslist;
     QList<unitfile> unitfileslist;
+    QList<confOption> confOptList;
     QString kdePrefix, selectedUnit, etcDir, filterUnitType, searchTerm;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
-    float perDiskUsageValue, perDiskFreeValue, perSizeFilesValue, volDiskUsageValue, volDiskFreeValue, volSizeFilesValue;
     int systemdVersion, timesLoad, lastRowChecked, selectedRow, noActUnits;
-    long long unsigned partPersSizeMB, partVolaSizeMB;
-    bool isPersistent;
-    bool ToBoolDefOff(QString);
-    bool ToBoolDefOn(QString);
-    void updateSizeLimits(QComboBox*, QSpinBox*);
+    qulonglong partPersSizeMB, partVolaSizeMB;
+    bool isPersistent, varLogDirExists;
 
   private slots:
     void slotKdeConfig();
-    void slotDefaultChanged();
     void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
     void slotBtnStartUnit();
     void slotBtnStopUnit();    
@@ -119,20 +113,19 @@ class kcmsystemd : public KCModule
     void slotUnitFilesChanged();
     void slotPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLeSearchUnitChanged(QString);
-    void slotCPUAffinityChanged();
     void slotOpenResourceLimits();
     void slotOpenEnviron();
-    void slotOpenTimeouts();
+    void slotOpenAdvanced();
     void slotStorageChanged();
     void slotFwdToSyslogChanged();
     void slotFwdToKmsgChanged();
     void slotFwdToConsoleChanged();
-    void slotSpnDiskUsageChanged();
-    void slotSpnDiskFreeChanged();
-    void slotSpnSizeFilesChanged();
-    void slotMaxRetentionChanged();
-    void slotMaxFileChanged();
+    void slotStorageChkBoxes(int);
+    void slotSpnMaxUseChanged();
+    void slotSpnKeepFreeChanged();
+    void slotSpnMaxFileSizeChanged();
     void slotKillUserProcessesChanged();
+    void slotUpdateConfOption();
 };
 
 #endif // kcmsystemd_H

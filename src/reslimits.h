@@ -25,13 +25,19 @@ class ResLimitsDialog : public KDialog
   Q_OBJECT
 
   public:
-    explicit ResLimitsDialog(QWidget *parent=0, Qt::WFlags flags = 0);
+    explicit ResLimitsDialog(QWidget *parent = 0,
+                             Qt::WFlags flags = 0,
+                             QVariantMap resLimitsMap = QVariantMap());
+    bool getChanged();
+    QVariantMap getResLimits();
 
   private slots:
     virtual void slotButtonClicked(int button);
+    void slotChkChanged();
     void slotChanged();
  
   private:
+    bool changed;
     Ui::ResLimitsDialog ui;
 };
  
