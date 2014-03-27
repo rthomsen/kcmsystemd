@@ -196,6 +196,8 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.spnMaxUse, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxUseChanged()));
   connect(ui.spnKeepFree, SIGNAL(valueChanged(int)), this, SLOT(slotSpnKeepFreeChanged()));
   connect(ui.spnMaxFileSize, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxFileSizeChanged()));
+  connect(ui.chkMaxRetentionSec, SIGNAL(stateChanged(int)), this, SLOT(slotChkMaxRetentionSecChanged(int)));
+  connect(ui.chkMaxFileSec, SIGNAL(stateChanged(int)), this, SLOT(slotChkMaxFileSecChanged(int)));
   connect(ui.chkForwardToSyslog, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToSyslogChanged()));
   connect(ui.chkForwardToKMsg, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToKmsgChanged()));
   connect(ui.chkForwardToConsole, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToConsoleChanged()));
@@ -231,7 +233,9 @@ void kcmsystemd::load()
         chk->objectName() != "chkKeepFree" &&
         chk->objectName() != "chkMaxFileSize" &&
         chk->objectName() != "chkInactiveUnits" &&
-        chk->objectName() != "chkShowUnloadedUnits")
+        chk->objectName() != "chkShowUnloadedUnits" &&
+        chk->objectName() != "chkMaxRetentionSec" &&
+        chk->objectName() != "chkMaxFileSec")
       connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotUpdateConfOption()));
   }
     
@@ -239,7 +243,9 @@ void kcmsystemd::load()
   foreach(QSpinBox *spn, listSpn)
   {
     // Three spinboxes must not be connected to this slot
-    if (spn->objectName() != "spnMaxUse" && spn->objectName() != "spnKeepFree" && spn->objectName() != "spnMaxFileSize")
+    if (spn->objectName() != "spnMaxUse" && 
+        spn->objectName() != "spnKeepFree" && 
+        spn->objectName() != "spnMaxFileSize")
     {
       if (confOptList.at(confOptList.indexOf(confOption(spn->objectName().remove("spn")))).type == INTEGER)
         spn->setMaximum(confOptList.at(confOptList.indexOf(confOption(spn->objectName().remove("spn")))).maxVal);
@@ -563,6 +569,15 @@ void kcmsystemd::applyToInterface()
   if (rad)
     rad->setChecked(true);
   
+  // Handle two checkboxes not found in conf.files
+  if (confOptList.at(confOptList.indexOf(confOption("MaxRetentionSec"))).getValue() == 0)
+    ui.chkMaxRetentionSec->setChecked(false);
+  else
+    ui.chkMaxRetentionSec->setChecked(true);
+  if (confOptList.at(confOptList.indexOf(confOption("MaxFileSec"))).getValue() == 0)
+    ui.chkMaxFileSec->setChecked(false);
+  else
+    ui.chkMaxFileSec->setChecked(true);
 }
 
 void kcmsystemd::setupUnitslist()
@@ -832,6 +847,36 @@ void kcmsystemd::slotStorageChkBoxes(int state)
     QList<QWidget *> lst = this->findChildren<QWidget *>(QRegExp("(lbl|spn)" + basename + "\\d?"));
     foreach (QWidget *wdgt, lst)
       wdgt->setEnabled(true);
+  }
+  emit changed(true);
+}
+
+void kcmsystemd::slotChkMaxRetentionSecChanged(int state)
+{
+  if (state == Qt::Checked)
+  {
+    ui.spnMaxRetentionSec->setEnabled(true);
+    confOptList[confOptList.indexOf(confOption("MaxRetentionSec"))].active = true;
+  }
+  else
+  {
+    ui.spnMaxRetentionSec->setEnabled(false);
+    confOptList[confOptList.indexOf(confOption("MaxRetentionSec"))].active = false;
+  }
+  emit changed(true);
+}
+
+void kcmsystemd::slotChkMaxFileSecChanged(int state)
+{
+  if (state == Qt::Checked)
+  {
+    ui.spnMaxFileSec->setEnabled(true);
+    confOptList[confOptList.indexOf(confOption("MaxFileSec"))].active = true;
+  }
+  else
+  {
+    ui.spnMaxFileSec->setEnabled(false);
+    confOptList[confOptList.indexOf(confOption("MaxFileSec"))].active = true;
   }
   emit changed(true);
 }

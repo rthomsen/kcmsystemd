@@ -122,6 +122,8 @@ class kcmsystemd : public KCModule
     void slotFwdToConsoleChanged();
     void slotFwdToWallChanged();
     void slotStorageChkBoxes(int);
+    void slotChkMaxRetentionSecChanged(int);
+    void slotChkMaxFileSecChanged(int);
     void slotSpnMaxUseChanged();
     void slotSpnKeepFreeChanged();
     void slotSpnMaxFileSizeChanged();

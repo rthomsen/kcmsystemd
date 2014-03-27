@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>489</width>
-    <height>610</height>
+    <width>481</width>
+    <height>629</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1124,6 +1124,13 @@
                 </property>
                </spacer>
               </item>
+              <item row="4" column="2">
+               <widget class="QComboBox" name="cmbMaxLevelWall">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum log level to send as wall messages to all logged-in users.&lt;/p&gt;&lt;p&gt;Requires systemd 212 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
               <item row="4" column="0">
                <widget class="QCheckBox" name="chkForwardToWall">
                 <property name="toolTip">
@@ -1134,158 +1141,6 @@
                 </property>
                 <property name="checked">
                  <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="2">
-               <widget class="QComboBox" name="cmbMaxLevelWall">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum log level to send as wall messages to all logged-in users.&lt;/p&gt;&lt;p&gt;Requires systemd 212 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="9" column="0" colspan="2">
-            <widget class="QGroupBox" name="grpSizeRotation">
-             <property name="title">
-              <string>Size-based rotation</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout">
-              <item row="3" column="2">
-               <widget class="QSpinBox" name="spnKeepFree">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disk space to always leave free. Default is 15% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="suffix">
-                 <string/>
-                </property>
-                <property name="maximum">
-                 <number>999999999</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <widget class="QLabel" name="lblMaxUse2">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="text">
-                 <string>megabytes</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QSpinBox" name="spnMaxUse">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum disk space used. Defaults to 10% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="maximum">
-                 <number>999999999</number>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="3">
-               <widget class="QLabel" name="lblKeepFree2">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="text">
-                 <string>megabytes</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="2">
-               <widget class="QSpinBox" name="spnMaxFileSize">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum size of individual log files. Default is 1/8 of max disk usage.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="maximum">
-                 <number>999999999</number>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="lblKeepFree1">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="text">
-                 <string>Keep diskpace free:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="lblMaxFileSize1">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="text">
-                 <string>Max size of individual files:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="lblMaxUse1">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="text">
-                 <string>Max disk usage:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="3">
-               <widget class="QLabel" name="lblMaxFileSize2">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="text">
-                 <string>megabytes</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="5">
-               <spacer name="horizontalSpacer_5">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="1" column="4">
-               <widget class="QCheckBox" name="chkMaxUse">
-                <property name="text">
-                 <string>Use default</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="4">
-               <widget class="QCheckBox" name="chkKeepFree">
-                <property name="text">
-                 <string>Use default</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="4">
-               <widget class="QCheckBox" name="chkMaxFileSize">
-                <property name="text">
-                 <string>Use default</string>
                 </property>
                </widget>
               </item>
@@ -1303,16 +1158,6 @@
               </property>
               <item row="1" column="0" colspan="2">
                <layout class="QHBoxLayout" name="horizontalLayout_9">
-                <item>
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>Limit:</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
                 <item>
                  <widget class="QSpinBox" name="spnRateLimitBurst">
                   <property name="toolTip">
@@ -1515,85 +1360,6 @@
              </item>
             </layout>
            </item>
-           <item row="10" column="0" colspan="2">
-            <widget class="QGroupBox" name="grpTimeRotation">
-             <property name="title">
-              <string>Time-based rotation</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_6">
-              <item row="0" column="0">
-               <widget class="QLabel" name="lblMaxRetentionSec">
-                <property name="text">
-                 <string>Store journal entries for (0 for disable)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QSpinBox" name="spnMaxRetentionSec">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="maximum">
-                 <number>99999</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QSpinBox" name="spnMaxFileSec">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store entries in a single journal file before rotating to the next one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="maximum">
-                 <number>99999</number>
-                </property>
-                <property name="value">
-                 <number>1</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>days</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>days</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="lblMaxFileSec">
-                <property name="text">
-                 <string>Store entries in each file for (0 for disable)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <spacer name="horizontalSpacer_9">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item row="12" column="0" colspan="2">
             <spacer name="verticalSpacer_2">
              <property name="orientation">
@@ -1606,6 +1372,255 @@
               </size>
              </property>
             </spacer>
+           </item>
+           <item row="9" column="0" colspan="2">
+            <widget class="QGroupBox" name="grpSizeRotation">
+             <property name="title">
+              <string>Size-based rotation</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="5" column="5">
+               <spacer name="horizontalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="3" column="2">
+               <widget class="QSpinBox" name="spnKeepFree">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disk space to always leave free. Default is 15% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="suffix">
+                 <string/>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLabel" name="lblMaxUse2">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>megabytes</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QSpinBox" name="spnMaxUse">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum disk space used. Defaults to 10% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="3">
+               <widget class="QLabel" name="lblKeepFree2">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>megabytes</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="2">
+               <widget class="QSpinBox" name="spnMaxFileSize">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum size of individual log files. Default is 1/8 of max disk usage.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lblKeepFree1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Keep diskpace free:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="3">
+               <widget class="QLabel" name="lblMaxFileSize2">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>megabytes</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="lblMaxFileSize1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Max size of individual files:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblMaxUse1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Max disk usage:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="4">
+               <widget class="QCheckBox" name="chkMaxUse">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use default value of 10% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Use default</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="4">
+               <widget class="QCheckBox" name="chkKeepFree">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use default value of 15% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Use default</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="4">
+               <widget class="QCheckBox" name="chkMaxFileSize">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use default of 1/8 of max disk usage.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Use default</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="10" column="0" colspan="2">
+            <widget class="QGroupBox" name="grpTimeRotation">
+             <property name="title">
+              <string>Time-based rotation</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <item row="0" column="1">
+               <widget class="QLabel" name="lblMaxRetentionSec">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QSpinBox" name="spnMaxRetentionSec">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>99999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QSpinBox" name="spnMaxFileSec">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store entries in a single journal file before rotating to the next one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>99999</number>
+                </property>
+                <property name="value">
+                 <number>30</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>days</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>days</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="5">
+               <spacer name="horizontalSpacer_9">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="chkMaxRetentionSec">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Store journal entries for:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="chkMaxFileSec">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store entries in a single journal file before rotating to the next one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Store entries in each file for:</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </item>
           </layout>
          </widget>
