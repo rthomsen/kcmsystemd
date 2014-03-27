@@ -1443,7 +1443,10 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   QAction *isolate = menu.addAction("&Isolate unit");
   menu.addSeparator();
   QAction *enable = menu.addAction("En&able unit");
-  QAction *disable = menu.addAction("&Disable unit");  
+  QAction *disable = menu.addAction("&Disable unit");
+  menu.addSeparator();
+  QAction *mask = menu.addAction("&Mask unit");
+  QAction *unmask = menu.addAction("&Unmask unit");
   
   QString unit = ui.tblServices->model()->index(ui.tblServices->indexAt(pos).row(),3).data().toString();
   QString path = unitpaths[unit].toString();
@@ -1466,6 +1469,8 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
 	  systembus,
 	  this);
   isolate->setEnabled(iface->property("CanIsolate").toBool());
+  QString LoadState = iface->property("LoadState").toString();
+  qDebug() << "LoadState: " << LoadState;
   delete iface;
   
   if (UnitFileState == "disabled")
@@ -1476,6 +1481,13 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   } else {
     enable->setEnabled(false);    
     disable->setEnabled(false);
+  }
+
+  if (LoadState == "masked")
+  {
+    mask->setEnabled(false);
+  } else if (LoadState == "loaded" || LoadState == "error") {
+    unmask->setEnabled(false);
   }
   
   // Check if unit has a unit file, if not disable editing
@@ -1510,7 +1522,7 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
     QList<QString> unitsForCall;
     QList<QVariant> argsForCall;
     unitsForCall << unit;
-    argsForCall << QVariant(unitsForCall) << false << false;
+    argsForCall << QVariant(unitsForCall) << false << true;
     authServiceAction("org.freedesktop.systemd1",
 	"/org/freedesktop/systemd1",
 	"org.freedesktop.systemd1.Manager",
@@ -1528,6 +1540,30 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
 	"org.freedesktop.systemd1.Manager",
 	"DisableUnitFiles",
 	argsForCall);
+  }
+  if (a == mask)
+  {
+    QList<QString> unitsForCall;
+    QList<QVariant> argsForCall;
+    unitsForCall << unit;
+    argsForCall << QVariant(unitsForCall) << false << true;
+    authServiceAction("org.freedesktop.systemd1",
+        "/org/freedesktop/systemd1",
+        "org.freedesktop.systemd1.Manager",
+        "MaskUnitFiles",
+        argsForCall);
+  }
+  if (a == unmask)
+  {
+    QList<QString> unitsForCall;
+    QList<QVariant> argsForCall;
+    unitsForCall << unit;
+    argsForCall << QVariant(unitsForCall) << false;
+    authServiceAction("org.freedesktop.systemd1",
+        "/org/freedesktop/systemd1",
+        "org.freedesktop.systemd1.Manager",
+        "UnmaskUnitFiles",
+        argsForCall);
   }
 }
 

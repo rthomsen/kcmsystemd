@@ -101,7 +101,7 @@ ActionReply Helper::dbusaction(QVariantMap args)
   }
 
   // Reload systemd daemon to update the enabled/disabled status
-  if (method == "EnableUnitFiles" || method == "DisableUnitFiles")
+  if (method == "EnableUnitFiles" || method == "DisableUnitFiles" || method == "MaskUnitFiles" || method == "UnmaskUnitFiles")
   {
     // systemd does not update properties when these methods are called so we
     // need to reload the systemd daemon.
