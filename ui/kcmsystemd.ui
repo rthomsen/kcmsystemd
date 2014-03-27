@@ -1039,6 +1039,26 @@
                 </property>
                </spacer>
               </item>
+              <item row="4" column="0">
+               <widget class="QCheckBox" name="chkForwardToWall">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Send log messages as wall-messages to all logged-in users.&lt;/p&gt;&lt;p&gt;Requires systemd 212 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Wall</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="2">
+               <widget class="QComboBox" name="cmbMaxLevelWall">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum log level to send as wall messages to all logged-in users.&lt;/p&gt;&lt;p&gt;Requires systemd 212 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>

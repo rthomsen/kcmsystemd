@@ -54,13 +54,18 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
 					      this);
   if (iface->isValid()) {
     systemdVersion = iface->property("Version").toString().remove("systemd ").toInt();
-    // Global environment variables are only supported in systemd>=205
+    // This option was added in systemd 205
     if (systemdVersion < 205)
-      ui.btnEnviron->setEnabled(0);
+      ui.btnEnviron->setEnabled(false);
     // These options were removed in systemd 207
-    if (systemdVersion > 206)
-      ui.grpControlGroups->setEnabled(0);
-    // This option were removed in systemd 208
+    if (systemdVersion >= 207)
+      ui.grpControlGroups->setEnabled(false);
+    // These options were added in systemd 212
+    if (systemdVersion < 212)
+    {
+      ui.chkForwardToWall->setEnabled(false);
+      ui.cmbMaxLevelWall->setEnabled(false);
+    }
 
     qDebug() << "Systemd" << systemdVersion << "detected.";
   } else {
@@ -184,6 +189,7 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.chkForwardToSyslog, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToSyslogChanged()));
   connect(ui.chkForwardToKMsg, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToKmsgChanged()));
   connect(ui.chkForwardToConsole, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToConsoleChanged()));
+  connect(ui.chkForwardToWall, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToWallChanged()));
   
   QList<QCheckBox *> listChk = this->findChildren<QCheckBox *>(QRegExp("MaxUse|KeepFree|MaxFileSize"));
   foreach(QCheckBox *chk, listChk)
@@ -328,6 +334,8 @@ void kcmsystemd::setupConfigParms()
   confOptList.append(confOption(JOURNALD, "ForwardToSyslog", BOOL, true));
   confOptList.append(confOption(JOURNALD, "ForwardToKMsg", BOOL, false));
   confOptList.append(confOption(JOURNALD, "ForwardToConsole", BOOL, false));
+  if (systemdVersion >= 212)
+    confOptList.append(confOption(JOURNALD, "ForwardToWall", BOOL, true));
   confOptList.append(confOption(JOURNALD, "TTYPath", STRING, "/dev/console"));
   QStringList SyslogList = QStringList() << "emerg" << "alert" << "crit" << "err" 
                                          << "warning" << "notice" << "info" << "debug";
@@ -335,6 +343,8 @@ void kcmsystemd::setupConfigParms()
   confOptList.append(confOption(JOURNALD, "MaxLevelSyslog", LIST, "debug", SyslogList));
   confOptList.append(confOption(JOURNALD, "MaxLevelKMsg", LIST, "notice", SyslogList));
   confOptList.append(confOption(JOURNALD, "MaxLevelConsole", LIST, "info", SyslogList));
+  if (systemdVersion >= 212)
+    confOptList.append(confOption(JOURNALD, "MaxLevelWall", LIST, "emerg", SyslogList));
   
   // logind.conf
   confOptList.append(confOption(LOGIND, "NAutoVTs", INTEGER, 6, 0, 12));
@@ -862,6 +872,15 @@ void kcmsystemd::slotFwdToConsoleChanged()
     ui.leTTYPath->setEnabled(false);
     ui.cmbMaxLevelConsole->setEnabled(false);
   }
+  emit changed(true);
+}
+
+void kcmsystemd::slotFwdToWallChanged()
+{
+  if ( ui.chkForwardToWall->isChecked())
+    ui.cmbMaxLevelWall->setEnabled(true);
+  else
+    ui.cmbMaxLevelWall->setEnabled(false);
   emit changed(true);
 }
 
