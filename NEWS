@@ -1,5 +1,13 @@
 NEWS file for kcmsystemd
 
+0.6.0 (2014-03-27)
+---
+- Redesigned user interface
+- Added support for several new configuration options introduced by systemd 209 through 212.
+- Ability to reload/reexecute the systemd daemon.
+- Ability to mask/unmask units.
+- Configuration file parsing code rewritten.
+
 0.5.0 (2013-12-30)
 ---
 - Ability to control non-loaded units

@@ -997,19 +997,6 @@
                   </property>
                  </widget>
                 </item>
-                <item>
-                 <spacer name="horizontalSpacer_8">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
                </layout>
               </item>
              </layout>
@@ -1111,19 +1098,6 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="3">
-               <spacer name="horizontalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item row="4" column="2">
                <widget class="QComboBox" name="cmbMaxLevelWall">
                 <property name="toolTip">
@@ -1203,19 +1177,6 @@
                    <string>seconds</string>
                   </property>
                  </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_7">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
                 </item>
                </layout>
               </item>
@@ -1345,19 +1306,6 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="3">
-              <spacer name="horizontalSpacer_6">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
             </layout>
            </item>
            <item row="12" column="0" colspan="2">
@@ -1379,19 +1327,6 @@
               <string>Size-based rotation</string>
              </property>
              <layout class="QGridLayout" name="gridLayout">
-              <item row="5" column="5">
-               <spacer name="horizontalSpacer_5">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item row="3" column="2">
                <widget class="QSpinBox" name="spnKeepFree">
                 <property name="enabled">
@@ -1583,29 +1518,6 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="5">
-               <spacer name="horizontalSpacer_9">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="0" column="0">
-               <widget class="QCheckBox" name="chkMaxRetentionSec">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string>Store journal entries for:</string>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="0">
                <widget class="QCheckBox" name="chkMaxFileSec">
                 <property name="toolTip">
@@ -1618,6 +1530,29 @@
                  <bool>true</bool>
                 </property>
                </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="chkMaxRetentionSec">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Store journal entries for:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4" rowspan="2">
+               <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>
@@ -1695,7 +1630,7 @@
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The maximum time a system shutdown or sleep request is delayed due to an inhibitor lock of type &amp;quot;delay&amp;quot; being active.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="suffix">
-                 <string> seconds</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <number>99999</number>
@@ -1816,6 +1751,13 @@
                 </property>
                 <property name="maximum">
                  <number>99999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="2">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>seconds</string>
                 </property>
                </widget>
               </item>
