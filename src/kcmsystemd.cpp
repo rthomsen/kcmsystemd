@@ -60,16 +60,19 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
     // These options were removed in systemd 207
     if (systemdVersion >= 207)
       ui.grpControlGroups->setEnabled(false);
-    // These options were added in systemd 212
+    // These options were added in systemd 209
     if (systemdVersion < 209)
     {
       ui.grpUnitStartRateLimit->setEnabled(false);
       ui.grpUnitTimeouts->setEnabled(false);
     }
+    // These options were added in systemd 211
     if (systemdVersion < 211)
       ui.grpDefResourceAccounting->setEnabled(false);
+    // These options were added in systemd 212
     if (systemdVersion < 212)
     {
+      ui.grpTimerAccuracy->setEnabled(false);
       ui.chkForwardToWall->setEnabled(false);
       ui.cmbMaxLevelWall->setEnabled(false);
     }
@@ -288,6 +291,8 @@ void kcmsystemd::setupConfigParms()
     confOptList.append(confOption(SYSTEMD, "SystemCallArchitectures", MULTILIST, SystemCallArchitecturesList));
   }
   confOptList.append(confOption(SYSTEMD, "TimerSlackNSec", TIME, 0, confOption::ns, confOption::ns, confOption::ns, confOption::w));
+  if (systemdVersion >= 212)
+    confOptList.append(confOption(SYSTEMD, "DefaultTimerAccuracySec", TIME, 60, confOption::s, confOption::s, confOption::us, confOption::w));
   QStringList DefaultStandardOutputList = QStringList() << "inherit" << "null" << "tty" << "journal"
                                                         << "journal+console" << "syslog" << "syslog+console"
                                                         << "kmsg" << "kmsg+console";
