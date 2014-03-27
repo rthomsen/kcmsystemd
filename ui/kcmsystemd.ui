@@ -620,7 +620,80 @@
            <string>Defaults</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_20">
+           <item row="1" column="0">
+            <widget class="QGroupBox" name="grpUnitStartRateLimit">
+             <property name="title">
+              <string>Default unit start rate limiting</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_19">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_46">
+                <property name="text">
+                 <string>Start interval:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="spnDefaultStartLimitInterval">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interval in which rate limiting is set.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+                <property name="value">
+                 <number>10</number>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_45">
+                <property name="text">
+                 <string>seconds</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_47">
+                <property name="text">
+                 <string>Start burst:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="spnDefaultStartLimitBurst">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets how many times a service can be started within the defined interval.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+                <property name="value">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_48">
+                <property name="text">
+                 <string>times</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item row="5" column="0">
+            <widget class="QPushButton" name="btnEnviron">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set environment variables passed to all executed processes.&lt;/p&gt;&lt;p&gt;Requires systemd 205 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Environment</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
             <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -779,79 +852,6 @@
             </widget>
            </item>
            <item row="4" column="0">
-            <widget class="QPushButton" name="btnEnviron">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set environment variables passed to all executed processes.&lt;/p&gt;&lt;p&gt;Requires systemd 205 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>Environment</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QGroupBox" name="grpUnitStartRateLimit">
-             <property name="title">
-              <string>Default unit start rate limiting</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_19">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_46">
-                <property name="text">
-                 <string>Start interval:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QSpinBox" name="spnDefaultStartLimitInterval">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interval in which rate limiting is set.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="maximum">
-                 <number>999999999</number>
-                </property>
-                <property name="value">
-                 <number>10</number>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_45">
-                <property name="text">
-                 <string>seconds</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_47">
-                <property name="text">
-                 <string>Start burst:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QSpinBox" name="spnDefaultStartLimitBurst">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets how many times a service can be started within the defined interval.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="maximum">
-                 <number>999999999</number>
-                </property>
-                <property name="value">
-                 <number>5</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="label_48">
-                <property name="text">
-                 <string>times</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="3" column="0">
             <widget class="QPushButton" name="btnResourceLimits">
              <property name="toolTip">
               <string>Set default resource limits for units.</string>
@@ -859,6 +859,45 @@
              <property name="text">
               <string>Resource limits</string>
              </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QGroupBox" name="grpDefResourceAccounting">
+             <property name="title">
+              <string>Default resource accounting</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_23">
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="chkDefaultBlockIOAccounting">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Turns on block IO accounting.&lt;/p&gt;&lt;p&gt;Requires systemd 211 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Block IO accounting</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="chkDefaultCPUAccounting">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Turns on CPU usage accounting.&lt;/p&gt;&lt;p&gt;Requires systemd 211 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>CPU accounting</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="chkDefaultMemoryAccounting">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Turns on process and kernel memory accounting.&lt;/p&gt;&lt;p&gt;Requires systemd 211 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Memory accounting</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>

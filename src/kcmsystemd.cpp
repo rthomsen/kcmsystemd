@@ -66,6 +66,8 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
       ui.grpUnitStartRateLimit->setEnabled(false);
       ui.grpUnitTimeouts->setEnabled(false);
     }
+    if (systemdVersion < 211)
+      ui.grpDefResourceAccounting->setEnabled(false);
     if (systemdVersion < 212)
     {
       ui.chkForwardToWall->setEnabled(false);
@@ -301,8 +303,14 @@ void kcmsystemd::setupConfigParms()
   }
   if (systemdVersion >= 205)
     confOptList.append(confOption(SYSTEMD, "DefaultEnvironment", STRING, ""));
+  if (systemdVersion >= 211)
+  {
+    confOptList.append(confOption(SYSTEMD, "DefaultCPUAccounting", BOOL, false));
+    confOptList.append(confOption(SYSTEMD, "DefaultBlockIOAccounting", BOOL, false));
+    confOptList.append(confOption(SYSTEMD, "DefaultMemoryAccounting", BOOL, false));
+  }
   confOptList.append(confOption(SYSTEMD, "DefaultLimitCPU", RESLIMIT));  
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitFSIZE", RESLIMIT));    
+  confOptList.append(confOption(SYSTEMD, "DefaultLimitFSIZE", RESLIMIT));
   confOptList.append(confOption(SYSTEMD, "DefaultLimitDATA", RESLIMIT));
   confOptList.append(confOption(SYSTEMD, "DefaultLimitSTACK", RESLIMIT));
   confOptList.append(confOption(SYSTEMD, "DefaultLimitCORE", RESLIMIT));
