@@ -158,6 +158,13 @@ int confOption::setValueFromFile(QString line)
   
   else if (type == LIST)
   {
+    if (name == "ShowStatus")
+    {
+      if (rval.toLower() == "true" || rval.toLower() == "on")
+        rval = "yes";
+      else if (rval.toLower() == "false" || rval.toLower() == "off")
+        rval = "no";
+    }
     if (possibleVals.contains(rval.toLower()))
     {
       active = true;
@@ -458,7 +465,20 @@ QVariant confOption::getValue() const
 QString confOption::getLineForFile() const
 {
   // Used for saving to conf files
-  if (type == MULTILIST)
+  if (type == BOOL)
+  {
+    if (getValue() != defVal)
+    {
+      if (getValue().toBool())
+        return QString(name + "=" + "yes\n");
+      else
+        return QString(name + "=" + "no\n");
+    }
+    else
+      return QString("#" + name + "=\n");
+  }  
+  
+  else if (type == MULTILIST)
   {
     if (active && getValue() != defVal)
     {
@@ -477,6 +497,7 @@ QString confOption::getLineForFile() const
     else
       return QString("#" + name + "=\n");
   }
+  
   else if (type == TIME)
   {
     if (active && getValue() != defVal)
@@ -510,13 +531,13 @@ QString confOption::getLineForFile() const
     else
       return QString("#" + name + "=\n");
   }
+  
   else if (type == SIZE)
   {
     if (active && getValue() != defVal)
       return QString(name + "=" + value.toString() + "M\n");
     else
-      return QString("#" + name + "=\n");
-      
+      return QString("#" + name + "=\n");    
   }
   
   if (getValue() != defVal)

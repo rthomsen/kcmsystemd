@@ -270,8 +270,8 @@ void kcmsystemd::setupConfigParms()
   confOptList.append(confOption(SYSTEMD, "LogLocation", BOOL, true));
   confOptList.append(confOption(SYSTEMD, "DumpCore", BOOL, true));
   confOptList.append(confOption(SYSTEMD, "CrashShell", BOOL, false));
-  QStringList ShowStatusList = QStringList() << "auto" << "true" << "false";
-  confOptList.append(confOption(SYSTEMD, "ShowStatus", LIST, "auto", ShowStatusList));
+  QStringList ShowStatusList = QStringList() << "yes" << "no" << "auto";
+  confOptList.append(confOption(SYSTEMD, "ShowStatus", LIST, "yes", ShowStatusList));
   QStringList CrashChVTList = QStringList() << "-1" << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8";
   confOptList.append(confOption(SYSTEMD, "CrashChVT", LIST, "-1", CrashChVTList));
   QStringList CPUAffinityList;

@@ -424,6 +424,9 @@
           <layout class="QGridLayout" name="gridLayout_11">
            <item row="3" column="0">
             <widget class="QPushButton" name="btnAdvanced">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open advanced systemd settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Advanced settings</string>
              </property>
@@ -588,7 +591,11 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_18">
               <item row="0" column="2">
-               <widget class="QComboBox" name="cmbShowStatus"/>
+               <widget class="QComboBox" name="cmbShowStatus">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows terse service status updates on the console during bootup.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Yes&lt;/span&gt;: Always show.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;No&lt;/span&gt;: Never show.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Auto&lt;/span&gt;: Don't show unless a service fails, or there is a significant delay in boot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
               </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_6">
