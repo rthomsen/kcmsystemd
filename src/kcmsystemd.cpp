@@ -1447,6 +1447,9 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   menu.addSeparator();
   QAction *mask = menu.addAction("&Mask unit");
   QAction *unmask = menu.addAction("&Unmask unit");
+  menu.addSeparator();
+  QAction *reloaddaemon = menu.addAction("&Reload all unit files");
+  QAction *reexecdaemon = menu.addAction("&Reexecute systemd");
   
   QString unit = ui.tblServices->model()->index(ui.tblServices->indexAt(pos).row(),3).data().toString();
   QString path = unitpaths[unit].toString();
@@ -1470,7 +1473,6 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
 	  this);
   isolate->setEnabled(iface->property("CanIsolate").toBool());
   QString LoadState = iface->property("LoadState").toString();
-  qDebug() << "LoadState: " << LoadState;
   delete iface;
   
   if (UnitFileState == "disabled")
@@ -1563,6 +1565,24 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
         "/org/freedesktop/systemd1",
         "org.freedesktop.systemd1.Manager",
         "UnmaskUnitFiles",
+        argsForCall);
+  }
+  if (a == reloaddaemon)
+  {
+    QList<QVariant> argsForCall;
+    authServiceAction("org.freedesktop.systemd1",
+        "/org/freedesktop/systemd1",
+        "org.freedesktop.systemd1.Manager",
+        "Reload",
+        argsForCall);
+  }
+  if (a == reexecdaemon)
+  {
+    QList<QVariant> argsForCall;
+    authServiceAction("org.freedesktop.systemd1",
+        "/org/freedesktop/systemd1",
+        "org.freedesktop.systemd1.Manager",
+        "Reexecute",
         argsForCall);
   }
 }

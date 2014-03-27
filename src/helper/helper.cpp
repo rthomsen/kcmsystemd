@@ -94,10 +94,13 @@ ActionReply Helper::dbusaction(QVariantMap args)
   delete iface;
   
   // Error handling
-  if (dbusreply.type() == QDBusMessage::ErrorMessage)
+  if (method != "Reexecute")
   {
-    reply.setErrorCode(ActionReply::DBusError);
-    reply.setErrorDescription(dbusreply.errorMessage());
+    if (dbusreply.type() == QDBusMessage::ErrorMessage)
+    {
+      reply.setErrorCode(ActionReply::DBusError);
+      reply.setErrorDescription(dbusreply.errorMessage());
+    }
   }
 
   // Reload systemd daemon to update the enabled/disabled status
@@ -106,10 +109,10 @@ ActionReply Helper::dbusaction(QVariantMap args)
     // systemd does not update properties when these methods are called so we
     // need to reload the systemd daemon.
     iface = new QDBusInterface ("org.freedesktop.systemd1",
-						"/org/freedesktop/systemd1",
-						"org.freedesktop.systemd1.Manager",
-						systembus,
-						this);
+				"/org/freedesktop/systemd1",
+				"org.freedesktop.systemd1.Manager",
+				systembus,
+				this);
     dbusreply = iface->call(QDBus::AutoDetect, "Reload");
     delete iface;
   }
