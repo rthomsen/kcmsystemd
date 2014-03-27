@@ -61,6 +61,11 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
     if (systemdVersion >= 207)
       ui.grpControlGroups->setEnabled(false);
     // These options were added in systemd 212
+    if (systemdVersion < 209)
+    {
+      ui.grpUnitStartRateLimit->setEnabled(false);
+      ui.grpUnitTimeouts->setEnabled(false);
+    }
     if (systemdVersion < 212)
     {
       ui.chkForwardToWall->setEnabled(false);

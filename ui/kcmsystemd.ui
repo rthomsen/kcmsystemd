@@ -634,7 +634,7 @@
             </spacer>
            </item>
            <item row="2" column="0">
-            <widget class="QGroupBox" name="groupBox_5">
+            <widget class="QGroupBox" name="grpUnitTimeouts">
              <property name="title">
               <string>Default timeouts for units</string>
              </property>
@@ -649,7 +649,7 @@
               <item row="0" column="1">
                <widget class="QSpinBox" name="spnDefaultTimeoutStartSec">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to wait when starting a unit. If a unit does not signal start-up completion within this time, it is considered failed and will be shut down.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to wait when starting a unit. If a unit does not signal start-up completion within this time, it is considered failed and will be shut down.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="maximum">
                  <number>999999999</number>
@@ -676,7 +676,7 @@
               <item row="1" column="1">
                <widget class="QSpinBox" name="spnDefaultTimeoutStopSec">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to wait when stopping a unit. If a unit does not terminate within this time, it will be forcibly shut down.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to wait when stopping a unit. If a unit does not terminate within this time, it will be forcibly shut down.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="maximum">
                  <number>999999999</number>
@@ -703,7 +703,7 @@
               <item row="2" column="1">
                <widget class="QSpinBox" name="spnDefaultRestartSec">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to sleep before restarting a service.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to sleep before restarting a service.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="maximum">
                  <number>999999999</number>
@@ -789,7 +789,7 @@
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QGroupBox" name="groupBox_7">
+            <widget class="QGroupBox" name="grpUnitStartRateLimit">
              <property name="title">
               <string>Default unit start rate limiting</string>
              </property>
@@ -804,7 +804,7 @@
               <item row="0" column="1">
                <widget class="QSpinBox" name="spnDefaultStartLimitInterval">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interval in which rate limiting is set.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interval in which rate limiting is set.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="maximum">
                  <number>999999999</number>
@@ -831,7 +831,7 @@
               <item row="1" column="1">
                <widget class="QSpinBox" name="spnDefaultStartLimitBurst">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets how many times a service can be started within the defined interval.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets how many times a service can be started within the defined interval.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="maximum">
                  <number>999999999</number>

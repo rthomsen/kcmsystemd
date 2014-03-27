@@ -148,7 +148,7 @@
    <item row="6" column="0" colspan="6">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Set default resource limits for units (0 for no limit):</string>
+      <string>Set default resource limits for units:</string>
      </property>
     </widget>
    </item>
