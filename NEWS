@@ -1,5 +1,9 @@
 NEWS file for kcmsystemd
 
+0.6.1 (2014-04-04)
+---
+- Fix a crash introduced in kcmsystemd 0.6.0 when systemd version < 209.
+
 0.6.0 (2014-03-27)
 ---
 - Redesigned user interface
