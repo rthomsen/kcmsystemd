@@ -247,10 +247,12 @@ void kcmsystemd::load()
         spn->objectName() != "spnKeepFree" && 
         spn->objectName() != "spnMaxFileSize")
     {
-      if (confOptList.at(confOptList.indexOf(confOption(spn->objectName().remove("spn")))).type == INTEGER)
-        spn->setMaximum(confOptList.at(confOptList.indexOf(confOption(spn->objectName().remove("spn")))).maxVal);
+      QString basename = spn->objectName();
+      basename.remove("spn");
+      if (confOptList.indexOf(confOption(basename)) != -1 &&
+          confOptList.at(confOptList.indexOf(confOption(basename))).type == INTEGER)
+        spn->setMaximum(confOptList.at(confOptList.indexOf(confOption(basename))).maxVal);
       connect(spn, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateConfOption()));
-      
     }
   }
   
