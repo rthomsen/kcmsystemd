@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>481</width>
-    <height>629</height>
+    <height>655</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -57,7 +57,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>4</number>
          </property>
          <widget class="QWidget" name="tabServices">
           <property name="contextMenuPolicy">
@@ -1564,7 +1564,7 @@
            <string>Logind</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_13">
-           <item row="2" column="0">
+           <item row="4" column="0">
             <widget class="QGroupBox" name="groupBox_13">
              <property name="title">
               <string>Power management</string>
@@ -1764,6 +1764,19 @@
              </layout>
             </widget>
            </item>
+           <item row="6" column="0">
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item row="0" column="0">
             <widget class="QGroupBox" name="groupBox_4">
              <property name="title">
@@ -1822,7 +1835,7 @@
            <item row="1" column="0">
             <widget class="QGroupBox" name="groupBox_11">
              <property name="title">
-              <string>Kill processes</string>
+              <string>Processes and IPC objects</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_7">
               <item row="1" column="0">
@@ -1874,14 +1887,30 @@
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Kill user processes when users completely log out.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
-                 <string>Kill user processes after last session ends</string>
+                 <string>Kill user processes after last user session ends</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QCheckBox" name="chkRemoveIPC">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove IPC objects belonging to a user when the user fully logs out. The root user is unaffected by this setting.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Remove IPC objects after last user session ends</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+                <property name="tristate">
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>
              </layout>
             </widget>
            </item>
-           <item row="3" column="0">
+           <item row="5" column="0">
             <widget class="QGroupBox" name="grpControlGroups">
              <property name="title">
               <string>Control groups</string>
@@ -1923,19 +1952,6 @@
               </item>
              </layout>
             </widget>
-           </item>
-           <item row="4" column="0">
-            <spacer name="verticalSpacer_3">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </widget>

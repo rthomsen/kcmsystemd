@@ -395,6 +395,11 @@ void kcmsystemd::setupConfigParms()
     confOptList.append(confOption(LOGIND, "Controllers", STRING, ""));
     confOptList.append(confOption(LOGIND, "ResetControllers", STRING, "cpu"));
   }
+  if (systemdVersion >= 212)
+  {
+    confOptList.append(confOption(LOGIND, "RemoveIPC", BOOL, true));
+  }
+  
 }
 
 void kcmsystemd::initializeInterface()
