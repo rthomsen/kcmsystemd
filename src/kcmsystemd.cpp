@@ -569,11 +569,6 @@ void kcmsystemd::applyToInterface()
     
   }
   
-  // Radiobutton
-  QRadioButton *rad = this->findChild<QRadioButton *>("rad" + confOptList.at(confOptList.indexOf(confOption("SplitMode_1"))).getValue().toString());
-  if (rad)
-    rad->setChecked(true);
-  
   // Handle two checkboxes not found in conf.files
   if (confOptList.at(confOptList.indexOf(confOption("MaxRetentionSec_1"))).getValue() == 0)
     ui.chkMaxRetentionSec_1->setChecked(false);
@@ -774,13 +769,15 @@ void kcmsystemd::slotJrnlStorageChanged(int index)
     // no storage of logs
     ui.grpSizeRotation->setEnabled(0);
     ui.grpTimeRotation->setEnabled(0);
-    ui.grpSplitMode->setEnabled(0);
+    ui.cmbSplitMode_1->setEnabled(0);
+    ui.lblSplitMode_1->setEnabled(0);
   
   } else {
     // storage of logs
     ui.grpSizeRotation->setEnabled(1);
     ui.grpTimeRotation->setEnabled(1);
-    ui.grpSplitMode->setEnabled(1);
+    ui.cmbSplitMode_1->setEnabled(1);
+    ui.lblSplitMode_1->setEnabled(1);
 
     if (index == 1 || (index == 2 && varLogDirExists)) {
       // using persistent storage:

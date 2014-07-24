@@ -956,56 +956,7 @@
            <string>Journald</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_12">
-           <item row="8" column="0" colspan="2">
-            <widget class="QGroupBox" name="grpSplitMode">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="title">
-              <string>Split log files by</string>
-             </property>
-             <layout class="QFormLayout" name="formLayout_7">
-              <item row="0" column="0" colspan="2">
-               <layout class="QHBoxLayout" name="horizontalLayout_10">
-                <item>
-                 <widget class="QRadioButton" name="radlogin">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Split journal files per user.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Login: &lt;/span&gt;Each logged-in user gets his own journal files, but systemd user IDs will log into the system journal.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;UID:&lt;/span&gt; Any user ID will get his own journal files regardless whether it belongs to a system service or refers to a real logged-in user.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;None:&lt;/span&gt; All messages are stored in system journal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>Login</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="raduid">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Split journal files per user.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Login: &lt;/span&gt;Each logged-in user gets his own journal files, but systemd user IDs will log into the system journal.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;UID:&lt;/span&gt; Any user ID will get his own journal files regardless whether it belongs to a system service or refers to a real logged-in user.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;None:&lt;/span&gt; All messages are stored in system journal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>UID</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="radnone">
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Split journal files per user.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Login: &lt;/span&gt;Each logged-in user gets his own journal files, but systemd user IDs will log into the system journal.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;UID:&lt;/span&gt; Any user ID will get his own journal files regardless whether it belongs to a system service or refers to a real logged-in user.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;None:&lt;/span&gt; All messages are stored in system journal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="11" column="0" colspan="2">
+           <item row="10" column="0" colspan="2">
             <widget class="QGroupBox" name="groupBox_9">
              <property name="title">
               <string>Log forwarding</string>
@@ -1309,9 +1260,22 @@
                </property>
               </widget>
              </item>
+             <item row="3" column="2">
+              <widget class="QComboBox" name="cmbSplitMode_1"/>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLabel" name="lblSplitMode_1">
+               <property name="text">
+                <string>Split log files by:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
-           <item row="12" column="0" colspan="2">
+           <item row="11" column="0" colspan="2">
             <spacer name="verticalSpacer_2">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1324,7 +1288,7 @@
              </property>
             </spacer>
            </item>
-           <item row="9" column="0" colspan="2">
+           <item row="8" column="0" colspan="2">
             <widget class="QGroupBox" name="grpSizeRotation">
              <property name="title">
               <string>Size-based rotation</string>
@@ -1465,7 +1429,7 @@
              </layout>
             </widget>
            </item>
-           <item row="10" column="0" colspan="2">
+           <item row="9" column="0" colspan="2">
             <widget class="QGroupBox" name="grpTimeRotation">
              <property name="title">
               <string>Time-based rotation</string>
@@ -2239,11 +2203,9 @@
   <tabstop>chkSeal_1</tabstop>
   <tabstop>spnSyncIntervalSec_1</tabstop>
   <tabstop>cmbMaxLevelStore_1</tabstop>
+  <tabstop>cmbSplitMode_1</tabstop>
   <tabstop>spnRateLimitBurst_1</tabstop>
   <tabstop>spnRateLimitInterval_1</tabstop>
-  <tabstop>radlogin</tabstop>
-  <tabstop>raduid</tabstop>
-  <tabstop>radnone</tabstop>
   <tabstop>spnMaxUse_1</tabstop>
   <tabstop>chkMaxUse_1</tabstop>
   <tabstop>spnKeepFree_1</tabstop>
