@@ -73,8 +73,8 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
     if (systemdVersion < 212)
     {
       ui.grpTimerAccuracy->setEnabled(false);
-      ui.chkForwardToWall->setEnabled(false);
-      ui.cmbMaxLevelWall->setEnabled(false);
+      ui.chkForwardToWall_1->setEnabled(false);
+      ui.cmbMaxLevelWall_1->setEnabled(false);
     }
 
     qDebug() << "Systemd" << systemdVersion << "detected.";
@@ -192,23 +192,26 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.btnAdvanced, SIGNAL(clicked()), this, SLOT(slotOpenAdvanced()));
   
   // Connect signals for journald.conf:
-  connect(ui.cmbStorage, SIGNAL(currentIndexChanged(int)), this, SLOT(slotStorageChanged()));
-  connect(ui.spnMaxUse, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxUseChanged()));
-  connect(ui.spnKeepFree, SIGNAL(valueChanged(int)), this, SLOT(slotSpnKeepFreeChanged()));
-  connect(ui.spnMaxFileSize, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxFileSizeChanged()));
-  connect(ui.chkMaxRetentionSec, SIGNAL(stateChanged(int)), this, SLOT(slotChkMaxRetentionSecChanged(int)));
-  connect(ui.chkMaxFileSec, SIGNAL(stateChanged(int)), this, SLOT(slotChkMaxFileSecChanged(int)));
-  connect(ui.chkForwardToSyslog, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToSyslogChanged()));
-  connect(ui.chkForwardToKMsg, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToKmsgChanged()));
-  connect(ui.chkForwardToConsole, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToConsoleChanged()));
-  connect(ui.chkForwardToWall, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToWallChanged()));
+  connect(ui.cmbStorage_1, SIGNAL(currentIndexChanged(int)), this, SLOT(slotJrnlStorageChanged(int)));
+  connect(ui.spnMaxUse_1, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxUseChanged()));
+  connect(ui.spnKeepFree_1, SIGNAL(valueChanged(int)), this, SLOT(slotSpnKeepFreeChanged()));
+  connect(ui.spnMaxFileSize_1, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxFileSizeChanged()));
+  connect(ui.chkMaxRetentionSec_1, SIGNAL(stateChanged(int)), this, SLOT(slotChkMaxRetentionSecChanged(int)));
+  connect(ui.chkMaxFileSec_1, SIGNAL(stateChanged(int)), this, SLOT(slotChkMaxFileSecChanged(int)));
+  connect(ui.chkForwardToSyslog_1, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToSyslogChanged()));
+  connect(ui.chkForwardToKMsg_1, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToKmsgChanged()));
+  connect(ui.chkForwardToConsole_1, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToConsoleChanged()));
+  connect(ui.chkForwardToWall_1, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToWallChanged()));
   
-  QList<QCheckBox *> listChk = this->findChildren<QCheckBox *>(QRegExp("MaxUse|KeepFree|MaxFileSize"));
+  QList<QCheckBox *> listChk = this->findChildren<QCheckBox *>(QRegExp("(MaxUse|KeepFree|MaxFileSize)_1"));
   foreach(QCheckBox *chk, listChk)
-    connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotStorageChkBoxes(int)));
+    connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotJrnlStorageChkBoxes(int)));
   
   // Connect signals for logind.conf
-  connect(ui.chkKillUserProcesses, SIGNAL(stateChanged(int)), this, SLOT(slotKillUserProcessesChanged()));
+  connect(ui.chkKillUserProcesses_2, SIGNAL(stateChanged(int)), this, SLOT(slotKillUserProcessesChanged()));
+  
+  // Connect signals for coredump.conf
+  connect(ui.cmbStorage_3, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCoreStorageChanged(int)));
 }
 
 void kcmsystemd::load()
@@ -217,52 +220,47 @@ void kcmsystemd::load()
   if (timesLoad == 0)
     initializeInterface();
   
-  // Read the three configuration files
-  readSystemConf();
-  readJournaldConf();
-  readLogindConf();
+  // Read the four configuration files
+  readConfFile("system.conf");
+  readConfFile("journald.conf");
+  readConfFile("logind.conf");
+  readConfFile("coredump.conf");
   
   // Apply the read settings to the interface
   applyToInterface();
   
-  // Connect signals to slots different widget types
+  // Connect signals to slots, which need to be after initializeInterface()
+  // Checkboxes
   QList<QCheckBox *> listChk = this->findChildren<QCheckBox *>();
   foreach(QCheckBox *chk, listChk)
   {
-    if (chk->objectName() != "chkMaxUse" && 
-        chk->objectName() != "chkKeepFree" &&
-        chk->objectName() != "chkMaxFileSize" &&
+    // Some checkboxes need their own slots
+    if (chk->objectName() != "chkMaxUse_1" && 
+        chk->objectName() != "chkKeepFree_1" &&
+        chk->objectName() != "chkMaxFileSize_1" &&
         chk->objectName() != "chkInactiveUnits" &&
         chk->objectName() != "chkShowUnloadedUnits" &&
-        chk->objectName() != "chkMaxRetentionSec" &&
-        chk->objectName() != "chkMaxFileSec")
+        chk->objectName() != "chkMaxRetentionSec_1" &&
+        chk->objectName() != "chkMaxFileSec_1")
       connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotUpdateConfOption()));
   }
-    
+  // Spinboxes
   QList<QSpinBox *> listSpn = this->findChildren<QSpinBox *>();
   foreach(QSpinBox *spn, listSpn)
   {
-    // Three spinboxes must not be connected to this slot
-    if (spn->objectName() != "spnMaxUse" && 
-        spn->objectName() != "spnKeepFree" && 
-        spn->objectName() != "spnMaxFileSize")
-    {
-      QString basename = spn->objectName();
-      basename.remove("spn");
-      if (confOptList.indexOf(confOption(basename)) != -1 &&
-          confOptList.at(confOptList.indexOf(confOption(basename))).type == INTEGER)
-        spn->setMaximum(confOptList.at(confOptList.indexOf(confOption(basename))).maxVal);
+    // Some spinboxes need their own slots
+    if (spn->objectName() != "spnMaxUse_1" && 
+        spn->objectName() != "spnKeepFree_1" && 
+        spn->objectName() != "spnMaxFileSize_1")
       connect(spn, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateConfOption()));
-    }
   }
-  
+  // Comboboxes
   QList<QComboBox *> listCmb = this->findChildren<QComboBox *>();
   foreach(QComboBox *cmb, listCmb)
   {
     if (cmb->objectName() != "cmbUnitTypes")
       connect(cmb, SIGNAL(currentIndexChanged(int)), this, SLOT(slotUpdateConfOption()));
   }
-  
 }
 
 void kcmsystemd::setupConfigParms()
@@ -349,12 +347,12 @@ void kcmsystemd::setupConfigParms()
   confOptList.append(confOption(JOURNALD, "SyncIntervalSec", TIME, 5, confOption::min, confOption::s, confOption::us, confOption::w));
   confOptList.append(confOption(JOURNALD, "RateLimitInterval", TIME, 10, confOption::s, confOption::s, confOption::us, confOption::h));
   confOptList.append(confOption(JOURNALD, "RateLimitBurst", INTEGER, 200, 0, 99999));
-  confOptList.append(confOption(JOURNALD, "SystemMaxUse", SIZE, QVariant(0.1 * partPersSizeMB).toULongLong()));
-  confOptList.append(confOption(JOURNALD, "SystemKeepFree", SIZE, QVariant(0.15 * partPersSizeMB).toULongLong()));
-  confOptList.append(confOption(JOURNALD, "SystemMaxFileSize", SIZE, QVariant(0.125 * 0.1 * partPersSizeMB).toULongLong()));
-  confOptList.append(confOption(JOURNALD, "RuntimeMaxUse", SIZE, QVariant(0.1 * partVolaSizeMB).toULongLong()));
-  confOptList.append(confOption(JOURNALD, "RuntimeKeepFree", SIZE, QVariant(0.15 * partVolaSizeMB).toULongLong()));
-  confOptList.append(confOption(JOURNALD, "RuntimeMaxFileSize", SIZE, QVariant(0.125 * 0.1 * partVolaSizeMB).toULongLong()));
+  confOptList.append(confOption(JOURNALD, "SystemMaxUse", SIZE, QVariant(0.1 * partPersSizeMB).toULongLong(), partPersSizeMB));
+  confOptList.append(confOption(JOURNALD, "SystemKeepFree", SIZE, QVariant(0.15 * partPersSizeMB).toULongLong(), partPersSizeMB));
+  confOptList.append(confOption(JOURNALD, "SystemMaxFileSize", SIZE, QVariant(0.125 * 0.1 * partPersSizeMB).toULongLong(), partPersSizeMB));
+  confOptList.append(confOption(JOURNALD, "RuntimeMaxUse", SIZE, QVariant(0.1 * partVolaSizeMB).toULongLong(), partVolaSizeMB));
+  confOptList.append(confOption(JOURNALD, "RuntimeKeepFree", SIZE, QVariant(0.15 * partVolaSizeMB).toULongLong(), partVolaSizeMB));
+  confOptList.append(confOption(JOURNALD, "RuntimeMaxFileSize", SIZE, QVariant(0.125 * 0.1 * partVolaSizeMB).toULongLong(), partVolaSizeMB));
   confOptList.append(confOption(JOURNALD, "MaxRetentionSec", TIME, 0, confOption::d, confOption::s, confOption::s, confOption::year));
   confOptList.append(confOption(JOURNALD, "MaxFileSec", TIME, 30, confOption::d, confOption::s, confOption::s, confOption::year));
   confOptList.append(confOption(JOURNALD, "ForwardToSyslog", BOOL, true));
@@ -400,6 +398,16 @@ void kcmsystemd::setupConfigParms()
     confOptList.append(confOption(LOGIND, "RemoveIPC", BOOL, true));
   }
   
+  // coredump.conf
+  QStringList CoreStorage = QStringList() << "none" << "external" << "journal" << "both";
+  confOptList.append(confOption(COREDUMP, "Storage", LIST, "external", CoreStorage));
+  confOptList.append(confOption(COREDUMP, "Compress", BOOL, true));
+  confOptList.append(confOption(COREDUMP, "ProcessSizeMax", SIZE, 2*1024, partPersSizeMB));
+  confOptList.append(confOption(COREDUMP, "ExternalSizeMax", SIZE, 2*1024, partPersSizeMB));
+  confOptList.append(confOption(COREDUMP, "JournalSizeMax", SIZE, 767, partPersSizeMB));
+  confOptList.append(confOption(COREDUMP, "MaxUse", SIZE, QVariant(0.1 * partPersSizeMB).toULongLong(), partPersSizeMB));
+  confOptList.append(confOption(COREDUMP, "KeepFree", SIZE, QVariant(0.15 * partPersSizeMB).toULongLong(), partPersSizeMB));
+  
 }
 
 void kcmsystemd::initializeInterface()
@@ -407,30 +415,46 @@ void kcmsystemd::initializeInterface()
   // This function must only be run once
   timesLoad = timesLoad + 1;
 
-  // Populate comboboxes:
+  // Populate comboboxes
   QList<QComboBox *> listCmb = this->findChildren<QComboBox *>();
   foreach (QComboBox *cmb, listCmb)
   {
-    QString name = cmb->objectName().remove("cmb");
-    int index = confOptList.indexOf(confOption(name));
+    QString basename = cmb->objectName().remove(QRegExp("^cmb"));
+    int index = confOptList.indexOf(confOption(basename));
+    
     if (index > -1)
       cmb->addItems(confOptList.at(index).possibleVals);
   }
-  // cmbCrashChVT needs special treatment
-  ui.cmbCrashChVT->setItemData(0, "Off", Qt::DisplayRole);
-  
+  ui.cmbCrashChVT_0->setItemData(0, "Off", Qt::DisplayRole); // needs special treatment
   QStringList allowUnitTypes = QStringList() << "All unit types" << "Targets" << "Services"
                                              << "Devices" << "Mounts" << "Automounts" << "Swaps" 
                                              << "Sockets" << "Paths" << "Timers" << "Snapshots" 
                                              << "Slices" << "Scopes";
   for (int i = 0; i < allowUnitTypes.size(); i++)
     ui.cmbUnitTypes->addItem(allowUnitTypes[i]);
+  
+  // Set max values for specific spinboxes
+  QList<QSpinBox *> listSpn = this->findChildren<QSpinBox *>();
+  foreach(QSpinBox *spn, listSpn)
+  {
+    QString basename = spn->objectName().remove(QRegExp("^spn"));
+    int index = confOptList.indexOf(confOption(basename));
+    if (index > -1)
+    {
+      // Only for these two types of options (not TIME)
+      if (confOptList.at(index).type == INTEGER || confOptList.at(index).type == SIZE)
+      {
+        // These three spinboxes set their own maximums dynamically
+        if (!basename.contains(QRegExp("(MaxUse_1|KeepFree_1|MaxFileSize_1)")))
+          spn->setMaximum(confOptList.at(index).maxVal);
+      }
+    }
+  }
 }
 
-void kcmsystemd::readSystemConf()
+void kcmsystemd::readConfFile(QString filename)
 { 
-  QFile file (etcDir + "/system.conf");
-  
+  QFile file (etcDir + "/" + filename);
   if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QTextStream in(&file);
     QString line = in.readLine();
@@ -439,11 +463,32 @@ void kcmsystemd::readSystemConf()
     {
       for (int i = 0; i < confOptList.size(); ++i)
       {
-        if (confOptList.at(i) == confOption(line.section("=",0,0).trimmed()))
-        {        
+        
+        if (filename == "system.conf" && 
+            confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_0"))
+        {
           confOptList[i].setValueFromFile(line);
-          break;          
+          break;
         }
+        else if (filename == "journald.conf" &&
+                  confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_1"))
+        {
+          confOptList[i].setValueFromFile(line);
+          break;
+        }            
+        else if (filename == "logind.conf" && 
+                  confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_2"))
+        {
+          confOptList[i].setValueFromFile(line);
+          break;
+        }   
+        else if (filename == "coredump.conf" && 
+                  confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_3"))
+        {
+          confOptList[i].setValueFromFile(line);
+          break;
+        }
+
       }
 
       line = in.readLine();
@@ -451,62 +496,8 @@ void kcmsystemd::readSystemConf()
         
   } // if file open
   else 
-    KMessageBox::error(this, i18n("Failed to read %1/system.conf. Using default values.", etcDir));
+    KMessageBox::error(this, i18n("Failed to read %1/%2. Using default values.", etcDir, filename));
 }
-
-void kcmsystemd::readJournaldConf()
-{
-  QFile file (etcDir + "/journald.conf");
-  
-  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    QTextStream in(&file);
-    QString line = in.readLine();
-
-    while(!line.isNull())
-    {
-      for (int i = 0; i < confOptList.size(); ++i)
-      {
-        if (confOptList.at(i) == confOption(line.section("=",0,0).trimmed()))
-        {        
-          confOptList[i].setValueFromFile(line);
-          break;          
-        }
-      }
-
-      line = in.readLine();
-    } // read lines until empty
-        
-  } // if file open
-  else 
-    KMessageBox::error(this, i18n("Failed to read %1/journald.conf. Using default values.", etcDir));
-}
-
-void kcmsystemd::readLogindConf()
-{
-  QFile file (etcDir + "/logind.conf");
-  
-  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    QTextStream in(&file);
-    QString line = in.readLine();
-
-    while(!line.isNull())
-    { 
-      for (int i = 0; i < confOptList.size(); ++i)
-      {
-        if (confOptList.at(i) == confOption(line.section("=",0,0).trimmed()))
-        {        
-          confOptList[i].setValueFromFile(line);
-          break;          
-        }
-      }
-
-      line = in.readLine();
-    } // read lines until empty
-        
-  } // if file open
-  else 
-    KMessageBox::error(this, i18n("Failed to read %1/logind.conf. Using default values.", etcDir));
-} 
 
 void kcmsystemd::applyToInterface()
 {
@@ -546,13 +537,17 @@ void kcmsystemd::applyToInterface()
     else if (i.type == SIZE)
     {
       QString basename = i.name;
-      basename.remove(QRegExp("System|Runtime"));
+      basename.remove(QRegExp("^System|^Runtime"));
       QSpinBox *spn = this->findChild<QSpinBox *>("spn" + basename);
       if (spn)
       {
         if (isPersistent && i.name.contains("System"))
           spn->setValue(i.getValue().toULongLong());
+        
         else if (!isPersistent && i.name.contains("Runtime"))
+          spn->setValue(i.getValue().toULongLong());
+        
+        else if (!i.name.contains(QRegExp("^(System|Runtime)")))
           spn->setValue(i.getValue().toULongLong());
       }
       QCheckBox *chk = this->findChild<QCheckBox *>("chk" + basename);
@@ -572,19 +567,19 @@ void kcmsystemd::applyToInterface()
   }
   
   // Radiobutton
-  QRadioButton *rad = this->findChild<QRadioButton *>("rad" + confOptList.at(confOptList.indexOf(confOption("SplitMode"))).getValue().toString());
+  QRadioButton *rad = this->findChild<QRadioButton *>("rad" + confOptList.at(confOptList.indexOf(confOption("SplitMode_1"))).getValue().toString());
   if (rad)
     rad->setChecked(true);
   
   // Handle two checkboxes not found in conf.files
-  if (confOptList.at(confOptList.indexOf(confOption("MaxRetentionSec"))).getValue() == 0)
-    ui.chkMaxRetentionSec->setChecked(false);
+  if (confOptList.at(confOptList.indexOf(confOption("MaxRetentionSec_1"))).getValue() == 0)
+    ui.chkMaxRetentionSec_1->setChecked(false);
   else
-    ui.chkMaxRetentionSec->setChecked(true);
-  if (confOptList.at(confOptList.indexOf(confOption("MaxFileSec"))).getValue() == 0)
-    ui.chkMaxFileSec->setChecked(false);
+    ui.chkMaxRetentionSec_1->setChecked(true);
+  if (confOptList.at(confOptList.indexOf(confOption("MaxFileSec_1"))).getValue() == 0)
+    ui.chkMaxFileSec_1->setChecked(false);
   else
-    ui.chkMaxFileSec->setChecked(true);
+    ui.chkMaxFileSec_1->setChecked(true);
 }
 
 void kcmsystemd::setupUnitslist()
@@ -634,14 +629,10 @@ void kcmsystemd::defaults()
     //defaults for system.conf
     for (int i = 0; i < confOptList.size(); ++i)
     {
-      confOptList[i].setValue(confOptList.at(i).defVal);
+      confOptList[i].setToDefault();
       confOptList[i].active = false;
       if (confOptList.at(i).type == RESLIMIT)
-      {
-        qDebug() << confOptList.at(i).name << ":" << confOptList.at(i).getValue();
         confOption::resLimitsMap[confOptList.at(i).name] = confOptList.at(i).getValue();
-        
-      }
     }
     applyToInterface();
   }
@@ -676,6 +667,15 @@ void kcmsystemd::save()
       logindConfFileContents.append(i.getLineForFile());
   }
   
+  QString coredumpConfFileContents;
+  coredumpConfFileContents.append("# " + etcDir + "/coredump.conf\n# Generated by kcmsystemd control module v." + KCM_SYSTEMD_VERSION + ".\n");
+  coredumpConfFileContents.append("[Coredump]\n");
+  foreach (confOption i, confOptList)
+  {
+    if (i.file == COREDUMP)
+      coredumpConfFileContents.append(i.getLineForFile());
+  }
+  
   // Declare a QVariantMap with arguments for the helper
   QVariantMap helperArgs;
   if (QDir(etcDir).exists()) {
@@ -688,9 +688,10 @@ void kcmsystemd::save()
   helperArgs["systemConfFileContents"] = systemConfFileContents;
   helperArgs["journaldConfFileContents"] = journaldConfFileContents;
   helperArgs["logindConfFileContents"] = logindConfFileContents;
+  helperArgs["coredumpConfFileContents"] = coredumpConfFileContents;
     
   // Call the helper to write the configuration files
-  Action *saveAction = authAction();      
+  Action *saveAction = authAction();
   saveAction->setArguments(helperArgs);
   ActionReply reply = saveAction->execute();
   
@@ -707,6 +708,9 @@ void kcmsystemd::save()
 
 void kcmsystemd::slotUpdateConfOption()
 {
+  qDebug() << "slotUpdateConfOption called!";
+  // Updates confOptions when user changes ui elements
+  
   QString name = QObject::sender()->objectName().remove(QRegExp("^(chk|spn|cmb|le)"));
   confOptList[confOptList.indexOf(confOption(name))].active = true;
   
@@ -739,7 +743,7 @@ void kcmsystemd::slotUpdateConfOption()
       if (cmb)
       {
         // qDebug() << name << " changed to " << cmb->currentText();
-        if (cmb->objectName() == "cmbCrashChVT" && cmb->currentText() == "Off")
+        if (cmb->objectName() == "cmbCrashChVT_0" && cmb->currentText() == "Off")
           confOptList[confOptList.indexOf(confOption(name))].setValue("-1");
         else
           confOptList[confOptList.indexOf(confOption(name))].setValue(cmb->currentText());
@@ -757,12 +761,13 @@ void kcmsystemd::slotUpdateConfOption()
 
   }
   emit changed(true);
-  
 }
 
-void kcmsystemd::slotStorageChanged()
+void kcmsystemd::slotJrnlStorageChanged(int index)
 {
-  if (ui.cmbStorage->currentText() == "none") {
+  QStringList vars = QStringList() << "MaxUse_1" << "KeepFree_1" << "MaxFileSize_1";
+
+  if (index == 3) {
     // no storage of logs
     ui.grpSizeRotation->setEnabled(0);
     ui.grpTimeRotation->setEnabled(0);
@@ -774,87 +779,89 @@ void kcmsystemd::slotStorageChanged()
     ui.grpTimeRotation->setEnabled(1);
     ui.grpSplitMode->setEnabled(1);
 
-    
-    if (ui.cmbStorage->currentText() == "persistent" || (ui.cmbStorage->currentText() == "auto" && varLogDirExists)) {
+    if (index == 1 || (index == 2 && varLogDirExists)) {
       // using persistent storage:
+      qDebug() << "Using persistent storage of logs.";
       isPersistent = true;
-      ui.spnMaxUse->setMaximum(partPersSizeMB);
-      ui.spnMaxUse->setValue(confOptList.at(confOptList.indexOf(confOption("SystemMaxUse"))).getValue().toULongLong());
-      ui.spnKeepFree->setMaximum(partPersSizeMB);
-      ui.spnKeepFree->setValue(confOptList.at(confOptList.indexOf(confOption("SystemKeepFree"))).getValue().toULongLong());
-      ui.spnMaxFileSize->setMaximum(partPersSizeMB);
-      ui.spnMaxFileSize->setValue(confOptList.at(confOptList.indexOf(confOption("SystemMaxFileSize"))).getValue().toULongLong());
+  
+      foreach (QString i, vars)
+      {
+        // Set spinboxes to persistent values and maximums
+        QSpinBox *spn = this->findChild<QSpinBox *>("spn" + i);
+        if (spn)
+        {
+          spn->setMaximum(partPersSizeMB);
+          spn->setValue(confOptList.at(confOptList.indexOf(confOption(QString("System" + i)))).getValue().toULongLong());
+        }
+       
+        // If current values are defaults, check checkboxes else uncheck them
+        QCheckBox *chk = this->findChild<QCheckBox *>("chk" + i);
+        if (confOptList[confOptList.indexOf(confOption(QString("System" + i)))].isDefault() && chk)
+          chk->setCheckState(Qt::Checked);
+        else
+          chk->setCheckState(Qt::Unchecked);
+      }
       
-      if (confOptList[confOptList.indexOf(confOption("SystemMaxUse"))].isDefault())
-        ui.chkMaxUse->setCheckState(Qt::Checked);
-      else
-        ui.chkMaxUse->setCheckState(Qt::Unchecked);
-      if (confOptList[confOptList.indexOf(confOption("SystemKeepFree"))].isDefault())
-        ui.chkKeepFree->setCheckState(Qt::Checked);
-      else
-        ui.chkKeepFree->setCheckState(Qt::Unchecked);
-      if (confOptList[confOptList.indexOf(confOption("SystemMaxFileSize"))].isDefault())
-        ui.chkMaxFileSize->setCheckState(Qt::Checked);
-      else
-        ui.chkMaxFileSize->setCheckState(Qt::Unchecked);
-      
-    } else if (ui.cmbStorage->currentText() == "volatile" || (ui.cmbStorage->currentText() == "auto" && !varLogDirExists)) {
+    } else if (index == 0 || (index == 2 && !varLogDirExists)) {
       // using volatile storage:
+      qDebug() << "Using volatile storage of logs.";
       isPersistent = false;
-      ui.spnMaxUse->setValue(confOptList.at(confOptList.indexOf(confOption("RuntimeMaxUse"))).getValue().toULongLong());
-      ui.spnMaxUse->setMaximum(partVolaSizeMB);
-      ui.spnKeepFree->setValue(confOptList.at(confOptList.indexOf(confOption("RuntimeKeepFree"))).getValue().toULongLong());
-      ui.spnKeepFree->setMaximum(partVolaSizeMB);
-      ui.spnMaxFileSize->setValue(confOptList.at(confOptList.indexOf(confOption("RuntimeMaxFileSize"))).getValue().toULongLong());
-      ui.spnMaxFileSize->setMaximum(partVolaSizeMB);
-      if (confOptList[confOptList.indexOf(confOption("RuntimeMaxUse"))].isDefault())
-        ui.chkMaxUse->setCheckState(Qt::Checked);
-      else
-        ui.chkMaxUse->setCheckState(Qt::Unchecked);
-      if (confOptList[confOptList.indexOf(confOption("RuntimeKeepFree"))].isDefault())
-        ui.chkKeepFree->setCheckState(Qt::Checked);
-      else
-        ui.chkKeepFree->setCheckState(Qt::Unchecked);
-      if (confOptList[confOptList.indexOf(confOption("RuntimeMaxFileSize"))].isDefault())
-        ui.chkMaxFileSize->setCheckState(Qt::Checked);
-      else
-        ui.chkMaxFileSize->setCheckState(Qt::Unchecked);
+      
+      foreach (QString i, vars)
+      {
+        // Set spinboxes to volatile values and maximums
+        QSpinBox *spn = this->findChild<QSpinBox *>("spn" + i);
+        if (spn)
+        {
+          spn->setValue(confOptList.at(confOptList.indexOf(confOption(QString("Runtime" + i)))).getValue().toULongLong());
+          spn->setMaximum(partVolaSizeMB);
+        }
+        
+        // If current values are defaults, check checkboxes else uncheck them
+        QCheckBox *chk = this->findChild<QCheckBox *>("chk" + i);
+        if (confOptList[confOptList.indexOf(confOption( QString("Runtime" + i)))].isDefault() && chk)
+          chk->setCheckState(Qt::Checked);
+        else
+          chk->setCheckState(Qt::Unchecked);
+      }
+      
     }
   }
   emit changed(true);
 }
 
-void kcmsystemd::slotStorageChkBoxes(int state)
+void kcmsystemd::slotJrnlStorageChkBoxes(int state)
 {
+  // When checkboxes are checked, set values to defaults and disable ui elements
   QString basename = QString(QObject::sender()->objectName().remove("chk"));
- 
+  QSpinBox *spn = this->findChild<QSpinBox *>("spn" + basename);
+
   if (state == Qt::Checked)
   {
-    confOptList[confOptList.indexOf(confOption("System" + basename))].active = false;
-    confOptList[confOptList.indexOf(confOption("Runtime" + basename))].active = false;
-    
-    QList<QWidget *> lst = this->findChildren<QWidget *>(QRegExp("(lbl|spn)" + basename + "\\d?"));
+    if (isPersistent)     
+    {
+      confOptList[confOptList.indexOf(confOption("System" + basename))].setToDefault();
+      if (spn)
+        spn->setValue(confOptList.at(confOptList.indexOf(confOption(QString("System" + basename)))).getValue().toULongLong());
+    }
+    else if (!isPersistent)
+    {
+      confOptList[confOptList.indexOf(confOption("Runtime" + basename))].setToDefault();
+      if (spn)
+        spn->setValue(confOptList.at(confOptList.indexOf(confOption(QString("Runtime" + basename)))).getValue().toULongLong());
+    }
+    QList<QWidget *> lst = this->findChildren<QWidget *>(QRegExp("(lbl|spn)\\d?" + basename));
     foreach (QWidget *wdgt, lst)
       wdgt->setEnabled(false);
-
   }
   else
   {
-   
-    if (isPersistent)
-    {
-      confOptList[confOptList.indexOf(confOption("System" + basename))].active = true;
-      confOptList[confOptList.indexOf(confOption("Runtime" + basename))].active = false;
-    }
-    else
-    {
-      confOptList[confOptList.indexOf(confOption("System" + basename))].active = false;
-      confOptList[confOptList.indexOf(confOption("Runtime" + basename))].active = true;
-    }
-    QList<QWidget *> lst = this->findChildren<QWidget *>(QRegExp("(lbl|spn)" + basename + "\\d?"));
+    // disable ui elements
+    QList<QWidget *> lst = this->findChildren<QWidget *>(QRegExp("(lbl|spn)\\d?" + basename));
     foreach (QWidget *wdgt, lst)
       wdgt->setEnabled(true);
-  }
+  }  
+
   emit changed(true);
 }
 
@@ -862,13 +869,13 @@ void kcmsystemd::slotChkMaxRetentionSecChanged(int state)
 {
   if (state == Qt::Checked)
   {
-    ui.spnMaxRetentionSec->setEnabled(true);
-    confOptList[confOptList.indexOf(confOption("MaxRetentionSec"))].active = true;
+    ui.spnMaxRetentionSec_1->setEnabled(true);
+    confOptList[confOptList.indexOf(confOption("MaxRetentionSec_1"))].active = true;
   }
   else
   {
-    ui.spnMaxRetentionSec->setEnabled(false);
-    confOptList[confOptList.indexOf(confOption("MaxRetentionSec"))].active = false;
+    ui.spnMaxRetentionSec_1->setEnabled(false);
+    confOptList[confOptList.indexOf(confOption("MaxRetentionSec_1"))].active = false;
   }
   emit changed(true);
 }
@@ -877,13 +884,13 @@ void kcmsystemd::slotChkMaxFileSecChanged(int state)
 {
   if (state == Qt::Checked)
   {
-    ui.spnMaxFileSec->setEnabled(true);
-    confOptList[confOptList.indexOf(confOption("MaxFileSec"))].active = true;
+    ui.spnMaxFileSec_1->setEnabled(true);
+    confOptList[confOptList.indexOf(confOption("MaxFileSec_1"))].active = true;
   }
   else
   {
-    ui.spnMaxFileSec->setEnabled(false);
-    confOptList[confOptList.indexOf(confOption("MaxFileSec"))].active = true;
+    ui.spnMaxFileSec_1->setEnabled(false);
+    confOptList[confOptList.indexOf(confOption("MaxFileSec_1"))].active = true;
   }
   emit changed(true);
 }
@@ -891,66 +898,66 @@ void kcmsystemd::slotChkMaxFileSecChanged(int state)
 void kcmsystemd::slotSpnMaxUseChanged()
 {
   if (isPersistent)
-    confOptList[confOptList.indexOf(confOption("SystemMaxUse"))].setValue(ui.spnMaxUse->value());
+    confOptList[confOptList.indexOf(confOption("SystemMaxUse_1"))].setValue(ui.spnMaxUse_1->value());
   else
-    confOptList[confOptList.indexOf(confOption("RuntimeMaxUse"))].setValue(ui.spnMaxUse->value());
+    confOptList[confOptList.indexOf(confOption("RuntimeMaxUse_1"))].setValue(ui.spnMaxUse_1->value());
   emit changed(true);
 }
 
 void kcmsystemd::slotSpnKeepFreeChanged()
 {
   if (isPersistent)
-    confOptList[confOptList.indexOf(confOption("SystemKeepFree"))].setValue(ui.spnKeepFree->value());
+    confOptList[confOptList.indexOf(confOption("SystemKeepFree_1"))].setValue(ui.spnKeepFree_1->value());
   else
-    confOptList[confOptList.indexOf(confOption("RuntimeKeepFree"))].setValue(ui.spnKeepFree->value());
+    confOptList[confOptList.indexOf(confOption("RuntimeKeepFree_1"))].setValue(ui.spnKeepFree_1->value());
   emit changed(true);
 }
 
 void kcmsystemd::slotSpnMaxFileSizeChanged()
 {
   if (isPersistent)
-    confOptList[confOptList.indexOf(confOption("SystemMaxFileSize"))].setValue(ui.spnMaxFileSize->value());
+    confOptList[confOptList.indexOf(confOption("SystemMaxFileSize_1"))].setValue(ui.spnMaxFileSize_1->value());
   else
-    confOptList[confOptList.indexOf(confOption("RuntimeMaxFileSize"))].setValue(ui.spnMaxFileSize->value());
+    confOptList[confOptList.indexOf(confOption("RuntimeMaxFileSize_1"))].setValue(ui.spnMaxFileSize_1->value());
   emit changed(true);
 }
 
 void kcmsystemd::slotFwdToSyslogChanged()
 {
-  if ( ui.chkForwardToSyslog->isChecked())
-    ui.cmbMaxLevelSyslog->setEnabled(true);
+  if ( ui.chkForwardToSyslog_1->isChecked())
+    ui.cmbMaxLevelSyslog_1->setEnabled(true);
   else
-    ui.cmbMaxLevelSyslog->setEnabled(false);
+    ui.cmbMaxLevelSyslog_1->setEnabled(false);
   emit changed(true);
 }
 
 void kcmsystemd::slotFwdToKmsgChanged()
 {
-  if ( ui.chkForwardToKMsg->isChecked())
-    ui.cmbMaxLevelKMsg->setEnabled(true);
+  if ( ui.chkForwardToKMsg_1->isChecked())
+    ui.cmbMaxLevelKMsg_1->setEnabled(true);
   else
-    ui.cmbMaxLevelKMsg->setEnabled(false);
+    ui.cmbMaxLevelKMsg_1->setEnabled(false);
   emit changed(true);
 }
 
 void kcmsystemd::slotFwdToConsoleChanged()
 {
-  if ( ui.chkForwardToConsole->isChecked()) {
-    ui.leTTYPath->setEnabled(true);
-    ui.cmbMaxLevelConsole->setEnabled(true);
+  if ( ui.chkForwardToConsole_1->isChecked()) {
+    ui.leTTYPath_1->setEnabled(true);
+    ui.cmbMaxLevelConsole_1->setEnabled(true);
   } else {
-    ui.leTTYPath->setEnabled(false);
-    ui.cmbMaxLevelConsole->setEnabled(false);
+    ui.leTTYPath_1->setEnabled(false);
+    ui.cmbMaxLevelConsole_1->setEnabled(false);
   }
   emit changed(true);
 }
 
 void kcmsystemd::slotFwdToWallChanged()
 {
-  if ( ui.chkForwardToWall->isChecked())
-    ui.cmbMaxLevelWall->setEnabled(true);
+  if ( ui.chkForwardToWall_1->isChecked())
+    ui.cmbMaxLevelWall_1->setEnabled(true);
   else
-    ui.cmbMaxLevelWall->setEnabled(false);
+    ui.cmbMaxLevelWall_1->setEnabled(false);
   emit changed(true);
 }
 
@@ -962,13 +969,44 @@ void kcmsystemd::slotKdeConfig()
 
 void kcmsystemd::slotKillUserProcessesChanged()
 {
-  if ( ui.chkKillUserProcesses->isChecked()) {
-    ui.leKillOnlyUsers->setEnabled(true);
-    ui.leKillExcludeUsers->setEnabled(true);
+  if ( ui.chkKillUserProcesses_2->isChecked()) {
+    ui.leKillOnlyUsers_2->setEnabled(true);
+    ui.leKillExcludeUsers_2->setEnabled(true);
   } else {
-    ui.leKillOnlyUsers->setEnabled(false);
-    ui.leKillExcludeUsers->setEnabled(false);
+    ui.leKillOnlyUsers_2->setEnabled(false);
+    ui.leKillExcludeUsers_2->setEnabled(false);
   }
+  emit changed(true);
+}
+
+void kcmsystemd::slotCoreStorageChanged(int index)
+{
+  qDebug() << "slotCoreStorageChanged called!";
+  // "none" << "external" << "journal" << "both"
+  
+  QList<QWidget *> lst = ui.tabCoredump->findChildren<QWidget *>(QRegExp("^grp|^chk|^lbl|^spn"));
+  
+  if (index == 0)
+  {   
+    foreach (QWidget *wdgt, lst)
+    {
+      qDebug() << "Found: " << wdgt->objectName();
+      
+      if (wdgt && wdgt->objectName().contains(QRegExp("^grp|ProcessSizeMax_3|Compress_3")))
+        wdgt->setEnabled(false);
+    } 
+  }
+  else
+  {
+    foreach (QWidget *wdgt, lst)
+    {
+      qDebug() << "Found: " << wdgt->objectName();
+      
+      if (wdgt && wdgt->objectName().contains(QRegExp("^grp|ProcessSizeMax_3|Compress_3")))
+        wdgt->setEnabled(true);
+    }     
+  }
+
   emit changed(true);
 }
 
@@ -981,6 +1019,8 @@ void kcmsystemd::slotOpenResourceLimits()
   if (resDialog->exec() == QDialog::Accepted)
   {
     confOption::setResLimitsMap(resDialog->getResLimits());
+    
+    qDebug() << confOption::resLimitsMap;
     
     for(QVariantMap::const_iterator iter = confOption::resLimitsMap.begin(); iter != confOption::resLimitsMap.end(); ++iter)
       confOptList[confOptList.indexOf(confOption(iter.key()))].setValue(iter.value());
@@ -996,58 +1036,57 @@ void kcmsystemd::slotOpenEnviron()
 {
   QPointer<EnvironDialog> environDialog = new EnvironDialog(this,
                                                             Qt::Dialog,
-                                                            confOptList.at(confOptList.indexOf(confOption("DefaultEnvironment"))).getValue().toString());
+                                                            confOptList.at(confOptList.indexOf(confOption("DefaultEnvironment_0"))).getValue().toString());
   if (environDialog->exec() == QDialog::Accepted)
   {
-    confOptList[confOptList.indexOf(confOption("DefaultEnvironment"))].setValue(environDialog->getEnviron());
+    confOptList[confOptList.indexOf(confOption("DefaultEnvironment_0"))].setValue(environDialog->getEnviron());
   }
     
   if (environDialog->getChanged())
     emit changed(true);
   
   delete environDialog;
-    
 }
 
 void kcmsystemd::slotOpenAdvanced()
 {
   QVariantMap args;
   args["systemdVersion"] = systemdVersion;
-  args["JoinControllers"] = confOptList.at(confOptList.indexOf(confOption("JoinControllers"))).getValue();
+  args["JoinControllers"] = confOptList.at(confOptList.indexOf(confOption("JoinControllers_0"))).getValue();
   if (systemdVersion < 208)
-    args["DefaultControllers"] = confOptList.at(confOptList.indexOf(confOption("DefaultControllers"))).getValue();
-  args["TimerSlackNSec"] = confOptList.at(confOptList.indexOf(confOption("TimerSlackNSec"))).getValue();
-  args["RuntimeWatchdogSec"] = confOptList.at(confOptList.indexOf(confOption("RuntimeWatchdogSec"))).getValue();
-  args["ShutdownWatchdogSec"] = confOptList.at(confOptList.indexOf(confOption("ShutdownWatchdogSec"))).getValue();
-  args["CPUAffinity"] = confOptList.at(confOptList.indexOf(confOption("CPUAffinity"))).getValue();
-  args["CPUAffinityActive"] = confOptList.at(confOptList.indexOf(confOption("CPUAffinity"))).active;
+    args["DefaultControllers"] = confOptList.at(confOptList.indexOf(confOption("DefaultControllers_0"))).getValue();
+  args["TimerSlackNSec"] = confOptList.at(confOptList.indexOf(confOption("TimerSlackNSec_0"))).getValue();
+  args["RuntimeWatchdogSec"] = confOptList.at(confOptList.indexOf(confOption("RuntimeWatchdogSec_0"))).getValue();
+  args["ShutdownWatchdogSec"] = confOptList.at(confOptList.indexOf(confOption("ShutdownWatchdogSec_0"))).getValue();
+  args["CPUAffinity"] = confOptList.at(confOptList.indexOf(confOption("CPUAffinity_0"))).getValue();
+  args["CPUAffinityActive"] = confOptList.at(confOptList.indexOf(confOption("CPUAffinity_0"))).active;
   if (systemdVersion >= 209)
   {
-    args["SystemCallArchitectures"] = confOptList.at(confOptList.indexOf(confOption("SystemCallArchitectures"))).getValue();
-    args["SystemCallArchitecturesActive"] = confOptList.at(confOptList.indexOf(confOption("SystemCallArchitectures"))).active;
+    args["SystemCallArchitectures"] = confOptList.at(confOptList.indexOf(confOption("SystemCallArchitectures_0"))).getValue();
+    args["SystemCallArchitecturesActive"] = confOptList.at(confOptList.indexOf(confOption("SystemCallArchitectures_0"))).active;
   }
-  args["CapabilityBoundingSet"] = confOptList.at(confOptList.indexOf(confOption("CapabilityBoundingSet"))).getValue();
-  args["CapabilityBoundingSetActive"] = confOptList.at(confOptList.indexOf(confOption("CapabilityBoundingSet"))).active;
+  args["CapabilityBoundingSet"] = confOptList.at(confOptList.indexOf(confOption("CapabilityBoundingSet_0"))).getValue();
+  args["CapabilityBoundingSetActive"] = confOptList.at(confOptList.indexOf(confOption("CapabilityBoundingSet_0"))).active;
   
   QPointer<AdvancedDialog> advancedDialog = new AdvancedDialog(this, Qt::Dialog, args);
  
   if (advancedDialog->exec() == QDialog::Accepted)
   {
-    confOptList[confOptList.indexOf(confOption("JoinControllers"))].setValue(advancedDialog->getJoinControllers());
+    confOptList[confOptList.indexOf(confOption("JoinControllers_0"))].setValue(advancedDialog->getJoinControllers());
     if (systemdVersion < 208)
-      confOptList[confOptList.indexOf(confOption("DefaultControllers"))].setValue(advancedDialog->getDefaultControllers());
-    confOptList[confOptList.indexOf(confOption("TimerSlackNSec"))].setValue(advancedDialog->getTimerSlack());
-    confOptList[confOptList.indexOf(confOption("RuntimeWatchdogSec"))].setValue(advancedDialog->getRuntimeWatchdog());
-    confOptList[confOptList.indexOf(confOption("ShutdownWatchdogSec"))].setValue(advancedDialog->getShutdownWatchdog());
-    confOptList[confOptList.indexOf(confOption("CPUAffinity"))].setValue(advancedDialog->getCPUAffinity());
-    confOptList[confOptList.indexOf(confOption("CPUAffinity"))].active = advancedDialog->getCPUAffActive();
+      confOptList[confOptList.indexOf(confOption("DefaultControllers_0"))].setValue(advancedDialog->getDefaultControllers());
+    confOptList[confOptList.indexOf(confOption("TimerSlackNSec_0"))].setValue(advancedDialog->getTimerSlack());
+    confOptList[confOptList.indexOf(confOption("RuntimeWatchdogSec_0"))].setValue(advancedDialog->getRuntimeWatchdog());
+    confOptList[confOptList.indexOf(confOption("ShutdownWatchdogSec_0"))].setValue(advancedDialog->getShutdownWatchdog());
+    confOptList[confOptList.indexOf(confOption("CPUAffinity_0"))].setValue(advancedDialog->getCPUAffinity());
+    confOptList[confOptList.indexOf(confOption("CPUAffinity_0"))].active = advancedDialog->getCPUAffActive();
     if (systemdVersion >= 209)
     {
-      confOptList[confOptList.indexOf(confOption("SystemCallArchitectures"))].setValue(advancedDialog->getSystemCallArchitectures());
-      confOptList[confOptList.indexOf(confOption("SystemCallArchitectures"))].active = advancedDialog->getSysCallActive();
+      confOptList[confOptList.indexOf(confOption("SystemCallArchitectures_0"))].setValue(advancedDialog->getSystemCallArchitectures());
+      confOptList[confOptList.indexOf(confOption("SystemCallArchitectures_0"))].active = advancedDialog->getSysCallActive();
     }
-    confOptList[confOptList.indexOf(confOption("CapabilityBoundingSet"))].setValue(advancedDialog->getCapabilities());
-    confOptList[confOptList.indexOf(confOption("CapabilityBoundingSet"))].active = advancedDialog->getCapActive();
+    confOptList[confOptList.indexOf(confOption("CapabilityBoundingSet_0"))].setValue(advancedDialog->getCapabilities());
+    confOptList[confOptList.indexOf(confOption("CapabilityBoundingSet_0"))].active = advancedDialog->getCapActive();
         
     if (advancedDialog->getChanged())
       emit changed(true);

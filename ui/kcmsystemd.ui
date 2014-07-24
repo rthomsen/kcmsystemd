@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>481</width>
+    <width>452</width>
     <height>655</height>
    </rect>
   </property>
@@ -22,7 +22,7 @@
   <property name="windowTitle">
    <string>kcmsystemd</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_3">
+  <layout class="QGridLayout" name="gridLayout_27">
    <property name="sizeConstraint">
     <enum>QLayout::SetDefaultConstraint</enum>
    </property>
@@ -56,8 +56,11 @@
            <height>0</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string/>
+         </property>
          <property name="currentIndex">
-          <number>4</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tabServices">
           <property name="contextMenuPolicy">
@@ -441,7 +444,7 @@
               <item row="0" column="0">
                <layout class="QHBoxLayout" name="horizontalLayout_7">
                 <item>
-                 <widget class="QCheckBox" name="chkDumpCore">
+                 <widget class="QCheckBox" name="chkDumpCore_0">
                   <property name="toolTip">
                    <string>Dump core on crash.</string>
                   </property>
@@ -454,7 +457,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="chkCrashShell">
+                 <widget class="QCheckBox" name="chkCrashShell_0">
                   <property name="toolTip">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Spawns a shell on crash.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning: &lt;/span&gt;The shell is not protected by any password authentication.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
@@ -484,7 +487,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="cmbCrashChVT">
+                 <widget class="QComboBox" name="cmbCrashChVT_0">
                   <property name="minimumSize">
                    <size>
                     <width>78</width>
@@ -511,7 +514,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_2">
               <item row="0" column="0">
-               <widget class="QCheckBox" name="chkLogLocation">
+               <widget class="QCheckBox" name="chkLogLocation_0">
                 <property name="toolTip">
                  <string>Includes code location in log messages. Mostly relevant for debugging.</string>
                 </property>
@@ -539,7 +542,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="cmbLogTarget">
+                 <widget class="QComboBox" name="cmbLogTarget_0">
                   <property name="toolTip">
                    <string>Sets target for log messages.</string>
                   </property>
@@ -548,7 +551,7 @@
                </layout>
               </item>
               <item row="1" column="0">
-               <widget class="QCheckBox" name="chkLogColor">
+               <widget class="QCheckBox" name="chkLogColor_0">
                 <property name="toolTip">
                  <string>Highlight important log messages.</string>
                 </property>
@@ -573,7 +576,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="cmbLogLevel">
+                 <widget class="QComboBox" name="cmbLogLevel_0">
                   <property name="toolTip">
                    <string>Sets level of log messages.</string>
                   </property>
@@ -591,7 +594,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_18">
               <item row="0" column="2">
-               <widget class="QComboBox" name="cmbShowStatus">
+               <widget class="QComboBox" name="cmbShowStatus_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows terse service status updates on the console during bootup.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Yes&lt;/span&gt;: Always show.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;No&lt;/span&gt;: Never show.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Auto&lt;/span&gt;: Don't show unless a service fails, or there is a significant delay in boot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -641,7 +644,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QSpinBox" name="spnDefaultStartLimitInterval">
+               <widget class="QSpinBox" name="spnDefaultStartLimitInterval_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interval in which rate limiting is set.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -668,7 +671,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QSpinBox" name="spnDefaultStartLimitBurst">
+               <widget class="QSpinBox" name="spnDefaultStartLimitBurst_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets how many times a service can be started within the defined interval.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -727,7 +730,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QSpinBox" name="spnDefaultTimeoutStartSec">
+               <widget class="QSpinBox" name="spnDefaultTimeoutStartSec_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to wait when starting a unit. If a unit does not signal start-up completion within this time, it is considered failed and will be shut down.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -754,7 +757,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QSpinBox" name="spnDefaultTimeoutStopSec">
+               <widget class="QSpinBox" name="spnDefaultTimeoutStopSec_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to wait when stopping a unit. If a unit does not terminate within this time, it will be forcibly shut down.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -781,7 +784,7 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QSpinBox" name="spnDefaultRestartSec">
+               <widget class="QSpinBox" name="spnDefaultRestartSec_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time to sleep before restarting a service.&lt;/p&gt;&lt;p&gt;Requires systemd 209 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -820,7 +823,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QComboBox" name="cmbDefaultStandardOutput">
+               <widget class="QComboBox" name="cmbDefaultStandardOutput_0">
                 <property name="minimumSize">
                  <size>
                   <width>120</width>
@@ -843,7 +846,7 @@
                </widget>
               </item>
               <item row="0" column="3">
-               <widget class="QComboBox" name="cmbDefaultStandardError">
+               <widget class="QComboBox" name="cmbDefaultStandardError_0">
                 <property name="minimumSize">
                  <size>
                   <width>120</width>
@@ -875,7 +878,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_23">
               <item row="1" column="0">
-               <widget class="QCheckBox" name="chkDefaultBlockIOAccounting">
+               <widget class="QCheckBox" name="chkDefaultBlockIOAccounting_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Turns on block IO accounting.&lt;/p&gt;&lt;p&gt;Requires systemd 211 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -885,7 +888,7 @@
                </widget>
               </item>
               <item row="0" column="0">
-               <widget class="QCheckBox" name="chkDefaultCPUAccounting">
+               <widget class="QCheckBox" name="chkDefaultCPUAccounting_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Turns on CPU usage accounting.&lt;/p&gt;&lt;p&gt;Requires systemd 211 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -895,7 +898,7 @@
                </widget>
               </item>
               <item row="2" column="0">
-               <widget class="QCheckBox" name="chkDefaultMemoryAccounting">
+               <widget class="QCheckBox" name="chkDefaultMemoryAccounting_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Turns on process and kernel memory accounting.&lt;/p&gt;&lt;p&gt;Requires systemd 211 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -921,7 +924,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QSpinBox" name="spnDefaultTimerAccuracySec">
+               <widget class="QSpinBox" name="spnDefaultTimerAccuracySec_0">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sets the default accuracy of timer units.&lt;/p&gt;&lt;p&gt;Requires systemd 212 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1009,7 +1012,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_16">
               <item row="3" column="1">
-               <widget class="QLineEdit" name="leTTYPath">
+               <widget class="QLineEdit" name="leTTYPath_1">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -1022,7 +1025,7 @@
                </widget>
               </item>
               <item row="3" column="0">
-               <widget class="QCheckBox" name="chkForwardToConsole">
+               <widget class="QCheckBox" name="chkForwardToConsole_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Forward log messages to the specified system console.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1032,7 +1035,7 @@
                </widget>
               </item>
               <item row="1" column="0" colspan="2">
-               <widget class="QCheckBox" name="chkForwardToSyslog">
+               <widget class="QCheckBox" name="chkForwardToSyslog_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Forward log messages to the syslog daemon.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1045,7 +1048,7 @@
                </widget>
               </item>
               <item row="2" column="0" colspan="2">
-               <widget class="QCheckBox" name="chkForwardToKMsg">
+               <widget class="QCheckBox" name="chkForwardToKMsg_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Forward log messages to the kernel log buffer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1055,7 +1058,7 @@
                </widget>
               </item>
               <item row="1" column="2">
-               <widget class="QComboBox" name="cmbMaxLevelSyslog">
+               <widget class="QComboBox" name="cmbMaxLevelSyslog_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1072,7 +1075,7 @@
                </widget>
               </item>
               <item row="2" column="2">
-               <widget class="QComboBox" name="cmbMaxLevelKMsg">
+               <widget class="QComboBox" name="cmbMaxLevelKMsg_1">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -1089,7 +1092,7 @@
                </widget>
               </item>
               <item row="3" column="2">
-               <widget class="QComboBox" name="cmbMaxLevelConsole">
+               <widget class="QComboBox" name="cmbMaxLevelConsole_1">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -1099,14 +1102,14 @@
                </widget>
               </item>
               <item row="4" column="2">
-               <widget class="QComboBox" name="cmbMaxLevelWall">
+               <widget class="QComboBox" name="cmbMaxLevelWall_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum log level to send as wall messages to all logged-in users.&lt;/p&gt;&lt;p&gt;Requires systemd 212 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="4" column="0">
-               <widget class="QCheckBox" name="chkForwardToWall">
+               <widget class="QCheckBox" name="chkForwardToWall_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Send log messages as wall-messages to all logged-in users.&lt;/p&gt;&lt;p&gt;Requires systemd 212 or higher.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1133,7 +1136,7 @@
               <item row="1" column="0" colspan="2">
                <layout class="QHBoxLayout" name="horizontalLayout_9">
                 <item>
-                 <widget class="QSpinBox" name="spnRateLimitBurst">
+                 <widget class="QSpinBox" name="spnRateLimitBurst_1">
                   <property name="toolTip">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If more messages than this are generated by a service in the defined time interval, they are discarded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
@@ -1156,7 +1159,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="spnRateLimitInterval">
+                 <widget class="QSpinBox" name="spnRateLimitInterval_1">
                   <property name="toolTip">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If more messages than the defined number are generated by a service in this time interval, they are discarded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
@@ -1202,7 +1205,7 @@
               </widget>
              </item>
              <item row="0" column="2">
-              <widget class="QComboBox" name="cmbStorage">
+              <widget class="QComboBox" name="cmbStorage_1">
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
@@ -1215,7 +1218,7 @@
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QCheckBox" name="chkSeal">
+              <widget class="QCheckBox" name="chkSeal_1">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables forward secure sealing (FSS) for all persistent journal files to prevent unnoticed alteration.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -1230,7 +1233,7 @@
              <item row="1" column="2">
               <layout class="QHBoxLayout" name="horizontalLayout_13">
                <item>
-                <widget class="QSpinBox" name="spnSyncIntervalSec">
+                <widget class="QSpinBox" name="spnSyncIntervalSec_1">
                  <property name="toolTip">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The timeout before synchronizing journal data to disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
@@ -1271,7 +1274,7 @@
               </widget>
              </item>
              <item row="0" column="0">
-              <widget class="QCheckBox" name="chkCompress">
+              <widget class="QCheckBox" name="chkCompress_1">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compresses large data objects with the XZ compression algorithm before writing to disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -1284,7 +1287,7 @@
               </widget>
              </item>
              <item row="2" column="2">
-              <widget class="QComboBox" name="cmbMaxLevelStore">
+              <widget class="QComboBox" name="cmbMaxLevelStore_1">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum log level to store to disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -1328,7 +1331,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout">
               <item row="3" column="2">
-               <widget class="QSpinBox" name="spnKeepFree">
+               <widget class="QSpinBox" name="spnKeepFree_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1344,7 +1347,7 @@
                </widget>
               </item>
               <item row="1" column="3">
-               <widget class="QLabel" name="lblMaxUse2">
+               <widget class="QLabel" name="lbl2MaxUse_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1354,7 +1357,7 @@
                </widget>
               </item>
               <item row="1" column="2">
-               <widget class="QSpinBox" name="spnMaxUse">
+               <widget class="QSpinBox" name="spnMaxUse_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1367,7 +1370,7 @@
                </widget>
               </item>
               <item row="3" column="3">
-               <widget class="QLabel" name="lblKeepFree2">
+               <widget class="QLabel" name="lbl2KeepFree_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1377,7 +1380,7 @@
                </widget>
               </item>
               <item row="5" column="2">
-               <widget class="QSpinBox" name="spnMaxFileSize">
+               <widget class="QSpinBox" name="spnMaxFileSize_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1390,7 +1393,7 @@
                </widget>
               </item>
               <item row="3" column="0">
-               <widget class="QLabel" name="lblKeepFree1">
+               <widget class="QLabel" name="lbl1KeepFree_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1400,7 +1403,7 @@
                </widget>
               </item>
               <item row="5" column="3">
-               <widget class="QLabel" name="lblMaxFileSize2">
+               <widget class="QLabel" name="lbl2MaxFileSize_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1410,7 +1413,7 @@
                </widget>
               </item>
               <item row="5" column="0">
-               <widget class="QLabel" name="lblMaxFileSize1">
+               <widget class="QLabel" name="lbl1MaxFileSize_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1420,7 +1423,7 @@
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QLabel" name="lblMaxUse1">
+               <widget class="QLabel" name="lbl1MaxUse_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1430,7 +1433,7 @@
                </widget>
               </item>
               <item row="1" column="4">
-               <widget class="QCheckBox" name="chkMaxUse">
+               <widget class="QCheckBox" name="chkMaxUse_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use default value of 10% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1440,7 +1443,7 @@
                </widget>
               </item>
               <item row="3" column="4">
-               <widget class="QCheckBox" name="chkKeepFree">
+               <widget class="QCheckBox" name="chkKeepFree_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use default value of 15% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1450,7 +1453,7 @@
                </widget>
               </item>
               <item row="5" column="4">
-               <widget class="QCheckBox" name="chkMaxFileSize">
+               <widget class="QCheckBox" name="chkMaxFileSize_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use default of 1/8 of max disk usage.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1469,14 +1472,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
               <item row="0" column="1">
-               <widget class="QLabel" name="lblMaxRetentionSec">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QSpinBox" name="spnMaxRetentionSec">
+               <widget class="QSpinBox" name="spnMaxRetentionSec_1">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -1488,8 +1484,8 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="2">
-               <widget class="QSpinBox" name="spnMaxFileSec">
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="spnMaxFileSec_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1504,14 +1500,14 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="3">
+              <item row="1" column="2">
                <widget class="QLabel" name="label_9">
                 <property name="text">
                  <string>days</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="3">
+              <item row="0" column="2">
                <widget class="QLabel" name="label_10">
                 <property name="text">
                  <string>days</string>
@@ -1519,7 +1515,7 @@
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QCheckBox" name="chkMaxFileSec">
+               <widget class="QCheckBox" name="chkMaxFileSec_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store entries in a single journal file before rotating to the next one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1532,7 +1528,7 @@
                </widget>
               </item>
               <item row="0" column="0">
-               <widget class="QCheckBox" name="chkMaxRetentionSec">
+               <widget class="QCheckBox" name="chkMaxRetentionSec_1">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1541,7 +1537,7 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="4" rowspan="2">
+              <item row="0" column="3" rowspan="2">
                <spacer name="horizontalSpacer_3">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -1570,6 +1566,16 @@
               <string>Power management</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_9">
+              <item row="3" column="2">
+               <widget class="QCheckBox" name="chkSuspendKeyIgnoreInhibited_2">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specified action is subject to inhibitor locks by applications.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
               <item row="0" column="2">
                <widget class="QLabel" name="label_29">
                 <property name="layoutDirection">
@@ -1584,14 +1590,14 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QComboBox" name="cmbHandlePowerKey">
+               <widget class="QComboBox" name="cmbHandlePowerKey_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Action to trigger when power key is pressed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="2">
-               <widget class="QCheckBox" name="chkPowerKeyIgnoreInhibited">
+               <widget class="QCheckBox" name="chkPowerKeyIgnoreInhibited_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specified action is subject to inhibitor locks by applications.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1607,25 +1613,15 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="2">
-               <widget class="QCheckBox" name="chkSuspendKeyIgnoreInhibited">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specified action is subject to inhibitor locks by applications.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
               <item row="5" column="1">
-               <widget class="QComboBox" name="cmbHandleLidSwitch">
+               <widget class="QComboBox" name="cmbHandleLidSwitch_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Action to trigger when lid is closed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QSpinBox" name="spnInhibitDelayMaxSec">
+               <widget class="QSpinBox" name="spnInhibitDelayMaxSec_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The maximum time a system shutdown or sleep request is delayed due to an inhibitor lock of type &amp;quot;delay&amp;quot; being active.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1651,7 +1647,7 @@
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QComboBox" name="cmbHandleSuspendKey">
+               <widget class="QComboBox" name="cmbHandleSuspendKey_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Action to trigger when suspend key is pressed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1668,14 +1664,14 @@
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QComboBox" name="cmbHandleHibernateKey">
+               <widget class="QComboBox" name="cmbHandleHibernateKey_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Action to trigger when hibernate key is pressed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="5" column="2">
-               <widget class="QCheckBox" name="chkLidSwitchIgnoreInhibited">
+               <widget class="QCheckBox" name="chkLidSwitchIgnoreInhibited_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specified action is subject to inhibitor locks by applications.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1688,7 +1684,7 @@
                </widget>
               </item>
               <item row="4" column="2">
-               <widget class="QCheckBox" name="chkHibernateKeyIgnoreInhibited">
+               <widget class="QCheckBox" name="chkHibernateKeyIgnoreInhibited_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Specified action is subject to inhibitor locks by applications.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1738,14 +1734,14 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QComboBox" name="cmbIdleAction">
+               <widget class="QComboBox" name="cmbIdleAction_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Action to take when system is idle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="3">
-               <widget class="QSpinBox" name="spnIdleActionSec">
+               <widget class="QSpinBox" name="spnIdleActionSec_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delay, after which the specified idle action is executed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1756,6 +1752,13 @@
               </item>
               <item row="6" column="2">
                <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>seconds</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QLabel" name="label_61">
                 <property name="text">
                  <string>seconds</string>
                 </property>
@@ -1794,7 +1797,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QSpinBox" name="spnNAutoVTs">
+               <widget class="QSpinBox" name="spnNAutoVTs_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of virtual terminals to autospawn.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1817,7 +1820,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QSpinBox" name="spnReserveVT">
+               <widget class="QSpinBox" name="spnReserveVT_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reserves the specified virtual terminal, so no subsystem can allocate it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1859,7 +1862,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QLineEdit" name="leKillOnlyUsers">
+               <widget class="QLineEdit" name="leKillOnlyUsers_2">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -1869,7 +1872,7 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QLineEdit" name="leKillExcludeUsers">
+               <widget class="QLineEdit" name="leKillExcludeUsers_2">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -1882,7 +1885,7 @@
                </widget>
               </item>
               <item row="0" column="0" colspan="2">
-               <widget class="QCheckBox" name="chkKillUserProcesses">
+               <widget class="QCheckBox" name="chkKillUserProcesses_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Kill user processes when users completely log out.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1892,9 +1895,9 @@
                </widget>
               </item>
               <item row="3" column="0" colspan="2">
-               <widget class="QCheckBox" name="chkRemoveIPC">
+               <widget class="QCheckBox" name="chkRemoveIPC_2">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove IPC objects belonging to a user when the user fully logs out. The root user is unaffected by this setting.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove System V and POSIX IPC objects belonging to a user when the user fully logs out. The root user is unaffected by this setting.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Remove IPC objects after last user session ends</string>
@@ -1937,18 +1940,204 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="leControllers">
+               <widget class="QLineEdit" name="leControllers_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Default control group hierarchies users logging in are added to, in addition to the &amp;quot;name=systemd&amp;quot; hierarchy. Comma-separated list of controllers.&lt;/p&gt;&lt;p&gt;This option was removed in systemd 207.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QLineEdit" name="leResetControllers">
+               <widget class="QLineEdit" name="leResetControllers_2">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;User sessions will be reset to the root control group in all specified controller hierarchies. Comma-separated list of controllers.&lt;/p&gt;&lt;p&gt;This option was removed in systemd 207.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabCoredump">
+          <attribute name="title">
+           <string>Coredumps</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_28">
+           <item row="0" column="0" colspan="2">
+            <layout class="QGridLayout" name="gridLayout_25">
+             <item row="0" column="0">
+              <widget class="QLabel" name="lblStorage_3">
+               <property name="text">
+                <string>Storage of core dumps:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLabel" name="lbl2ProcessSizeMax_3">
+               <property name="text">
+                <string>megabytes</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" colspan="2">
+              <widget class="QComboBox" name="cmbStorage_3">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls where to store core dumps.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;None:&lt;/span&gt; Do not store cores permanently.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;External:&lt;/span&gt; Store in /var/lib/systemd/coredump&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Journal:&lt;/span&gt; Store in systemd journal.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Both:&lt;/span&gt; Store in both locations.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="lbl1ProcessSizeMax_3">
+               <property name="text">
+                <string>Max size of core dumps to process:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="spnProcessSizeMax_3">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The maximum size of a core which will be processed. Coredumps exceeding this size will be logged, but the backtrace will not be generated and the core will not be stored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="maximum">
+                <number>999999999</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QCheckBox" name="chkCompress_3">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compress externally stored core dumps.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Compress externally saved core dumps</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="3" column="0" colspan="2">
+            <widget class="QGroupBox" name="grpMaxSizeCoreDumps">
+             <property name="title">
+              <string>Maximum size of core dumps to be saved</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <item row="1" column="0">
+               <widget class="QLabel" name="lbl1ExternalSizeMax_3">
+                <property name="text">
+                 <string>External:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="spnExternalSizeMax_3">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The maximum (uncompressed) size of a core to be saved externally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="lbl2ExternalSizeMax_3">
+                <property name="text">
+                 <string>megabytes</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lbl1JournalSizeMax_3">
+                <property name="text">
+                 <string>Journal:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="spnJournalSizeMax_3">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The maximum (uncompressed) size of a core to be saved in systemd journal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="lbl2JournalSizeMax_3">
+                <property name="text">
+                 <string>megabytes</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="2">
+            <widget class="QGroupBox" name="grpDiskUsage">
+             <property name="title">
+              <string>Disk usage</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_26">
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="spnMaxUse_3">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Max disk space to use for storing core dumps. Old coredumps are removed first when this limit is reached.&lt;/p&gt;&lt;p&gt;Defaults to 10% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="spnKeepFree_3">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimum disk space to keep free, when storing core dumps.&lt;/p&gt;&lt;p&gt;Defaults to 15% of file system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>999999999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="lbl1MaxUse_3">
+                <property name="text">
+                 <string>Max disk usage:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lbl1KeepFree_3">
+                <property name="text">
+                 <string>Keep diskspace free:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="lbl2MaxUse_3">
+                <property name="text">
+                 <string>megabytes</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="lbl2KeepFree_3">
+                <property name="text">
+                 <string>megabytes</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="3">
+               <spacer name="verticalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>
@@ -2023,64 +2212,83 @@
   <tabstop>btnStopUnit</tabstop>
   <tabstop>btnRestartUnit</tabstop>
   <tabstop>btnReloadUnit</tabstop>
-  <tabstop>chkLogLocation</tabstop>
-  <tabstop>cmbLogTarget</tabstop>
-  <tabstop>chkLogColor</tabstop>
-  <tabstop>cmbLogLevel</tabstop>
-  <tabstop>chkDumpCore</tabstop>
-  <tabstop>chkCrashShell</tabstop>
-  <tabstop>cmbCrashChVT</tabstop>
-  <tabstop>cmbShowStatus</tabstop>
+  <tabstop>chkLogLocation_0</tabstop>
+  <tabstop>cmbLogTarget_0</tabstop>
+  <tabstop>chkLogColor_0</tabstop>
+  <tabstop>cmbLogLevel_0</tabstop>
+  <tabstop>chkDumpCore_0</tabstop>
+  <tabstop>chkCrashShell_0</tabstop>
+  <tabstop>cmbCrashChVT_0</tabstop>
+  <tabstop>cmbShowStatus_0</tabstop>
   <tabstop>btnAdvanced</tabstop>
-  <tabstop>cmbDefaultStandardOutput</tabstop>
-  <tabstop>cmbDefaultStandardError</tabstop>
-  <tabstop>spnDefaultStartLimitInterval</tabstop>
-  <tabstop>spnDefaultStartLimitBurst</tabstop>
-  <tabstop>spnDefaultTimeoutStartSec</tabstop>
-  <tabstop>spnDefaultTimeoutStopSec</tabstop>
-  <tabstop>spnDefaultRestartSec</tabstop>
+  <tabstop>cmbDefaultStandardOutput_0</tabstop>
+  <tabstop>cmbDefaultStandardError_0</tabstop>
+  <tabstop>spnDefaultStartLimitInterval_0</tabstop>
+  <tabstop>spnDefaultStartLimitBurst_0</tabstop>
+  <tabstop>spnDefaultTimeoutStartSec_0</tabstop>
+  <tabstop>spnDefaultTimeoutStopSec_0</tabstop>
+  <tabstop>spnDefaultRestartSec_0</tabstop>
+  <tabstop>chkDefaultCPUAccounting_0</tabstop>
+  <tabstop>chkDefaultBlockIOAccounting_0</tabstop>
+  <tabstop>chkDefaultMemoryAccounting_0</tabstop>
+  <tabstop>spnDefaultTimerAccuracySec_0</tabstop>
   <tabstop>btnResourceLimits</tabstop>
   <tabstop>btnEnviron</tabstop>
-  <tabstop>chkCompress</tabstop>
-  <tabstop>cmbStorage</tabstop>
-  <tabstop>chkSeal</tabstop>
-  <tabstop>spnSyncIntervalSec</tabstop>
-  <tabstop>cmbMaxLevelStore</tabstop>
-  <tabstop>spnRateLimitBurst</tabstop>
-  <tabstop>spnRateLimitInterval</tabstop>
+  <tabstop>chkCompress_1</tabstop>
+  <tabstop>cmbStorage_1</tabstop>
+  <tabstop>chkSeal_1</tabstop>
+  <tabstop>spnSyncIntervalSec_1</tabstop>
+  <tabstop>cmbMaxLevelStore_1</tabstop>
+  <tabstop>spnRateLimitBurst_1</tabstop>
+  <tabstop>spnRateLimitInterval_1</tabstop>
   <tabstop>radlogin</tabstop>
   <tabstop>raduid</tabstop>
   <tabstop>radnone</tabstop>
-  <tabstop>spnMaxUse</tabstop>
-  <tabstop>spnKeepFree</tabstop>
-  <tabstop>spnMaxFileSize</tabstop>
-  <tabstop>spnMaxRetentionSec</tabstop>
-  <tabstop>spnMaxFileSec</tabstop>
-  <tabstop>chkForwardToSyslog</tabstop>
-  <tabstop>cmbMaxLevelSyslog</tabstop>
-  <tabstop>chkForwardToKMsg</tabstop>
-  <tabstop>cmbMaxLevelKMsg</tabstop>
-  <tabstop>chkForwardToConsole</tabstop>
-  <tabstop>leTTYPath</tabstop>
-  <tabstop>cmbMaxLevelConsole</tabstop>
-  <tabstop>spnNAutoVTs</tabstop>
-  <tabstop>spnReserveVT</tabstop>
-  <tabstop>chkKillUserProcesses</tabstop>
-  <tabstop>leKillOnlyUsers</tabstop>
-  <tabstop>leKillExcludeUsers</tabstop>
-  <tabstop>cmbIdleAction</tabstop>
-  <tabstop>spnIdleActionSec</tabstop>
-  <tabstop>cmbHandlePowerKey</tabstop>
-  <tabstop>chkPowerKeyIgnoreInhibited</tabstop>
-  <tabstop>cmbHandleSuspendKey</tabstop>
-  <tabstop>chkSuspendKeyIgnoreInhibited</tabstop>
-  <tabstop>cmbHandleHibernateKey</tabstop>
-  <tabstop>chkHibernateKeyIgnoreInhibited</tabstop>
-  <tabstop>cmbHandleLidSwitch</tabstop>
-  <tabstop>chkLidSwitchIgnoreInhibited</tabstop>
-  <tabstop>spnInhibitDelayMaxSec</tabstop>
-  <tabstop>leControllers</tabstop>
-  <tabstop>leResetControllers</tabstop>
+  <tabstop>spnMaxUse_1</tabstop>
+  <tabstop>chkMaxUse_1</tabstop>
+  <tabstop>spnKeepFree_1</tabstop>
+  <tabstop>chkKeepFree_1</tabstop>
+  <tabstop>spnMaxFileSize_1</tabstop>
+  <tabstop>chkMaxFileSize_1</tabstop>
+  <tabstop>chkMaxRetentionSec_1</tabstop>
+  <tabstop>spnMaxRetentionSec_1</tabstop>
+  <tabstop>chkMaxFileSec_1</tabstop>
+  <tabstop>spnMaxFileSec_1</tabstop>
+  <tabstop>chkForwardToSyslog_1</tabstop>
+  <tabstop>cmbMaxLevelSyslog_1</tabstop>
+  <tabstop>chkForwardToKMsg_1</tabstop>
+  <tabstop>cmbMaxLevelKMsg_1</tabstop>
+  <tabstop>chkForwardToConsole_1</tabstop>
+  <tabstop>leTTYPath_1</tabstop>
+  <tabstop>cmbMaxLevelConsole_1</tabstop>
+  <tabstop>chkForwardToWall_1</tabstop>
+  <tabstop>cmbMaxLevelWall_1</tabstop>
+  <tabstop>spnNAutoVTs_2</tabstop>
+  <tabstop>spnReserveVT_2</tabstop>
+  <tabstop>chkKillUserProcesses_2</tabstop>
+  <tabstop>leKillOnlyUsers_2</tabstop>
+  <tabstop>leKillExcludeUsers_2</tabstop>
+  <tabstop>chkRemoveIPC_2</tabstop>
+  <tabstop>cmbIdleAction_2</tabstop>
+  <tabstop>spnIdleActionSec_2</tabstop>
+  <tabstop>cmbHandlePowerKey_2</tabstop>
+  <tabstop>chkPowerKeyIgnoreInhibited_2</tabstop>
+  <tabstop>cmbHandleSuspendKey_2</tabstop>
+  <tabstop>chkSuspendKeyIgnoreInhibited_2</tabstop>
+  <tabstop>cmbHandleHibernateKey_2</tabstop>
+  <tabstop>chkHibernateKeyIgnoreInhibited_2</tabstop>
+  <tabstop>cmbHandleLidSwitch_2</tabstop>
+  <tabstop>chkLidSwitchIgnoreInhibited_2</tabstop>
+  <tabstop>spnInhibitDelayMaxSec_2</tabstop>
+  <tabstop>leControllers_2</tabstop>
+  <tabstop>leResetControllers_2</tabstop>
+  <tabstop>cmbStorage_3</tabstop>
+  <tabstop>chkCompress_3</tabstop>
+  <tabstop>spnProcessSizeMax_3</tabstop>
+  <tabstop>spnExternalSizeMax_3</tabstop>
+  <tabstop>spnJournalSizeMax_3</tabstop>
+  <tabstop>spnMaxUse_3</tabstop>
+  <tabstop>spnKeepFree_3</tabstop>
  </tabstops>
  <resources/>
  <connections/>

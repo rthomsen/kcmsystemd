@@ -73,9 +73,7 @@ class kcmsystemd : public KCModule
     void setupSignalSlots();
     void initializeInterface();
     void setupUnitslist();
-    void readSystemConf();
-    void readJournaldConf();
-    void readLogindConf();
+    void readConfFile(QString);
     void applyToInterface();
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
     bool eventFilter(QObject *, QEvent*);
@@ -116,12 +114,12 @@ class kcmsystemd : public KCModule
     void slotOpenResourceLimits();
     void slotOpenEnviron();
     void slotOpenAdvanced();
-    void slotStorageChanged();
+    void slotJrnlStorageChanged(int);
     void slotFwdToSyslogChanged();
     void slotFwdToKmsgChanged();
     void slotFwdToConsoleChanged();
     void slotFwdToWallChanged();
-    void slotStorageChkBoxes(int);
+    void slotJrnlStorageChkBoxes(int);
     void slotChkMaxRetentionSecChanged(int);
     void slotChkMaxFileSecChanged(int);
     void slotSpnMaxUseChanged();
@@ -129,6 +127,7 @@ class kcmsystemd : public KCModule
     void slotSpnMaxFileSizeChanged();
     void slotKillUserProcessesChanged();
     void slotUpdateConfOption();
+    void slotCoreStorageChanged(int);
 };
 
 #endif // kcmsystemd_H

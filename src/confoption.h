@@ -30,7 +30,7 @@ enum settingType
 
 enum confFile
 {
-  SYSTEMD, JOURNALD, LOGIND
+  SYSTEMD, JOURNALD, LOGIND, COREDUMP
 };
 
 class confOption {
@@ -61,16 +61,23 @@ class confOption {
     static void setResLimitsMap(QVariantMap map);
     
     confOption();
+    // Used for comparing
     confOption(QString newName);
     // RESLIMIT
     confOption(confFile file,
                QString newName,
                settingType newType);
-    // BOOL, STRING and SIZE
+    // BOOL and STRING
     confOption(confFile file,
                QString newName,
                settingType newType,
                QVariant newDefVal);
+    // SIZE
+    confOption(confFile file,
+               QString newName,
+               settingType newType,
+               QVariant newDefVal,
+               qulonglong newMaxVal);
     // INTEGER
     confOption(confFile file,
                QString newName,
@@ -103,11 +110,14 @@ class confOption {
     int setValue(QVariant);
     int setValueFromFile(QString);
     bool isDefault() const;
+    void setToDefault();
     QVariant getValue() const;
     QString getLineForFile() const;
+    QString getFilename() const;
 
   private:
     QVariant value;
+    QString realName;
 };
 
 #endif

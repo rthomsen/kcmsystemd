@@ -43,32 +43,53 @@ confOption::confOption()
 
 confOption::confOption(QString newName)
 {
+  // Used when searching in confOptList using indexOf() or ==
+  realName = newName;
   name = newName;
 }
 
+// RESLIMIT
 confOption::confOption(confFile newFile, QString newName, settingType newType)
 {
   file = newFile;
-  name = newName;
+  realName = newName;
+  name = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = "infinity";
   value = defVal;
 }
 
+// BOOL and STRING
 confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal)
 {
   active = false;
   file = newFile;
-  name = newName;
+  realName = newName;
+  name = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   value = defVal;
 }
 
+// SIZE
+confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, qulonglong newMaxVal)
+{
+  active = false;
+  file = newFile;
+  realName = newName;
+  name = QString(newName + "_" + QString::number(file));
+  type = newType;
+  defVal = newDefVal;
+  value = defVal; 
+  maxVal = newMaxVal;
+}
+
+// INTEGER
 confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, qlonglong newMinVal, qlonglong newMaxVal)
 {
   file = newFile;
-  name = newName;
+  realName = newName;
+  name = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   minVal = newMinVal;
@@ -76,22 +97,26 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
   value = defVal;
 }
 
+// LIST
 confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, QStringList newPossibleVals)
 {
   file = newFile;
   active = false;
-  name = newName;
+  realName = newName;
+  name = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   possibleVals = newPossibleVals;
   value = defVal;
 }
 
+// MULTILIST
 confOption::confOption(confFile newFile, QString newName, settingType newType, QStringList newPossibleVals)
 {
   file = newFile;
   active = false;
-  name = newName;
+  realName = newName;
+  name = QString(newName + "_" + QString::number(file));
   type = newType;
   possibleVals = newPossibleVals;  
   QVariantMap map;
@@ -100,10 +125,12 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
   defVal = map;
 }
 
+// TIME
 confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, timeUnit newDefUnit, timeUnit newDefReadUnit, timeUnit newMinUnit, timeUnit newMaxUnit)
 {
   file = newFile;
-  name = newName;
+  realName = newName;
+  name = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   defReadUnit = newDefReadUnit;
@@ -116,6 +143,8 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 int confOption::setValueFromFile(QString line)
 {
   QString rval = line.section("=",1).trimmed();
+  
+  qDebug() << name << "=" << rval;
   
   if (type == BOOL)
   {
@@ -158,6 +187,8 @@ int confOption::setValueFromFile(QString line)
   
   else if (type == LIST)
   {
+    // qDebug() << "rval: " << rval << " for " << name << " in " << file;
+    
     if (name == "ShowStatus")
     {
       if (rval.toLower() == "true" || rval.toLower() == "on")
@@ -438,8 +469,7 @@ int confOption::setValueFromFile(QString line)
       else
         value = rxSize.cap(0).toDouble() / 1024 / 1024;
       
-      value = value.toULongLong();
-      
+      value = value.toULongLong();      
     }
     else
     {
@@ -470,12 +500,12 @@ QString confOption::getLineForFile() const
     if (getValue() != defVal)
     {
       if (getValue().toBool())
-        return QString(name + "=" + "yes\n");
+        return QString(realName + "=" + "yes\n");
       else
-        return QString(name + "=" + "no\n");
+        return QString(realName + "=" + "no\n");
     }
     else
-      return QString("#" + name + "=\n");
+      return QString("#" + realName + "=\n");
   }  
   
   else if (type == MULTILIST)
@@ -491,11 +521,11 @@ QString confOption::getLineForFile() const
           if (iter.value().toBool())
             ret = QString(ret + iter.key() + " ");
         }
-        return QString(name + "=" + ret.trimmed() + "\n");
+        return QString(realName + "=" + ret.trimmed() + "\n");
       }
     }
     else
-      return QString("#" + name + "=\n");
+      return QString("#" + realName + "=\n");
   }
   
   else if (type == TIME)
@@ -503,47 +533,61 @@ QString confOption::getLineForFile() const
     if (active && getValue() != defVal)
     {
       if (value.toULongLong() == 0)
-        return QString(name + "=" + value.toString() + "\n");
+        return QString(realName + "=" + value.toString() + "\n");
       else
       {
         if (defUnit == ns)
-          return QString(name + "=" + value.toString() + "ns\n");
+          return QString(realName + "=" + value.toString() + "ns\n");
         else if (defUnit == us)
-          return QString(name + "=" + value.toString() + "us\n");
+          return QString(realName + "=" + value.toString() + "us\n");
         else if (defUnit == ms)
-          return QString(name + "=" + value.toString() + "ms\n");
+          return QString(realName + "=" + value.toString() + "ms\n");
         else if (defUnit == s)
-          return QString(name + "=" + value.toString() + "s\n");
+          return QString(realName + "=" + value.toString() + "s\n");
         else if (defUnit == min)
-          return QString(name + "=" + value.toString() + "min\n");
+          return QString(realName + "=" + value.toString() + "min\n");
         else if (defUnit == h)
-          return QString(name + "=" + value.toString() + "h\n");
+          return QString(realName + "=" + value.toString() + "h\n");
         else if (defUnit == d)
-          return QString(name + "=" + value.toString() + "d\n");
+          return QString(realName + "=" + value.toString() + "d\n");
         else if (defUnit == w)
-          return QString(name + "=" + value.toString() + "w\n");
+          return QString(realName + "=" + value.toString() + "w\n");
         else if (defUnit == month)
-          return QString(name + "=" + value.toString() + "month\n");
+          return QString(realName + "=" + value.toString() + "month\n");
         else if (defUnit == year)
-          return QString(name + "=" + value.toString() + "year\n");
+          return QString(realName + "=" + value.toString() + "year\n");
        }
     }
     else
-      return QString("#" + name + "=\n");
+      return QString("#" + realName + "=\n");
   }
   
   else if (type == SIZE)
   {
-    if (active && getValue() != defVal)
-      return QString(name + "=" + value.toString() + "M\n");
+    //if (active && getValue() != defVal)
+    if (getValue() != defVal)
+      return QString(realName + "=" + value.toString() + "M\n");
     else
-      return QString("#" + name + "=\n");    
+      return QString("#" + realName + "=\n");
   }
   
   if (getValue() != defVal)
-    return QString(name + "=" + value.toString() + "\n");
+    return QString(realName + "=" + value.toString() + "\n");
   
-  return QString("#" + name + "=\n");
+  return QString("#" + realName + "=\n");
+}
+
+QString confOption::getFilename() const
+{
+  if (file == SYSTEMD)
+    return QString("system.conf");
+  else if (file == JOURNALD)
+    return QString("journald.conf");
+  else if (file == LOGIND)
+    return QString("logind.conf");
+  else if (file == COREDUMP)
+    return QString("coredump.conf");
+  return QString("");
 }
 
 void confOption::setResLimitsMap(QVariantMap map)
@@ -558,4 +602,9 @@ bool confOption::isDefault() const
     return true;
   else
     return false;
+}
+
+void confOption::setToDefault()
+{
+  value = defVal;
 }

@@ -29,6 +29,7 @@ ActionReply Helper::save(QVariantMap args)
   QString systemConfFileContents = args["systemConfFileContents"].toString();
   QString journaldConfFileContents = args["journaldConfFileContents"].toString();
   QString logindConfFileContents = args["logindConfFileContents"].toString();
+  QString coredumpConfFileContents = args["coredumpConfFileContents"].toString();
    
   // write system.conf
   QFile sysFile(args["etcDir"].toString() + "/system.conf");
@@ -66,6 +67,18 @@ ActionReply Helper::save(QVariantMap args)
   QTextStream loginStream(&loginFile);
   loginStream << logindConfFileContents;
   loginFile.close();
+  
+  // write coredump.conf
+  QFile coredumpFile(args["etcDir"].toString() + "/coredump.conf");
+  if (!coredumpFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+      reply = ActionReply::HelperErrorReply;
+      reply.setErrorCode(coredumpFile.error());
+      reply.addData("filename", "coredump.conf");
+      return reply;
+  }
+  QTextStream coredumpStream(&coredumpFile);
+  coredumpStream << coredumpConfFileContents;
+  coredumpFile.close();
   
   // return a reply
   return reply;

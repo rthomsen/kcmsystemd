@@ -32,7 +32,7 @@ ResLimitsDialog::ResLimitsDialog (QWidget* parent, Qt::WFlags flags, QVariantMap
   foreach(QCheckBox *chk, listChk)
     connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotChkChanged()));
   
-  // Initialize all the spinboxes from "resLimits"
+  // Initialize all the spinboxes from "resLimitsMap"
   for(QVariantMap::const_iterator iter = resLimitsMap.begin(); iter != resLimitsMap.end(); ++iter)
     {
       // qDebug() << iter.key() << " = " << iter.value();
@@ -53,17 +53,11 @@ ResLimitsDialog::ResLimitsDialog (QWidget* parent, Qt::WFlags flags, QVariantMap
       }
     }
  
-  // Connect all the spinboxes to the slotChanged slot  
-  // QList<QSpinBox *> listSpin = ;
+  // Connect all the spin- and checkboxes to the slotChanged slot  
   foreach(QSpinBox *spn, this->findChildren<QSpinBox *>())
     connect(spn, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
-  
-
   foreach(QCheckBox *chk, this->findChildren<QCheckBox *>())
     connect(chk, SIGNAL(stateChanged(int)), this, SLOT(slotChanged()));
-  
-
-
 }
 
 void ResLimitsDialog::slotButtonClicked(int button)
