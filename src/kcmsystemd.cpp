@@ -343,7 +343,10 @@ void kcmsystemd::setupConfigParms()
   confOptList.append(confOption(JOURNALD, "Compress", BOOL, true));
   confOptList.append(confOption(JOURNALD, "Seal", BOOL, true));
   QStringList SplitModeList = QStringList() << "login" << "uid" << "none";
-  confOptList.append(confOption(JOURNALD, "SplitMode", LIST, "login", SplitModeList));
+  if (systemdVersion >= 215)
+    confOptList.append(confOption(JOURNALD, "SplitMode", LIST, "uid", SplitModeList));
+  else
+    confOptList.append(confOption(JOURNALD, "SplitMode", LIST, "login", SplitModeList));
   confOptList.append(confOption(JOURNALD, "SyncIntervalSec", TIME, 5, confOption::min, confOption::s, confOption::us, confOption::w));
   confOptList.append(confOption(JOURNALD, "RateLimitInterval", TIME, 10, confOption::s, confOption::s, confOption::us, confOption::h));
   confOptList.append(confOption(JOURNALD, "RateLimitBurst", INTEGER, 200, 0, 99999));
