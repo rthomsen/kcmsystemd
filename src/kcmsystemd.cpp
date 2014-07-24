@@ -706,7 +706,7 @@ void kcmsystemd::save()
 
 void kcmsystemd::slotUpdateConfOption()
 {
-  qDebug() << "slotUpdateConfOption called!";
+  // qDebug() << "slotUpdateConfOption called!";
   // Updates confOptions when user changes ui elements
   
   QString name = QObject::sender()->objectName().remove(QRegExp("^(chk|spn|cmb|le)"));
@@ -981,17 +981,12 @@ void kcmsystemd::slotKillUserProcessesChanged()
 
 void kcmsystemd::slotCoreStorageChanged(int index)
 {
-  qDebug() << "slotCoreStorageChanged called!";
-  // "none" << "external" << "journal" << "both"
-  
   QList<QWidget *> lst = ui.tabCoredump->findChildren<QWidget *>(QRegExp("^grp|^chk|^lbl|^spn"));
   
   if (index == 0)
   {   
     foreach (QWidget *wdgt, lst)
     {
-      qDebug() << "Found: " << wdgt->objectName();
-      
       if (wdgt && wdgt->objectName().contains(QRegExp("^grp|ProcessSizeMax_3|Compress_3")))
         wdgt->setEnabled(false);
     } 
@@ -1000,8 +995,6 @@ void kcmsystemd::slotCoreStorageChanged(int index)
   {
     foreach (QWidget *wdgt, lst)
     {
-      qDebug() << "Found: " << wdgt->objectName();
-      
       if (wdgt && wdgt->objectName().contains(QRegExp("^grp|ProcessSizeMax_3|Compress_3")))
         wdgt->setEnabled(true);
     }     
