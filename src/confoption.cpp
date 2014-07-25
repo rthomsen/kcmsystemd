@@ -144,7 +144,7 @@ int confOption::setValueFromFile(QString line)
 {
   QString rval = line.section("=",1).trimmed();
   
-  qDebug() << name << "=" << rval;
+  // qDebug() << name << "=" << rval;
   
   if (type == BOOL)
   {
@@ -447,13 +447,14 @@ int confOption::setValueFromFile(QString line)
   
   else if (type == SIZE)
   {
-    // RegExp to detect size units
-    QRegExp rxSize = QRegExp("(\\b\\d+\\b)|(\\b\\d+K\\b)|(\\b\\d+M\\b)|(\\b\\d+G\\b)|(\\b\\d+T\\b)|(\\b\\d+P\\b)|(\\b\\d+E\\b)");
-    int pos = 0;
+    // RegExp to match a number (possibly with decimals) followed by a size unit (or no unit for byte)
+    QRegExp rxSize = QRegExp("(\\b\\d+\\.?\\d*(K|M|G|T|P|E)?\\b)");
     
+    int pos = 0;
     pos = rxSize.indexIn(rval);
-    if (pos > -1)
+    if (pos > -1 && rxSize.cap(0) == rval.trimmed())
     {
+      // convert the specified size unit to megabytes
       if (rxSize.cap(0).contains("K"))
         value = rxSize.cap(0).remove("K").toDouble() / 1024;
       else if (rxSize.cap(0).contains("M"))
@@ -469,7 +470,8 @@ int confOption::setValueFromFile(QString line)
       else
         value = rxSize.cap(0).toDouble() / 1024 / 1024;
       
-      value = value.toULongLong();      
+      // Convert from double to ulonglong
+      value = value.toULongLong();
     }
     else
     {
