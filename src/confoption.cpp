@@ -143,9 +143,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 int confOption::setValueFromFile(QString line)
 {
   QString rval = line.section("=",1).trimmed();
-  
-  // qDebug() << name << "=" << rval;
-  
+    
   if (type == BOOL)
   {
     if (rval == "true" || rval == "on" || rval == "yes")
@@ -160,7 +158,7 @@ int confOption::setValueFromFile(QString line)
       value = false;
       return 0;
     }
-    qDebug() << rval << "is not a valid value for setting" << name << ". Ignoring...";
+    qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
     return -1;
   }
 
@@ -174,7 +172,7 @@ int confOption::setValueFromFile(QString line)
       value = rvalToNmbr;
       return 0;
     }
-    qDebug() << rval << "is not a valid value for setting" << name << ". Ignoring...";
+    qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
     return -1;
   }
 
@@ -187,9 +185,7 @@ int confOption::setValueFromFile(QString line)
   
   else if (type == LIST)
   {
-    // qDebug() << "rval: " << rval << " for " << name << " in " << file;
-    
-    if (name == "ShowStatus")
+    if (realName == "ShowStatus")
     {
       if (rval.toLower() == "true" || rval.toLower() == "on")
         rval = "yes";
@@ -202,7 +198,7 @@ int confOption::setValueFromFile(QString line)
       value = rval.toLower();
       return 0;
     }
-    qDebug() << rval << "is not a valid value for setting" << name << ". Ignoring...";
+    qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
     value = defVal;
     return -1;
   }
@@ -216,7 +212,7 @@ int confOption::setValueFromFile(QString line)
     {
       if (!possibleVals.contains(readList.at(i)))
       {
-        qDebug() << rval << "is not a valid value for setting" << name << ". Ignoring...";
+        qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
         return -1;
       }
     }
@@ -417,7 +413,7 @@ int confOption::setValueFromFile(QString line)
       active = true;
       return 0;
     }
-    qDebug() << rval << "is not a valid value for setting" << name << ". Ignoring...";
+    qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
     return -1;
     
   }
@@ -440,7 +436,7 @@ int confOption::setValueFromFile(QString line)
       resLimitsMap[name] = value;
       return 0;
     }
-    qDebug() << rval << "is not a valid value for setting" << name << ". Ignoring...";
+    qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
     return -1;
     
   }
@@ -475,7 +471,7 @@ int confOption::setValueFromFile(QString line)
     }
     else
     {
-      qDebug() << rval << "is not a valid value for setting" << name << ". Ignoring...";
+      qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
       return -1;
     }
    
@@ -566,7 +562,6 @@ QString confOption::getLineForFile() const
   
   else if (type == SIZE)
   {
-    //if (active && getValue() != defVal)
     if (getValue() != defVal)
       return QString(realName + "=" + value.toString() + "M\n");
     else
