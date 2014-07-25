@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>452</width>
-    <height>655</height>
+    <height>619</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1435,26 +1435,13 @@
               <string>Time-based rotation</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
-              <item row="0" column="1">
-               <widget class="QSpinBox" name="spnMaxRetentionSec_1">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="maximum">
-                 <number>99999</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
+              <item row="1" column="2">
                <widget class="QSpinBox" name="spnMaxFileSec_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store entries in a single journal file before rotating to the next one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store entries in a single journal file before rotating to the next one.&lt;/p&gt;&lt;p&gt;Set to 0 to disable this feature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="maximum">
                  <number>99999</number>
@@ -1464,55 +1451,46 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>days</string>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="2">
-               <widget class="QLabel" name="label_10">
+               <widget class="QSpinBox" name="spnMaxRetentionSec_1">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/p&gt;&lt;p&gt;Set to 0 to disable this feature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="maximum">
+                 <number>99999</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLabel" name="lbl2MaxFileSec_1">
                 <property name="text">
                  <string>days</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QCheckBox" name="chkMaxFileSec_1">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store entries in a single journal file before rotating to the next one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
+              <item row="0" column="3">
+               <widget class="QLabel" name="lbl2MaxRetentionSec_1">
                 <property name="text">
-                 <string>Store entries in each file for:</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
+                 <string>days</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="0">
-               <widget class="QCheckBox" name="chkMaxRetentionSec_1">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time to store journal entries. Journal files containing older entries are deleted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
+               <widget class="QLabel" name="lbl1MaxRetentionSec_1">
                 <property name="text">
                  <string>Store journal entries for:</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="3" rowspan="2">
-               <spacer name="horizontalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lbl1MaxFileSec_1">
+                <property name="text">
+                 <string>Store entries in each file for:</string>
                 </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -1923,6 +1901,9 @@
           </layout>
          </widget>
          <widget class="QWidget" name="tabCoredump">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <attribute name="title">
            <string>Coredumps</string>
           </attribute>
@@ -2212,9 +2193,7 @@
   <tabstop>chkKeepFree_1</tabstop>
   <tabstop>spnMaxFileSize_1</tabstop>
   <tabstop>chkMaxFileSize_1</tabstop>
-  <tabstop>chkMaxRetentionSec_1</tabstop>
   <tabstop>spnMaxRetentionSec_1</tabstop>
-  <tabstop>chkMaxFileSec_1</tabstop>
   <tabstop>spnMaxFileSec_1</tabstop>
   <tabstop>chkForwardToSyslog_1</tabstop>
   <tabstop>cmbMaxLevelSyslog_1</tabstop>

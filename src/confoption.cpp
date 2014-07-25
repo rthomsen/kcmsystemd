@@ -394,10 +394,8 @@ int confOption::setValueFromFile(QString line)
     }
     
     if (found)
-    {
-      active = true;
       return 0;
-    }
+    
     qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
     return -1;
     
@@ -513,7 +511,7 @@ QString confOption::getLineForFile() const
   
   else if (type == TIME)
   {
-    if (active && getValue() != defVal)
+    if (getValue() != defVal)
     {
       if (value.toULongLong() == 0)
         return QString(realName + "=" + value.toString() + "\n");

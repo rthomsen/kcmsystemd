@@ -24,61 +24,23 @@
 ActionReply Helper::save(QVariantMap args)
 {
   ActionReply reply;
+  QVariantMap files = args["files"].toMap();
   
-  // Declare QStrings with file names and contents
-  QString systemConfFileContents = args["systemConfFileContents"].toString();
-  QString journaldConfFileContents = args["journaldConfFileContents"].toString();
-  QString logindConfFileContents = args["logindConfFileContents"].toString();
-  QString coredumpConfFileContents = args["coredumpConfFileContents"].toString();
-   
-  // write system.conf
-  QFile sysFile(args["etcDir"].toString() + "/system.conf");
-  if (!sysFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-    reply = ActionReply::HelperErrorReply;
-    reply.addData("errorDescription", sysFile.errorString());
-    reply.setErrorCode(sysFile.error());
-    reply.addData("filename", "system.conf");
-    return reply;
-  }
-  QTextStream sysStream(&sysFile);
-  sysStream << systemConfFileContents;
-  sysFile.close();
-
-  // write journald.conf
-  QFile jrnlFile(args["etcDir"].toString() + "/journald.conf");
-  if (!jrnlFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+  for(QVariantMap::const_iterator iter = files.begin(); iter != files.end(); ++iter)
+  {
+    QString contents = iter.value().toString();
+    QFile file(args["etcDir"].toString() + "/" + iter.key());
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
       reply = ActionReply::HelperErrorReply;
-      reply.setErrorCode(jrnlFile.error());
-      reply.addData("filename", "journald.conf");
+      reply.addData("errorDescription", file.errorString());
+      reply.setErrorCode(file.error());
+      reply.addData("filename", iter.key());
       return reply;
+    }
+    QTextStream stream(&file);
+    stream << contents;
+    file.close();
   }
-  QTextStream jrnlStream(&jrnlFile);
-  jrnlStream << journaldConfFileContents;
-  jrnlFile.close();
-  
-  // write logind.conf
-  QFile loginFile(args["etcDir"].toString() + "/logind.conf");
-  if (!loginFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-      reply = ActionReply::HelperErrorReply;
-      reply.setErrorCode(loginFile.error());
-      reply.addData("filename", "logind.conf");
-      return reply;
-  }
-  QTextStream loginStream(&loginFile);
-  loginStream << logindConfFileContents;
-  loginFile.close();
-  
-  // write coredump.conf
-  QFile coredumpFile(args["etcDir"].toString() + "/coredump.conf");
-  if (!coredumpFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-      reply = ActionReply::HelperErrorReply;
-      reply.setErrorCode(coredumpFile.error());
-      reply.addData("filename", "coredump.conf");
-      return reply;
-  }
-  QTextStream coredumpStream(&coredumpFile);
-  coredumpStream << coredumpConfFileContents;
-  coredumpFile.close();
   
   // return a reply
   return reply;

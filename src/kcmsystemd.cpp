@@ -76,6 +76,8 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
       ui.chkForwardToWall_1->setEnabled(false);
       ui.cmbMaxLevelWall_1->setEnabled(false);
     }
+    if (systemdVersion >= 215)
+      ui.tabCoredump->setEnabled(true);
 
     qDebug() << "Systemd" << systemdVersion << "detected.";
   } else {
@@ -196,8 +198,6 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.spnMaxUse_1, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxUseChanged()));
   connect(ui.spnKeepFree_1, SIGNAL(valueChanged(int)), this, SLOT(slotSpnKeepFreeChanged()));
   connect(ui.spnMaxFileSize_1, SIGNAL(valueChanged(int)), this, SLOT(slotSpnMaxFileSizeChanged()));
-  connect(ui.chkMaxRetentionSec_1, SIGNAL(stateChanged(int)), this, SLOT(slotChkMaxRetentionSecChanged(int)));
-  connect(ui.chkMaxFileSec_1, SIGNAL(stateChanged(int)), this, SLOT(slotChkMaxFileSecChanged(int)));
   connect(ui.chkForwardToSyslog_1, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToSyslogChanged()));
   connect(ui.chkForwardToKMsg_1, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToKmsgChanged()));
   connect(ui.chkForwardToConsole_1, SIGNAL(stateChanged(int)), this, SLOT(slotFwdToConsoleChanged()));
@@ -224,7 +224,8 @@ void kcmsystemd::load()
   readConfFile("system.conf");
   readConfFile("journald.conf");
   readConfFile("logind.conf");
-  readConfFile("coredump.conf");
+  if (systemdVersion >= 215)
+    readConfFile("coredump.conf");
   
   // Apply the read settings to the interface
   applyToInterface();
@@ -401,16 +402,18 @@ void kcmsystemd::setupConfigParms()
     confOptList.append(confOption(LOGIND, "RemoveIPC", BOOL, true));
   }
   
-  // coredump.conf
-  QStringList CoreStorage = QStringList() << "none" << "external" << "journal" << "both";
-  confOptList.append(confOption(COREDUMP, "Storage", LIST, "external", CoreStorage));
-  confOptList.append(confOption(COREDUMP, "Compress", BOOL, true));
-  confOptList.append(confOption(COREDUMP, "ProcessSizeMax", SIZE, 2*1024, partPersSizeMB));
-  confOptList.append(confOption(COREDUMP, "ExternalSizeMax", SIZE, 2*1024, partPersSizeMB));
-  confOptList.append(confOption(COREDUMP, "JournalSizeMax", SIZE, 767, partPersSizeMB));
-  confOptList.append(confOption(COREDUMP, "MaxUse", SIZE, QVariant(0.1 * partPersSizeMB).toULongLong(), partPersSizeMB));
-  confOptList.append(confOption(COREDUMP, "KeepFree", SIZE, QVariant(0.15 * partPersSizeMB).toULongLong(), partPersSizeMB));
-  
+  if (systemdVersion >= 215)
+  {  
+    // coredump.conf
+    QStringList CoreStorage = QStringList() << "none" << "external" << "journal" << "both";
+    confOptList.append(confOption(COREDUMP, "Storage", LIST, "external", CoreStorage));
+    confOptList.append(confOption(COREDUMP, "Compress", BOOL, true));
+    confOptList.append(confOption(COREDUMP, "ProcessSizeMax", SIZE, 2*1024, partPersSizeMB));
+    confOptList.append(confOption(COREDUMP, "ExternalSizeMax", SIZE, 2*1024, partPersSizeMB));
+    confOptList.append(confOption(COREDUMP, "JournalSizeMax", SIZE, 767, partPersSizeMB));
+    confOptList.append(confOption(COREDUMP, "MaxUse", SIZE, QVariant(0.1 * partPersSizeMB).toULongLong(), partPersSizeMB));
+    confOptList.append(confOption(COREDUMP, "KeepFree", SIZE, QVariant(0.15 * partPersSizeMB).toULongLong(), partPersSizeMB));
+  }
 }
 
 void kcmsystemd::initializeInterface()
@@ -484,7 +487,8 @@ void kcmsystemd::readConfFile(QString filename)
         {
           confOptList[i].setValueFromFile(line);
           break;
-        }   
+        }
+        
         else if (filename == "coredump.conf" && 
                   confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_3"))
         {
@@ -568,16 +572,6 @@ void kcmsystemd::applyToInterface()
     }
     
   }
-  
-  // Handle two checkboxes not found in conf.files
-  if (confOptList.at(confOptList.indexOf(confOption("MaxRetentionSec_1"))).getValue() == 0)
-    ui.chkMaxRetentionSec_1->setChecked(false);
-  else
-    ui.chkMaxRetentionSec_1->setChecked(true);
-  if (confOptList.at(confOptList.indexOf(confOption("MaxFileSec_1"))).getValue() == 0)
-    ui.chkMaxFileSec_1->setChecked(false);
-  else
-    ui.chkMaxFileSec_1->setChecked(true);
 }
 
 void kcmsystemd::setupUnitslist()
@@ -683,11 +677,15 @@ void kcmsystemd::save()
     KMessageBox::error(this, i18n("Unable to find directory for configuration files."));
     return;
   }
-  helperArgs["systemConfFileContents"] = systemConfFileContents;
-  helperArgs["journaldConfFileContents"] = journaldConfFileContents;
-  helperArgs["logindConfFileContents"] = logindConfFileContents;
-  helperArgs["coredumpConfFileContents"] = coredumpConfFileContents;
-    
+  
+  QVariantMap files;
+  files["system.conf"] = systemConfFileContents;
+  files["journald.conf"] = journaldConfFileContents;
+  files["logind.conf"] = logindConfFileContents;
+  if (systemdVersion >= 215)
+    files["coredump.conf"] = coredumpConfFileContents;  
+  helperArgs["files"] = files;
+  
   // Call the helper to write the configuration files
   Action *saveAction = authAction();
   saveAction->setArguments(helperArgs);
@@ -862,36 +860,6 @@ void kcmsystemd::slotJrnlStorageChkBoxes(int state)
       wdgt->setEnabled(true);
   }  
 
-  emit changed(true);
-}
-
-void kcmsystemd::slotChkMaxRetentionSecChanged(int state)
-{
-  if (state == Qt::Checked)
-  {
-    ui.spnMaxRetentionSec_1->setEnabled(true);
-    confOptList[confOptList.indexOf(confOption("MaxRetentionSec_1"))].active = true;
-  }
-  else
-  {
-    ui.spnMaxRetentionSec_1->setEnabled(false);
-    confOptList[confOptList.indexOf(confOption("MaxRetentionSec_1"))].active = false;
-  }
-  emit changed(true);
-}
-
-void kcmsystemd::slotChkMaxFileSecChanged(int state)
-{
-  if (state == Qt::Checked)
-  {
-    ui.spnMaxFileSec_1->setEnabled(true);
-    confOptList[confOptList.indexOf(confOption("MaxFileSec_1"))].active = true;
-  }
-  else
-  {
-    ui.spnMaxFileSec_1->setEnabled(false);
-    confOptList[confOptList.indexOf(confOption("MaxFileSec_1"))].active = true;
-  }
   emit changed(true);
 }
 
