@@ -101,8 +101,8 @@ class confOption {
                QString newName,
                settingType newType,
                QVariant newDefVal,
-               timeUnit newDefUnit,
-               timeUnit newDefReadUnit,
+               timeUnit newDefUnit, // the unit of newDefVal, used in ui and written to file
+               timeUnit newDefReadUnit, // used when reading unitless values
                timeUnit newMinUnit,
                timeUnit newMaxUnit);
     
@@ -114,10 +114,11 @@ class confOption {
     QVariant getValue() const;
     QString getLineForFile() const;
     QString getFilename() const;
-
+    
   private:
     QVariant value;
     QString realName;
+    QVariant convertTimeUnit(double, timeUnit, timeUnit);
 };
 
 #endif

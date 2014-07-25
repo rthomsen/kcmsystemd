@@ -19,6 +19,7 @@
 
 #include "confoption.h"
 
+// Initialize two static class members
 QStringList confOption::capabilities = QStringList() << "CAP_AUDIT_CONTROL" << "CAP_AUDIT_WRITE" << "CAP_BLOCK_SUSPEND" << "CAP_CHOWN"
                                            << "CAP_DAC_OVERRIDE" << "CAP_DAC_READ_SEARCH" << "CAP_FOWNER" << "CAP_FSETID" 
                                            << "CAP_IPC_LOCK" << "CAP_IPC_OWNER" << "CAP_KILL" << "CAP_LEASE" << "CAP_LINUX_IMMUTABLE"
@@ -142,19 +143,19 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 
 int confOption::setValueFromFile(QString line)
 {
+  // Used to set values in confOptions from a file line
+  
   QString rval = line.section("=",1).trimmed();
     
   if (type == BOOL)
   {
     if (rval == "true" || rval == "on" || rval == "yes")
     {
-      active = true;
       value = true;
       return 0;
     }
     else if (rval == "false" || rval == "off" || rval == "no")
     {
-      active = true;
       value = false;
       return 0;
     }
@@ -353,9 +354,10 @@ int confOption::setValueFromFile(QString line)
       }
     }    
     
-    
     if (secs != seconds(0))
     {
+      // Some values with units were found
+      // Convert secs to defUnit and set "value"
       if (defUnit == ns)
         value = nanoseconds(secs).count();
       else if (defUnit == us)
@@ -380,30 +382,13 @@ int confOption::setValueFromFile(QString line)
     }
     else
     {
+      // See if a unitless number was found
+      // If yes, convert the value from defReadUnit to defUnit
       bool ok;
       double rvalDbl = rval.trimmed().toDouble(&ok);
       if (ok)
-      {  
-        if (defReadUnit == ns)
-          value = nanoseconds(rvalDbl).count();
-        else if (defReadUnit == us)
-          value = microseconds(rvalDbl).count();
-        else if (defReadUnit == ms)
-          value = milliseconds(rvalDbl).count();
-        else if (defReadUnit == s)
-          value = seconds(rvalDbl).count();
-        else if (defReadUnit == min)
-          value = minutes(rvalDbl).count();
-        else if (defReadUnit == h)
-          value = hours(rvalDbl).count();
-        else if (defReadUnit == d)
-          value = days(rvalDbl).count();
-        else if (defReadUnit == w)
-          value = weeks(rvalDbl).count();
-        else if (defReadUnit == month)
-          value = months(rvalDbl).count();
-        else if (defReadUnit == year)
-          value = years(rvalDbl).count();
+      {
+        value = convertTimeUnit(rvalDbl, defReadUnit, defUnit);
         found = true;
       }
     }
@@ -604,4 +589,85 @@ bool confOption::isDefault() const
 void confOption::setToDefault()
 {
   value = defVal;
+}
+
+QVariant confOption::convertTimeUnit(double value, timeUnit oldTime, timeUnit newTime)
+{
+  QVariant convertedVal;
+  seconds tmpSecs(0);
+  
+  if (oldTime == ns)
+  {
+    nanoseconds val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == us)
+  {
+    microseconds val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == ms)
+  {
+    milliseconds val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == s)
+  {
+    seconds val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == min)
+  {
+    minutes val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == h)
+  {
+    hours val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == d)
+  {
+    days val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == w)
+  {
+    weeks val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == month)
+  {
+    months val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+  else if (oldTime == year)
+  {
+    years val(value);
+    tmpSecs = boost::chrono::duration_cast<seconds>(val);
+  }
+
+    
+  if (newTime == ns)
+    convertedVal = boost::chrono::duration_cast<nanoseconds>(tmpSecs).count();
+  else if (newTime == us)
+    convertedVal = boost::chrono::duration_cast<microseconds>(tmpSecs).count();
+  else if (newTime == ms)
+    convertedVal = boost::chrono::duration_cast<milliseconds>(tmpSecs).count();
+  else if (newTime == s)
+    convertedVal = boost::chrono::duration_cast<seconds>(tmpSecs).count();
+  else if (newTime == min)
+    convertedVal = boost::chrono::duration_cast<minutes>(tmpSecs).count();
+  else if (newTime == h)
+    convertedVal = boost::chrono::duration_cast<hours>(tmpSecs).count();
+  else if (newTime == d)
+    convertedVal = boost::chrono::duration_cast<days>(tmpSecs).count();
+  else if (newTime == w)
+    convertedVal = boost::chrono::duration_cast<weeks>(tmpSecs).count();
+  else if (newTime == month)
+    convertedVal = boost::chrono::duration_cast<months>(tmpSecs).count();
+  else if (newTime == year)
+    convertedVal = boost::chrono::duration_cast<years>(tmpSecs).count();
+
+  return convertedVal;
 }

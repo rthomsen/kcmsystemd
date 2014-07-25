@@ -1013,8 +1013,6 @@ void kcmsystemd::slotOpenResourceLimits()
   {
     confOption::setResLimitsMap(resDialog->getResLimits());
     
-    qDebug() << confOption::resLimitsMap;
-    
     for(QVariantMap::const_iterator iter = confOption::resLimitsMap.begin(); iter != confOption::resLimitsMap.end(); ++iter)
       confOptList[confOptList.indexOf(confOption(iter.key()))].setValue(iter.value());
   }
