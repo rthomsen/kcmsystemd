@@ -18,7 +18,7 @@
 #include "kcmsystemd.h"
 #include "reslimits.h"
 
-ResLimitsDialog::ResLimitsDialog (QWidget* parent, Qt::WFlags flags, QVariantMap resLimitsMap) : KDialog ( parent)
+ResLimitsDialog::ResLimitsDialog (QWidget* parent, QVariantMap resLimitsMap) : KDialog ( parent)
 {
   // Setup the dialog window
   QWidget *widget = new QWidget(this);

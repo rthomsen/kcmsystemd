@@ -26,7 +26,6 @@ class EnvironDialog : public KDialog
 
   public:
     explicit EnvironDialog(QWidget *parent=0,
-                           Qt::WFlags flags = 0,
                            QString environ = "");
     void addNewVariable(int, QString, QString);    
     bool getChanged();

@@ -19,7 +19,7 @@
 #include "capabilities.h"
 #include "kcmsystemd.h"
 
-CapabilitiesDialog::CapabilitiesDialog (QWidget* parent, Qt::WFlags flags, QVariantMap capabilitiesPassed, bool capActive) : KDialog ( parent)
+CapabilitiesDialog::CapabilitiesDialog (QWidget* parent, QVariantMap capabilitiesPassed, bool capActive) : KDialog ( parent)
 {
   // Setup the dialog window
   QWidget *widget = new QWidget(this);

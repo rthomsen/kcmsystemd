@@ -19,7 +19,8 @@
 #include "advanced.h"
 #include "capabilities.h"
 
-AdvancedDialog::AdvancedDialog (QWidget* parent, Qt::WFlags flags, QVariantMap args) : KDialog (parent)
+AdvancedDialog::AdvancedDialog (QWidget* parent, QVariantMap args) : KDialog (parent)
+//AdvancedDialog::AdvancedDialog (QWidget* parent, QVariantMap args) : KDialog (parent)
 {
   // Setup the dialog window
   QWidget *widget = new QWidget(this);
@@ -235,7 +236,6 @@ void AdvancedDialog::slotChkSystemCallArchitecturesChanged()
 void AdvancedDialog::slotOpenCapabilities()
 {
   QPointer<CapabilitiesDialog> capabilitiesDialog = new CapabilitiesDialog(this,
-                                                                           Qt::Dialog,
                                                                            tempCap,
                                                                            tempCapActive);
   if (capabilitiesDialog->exec() == QDialog::Accepted)

@@ -106,8 +106,8 @@ class kcmsystemd : public KCModule
     void slotDisplayMenu(const QPoint &);
     void slotRefreshUnitsList();
     void slotSystemdReloading(bool);
-    void slotUnitLoaded(QString, QDBusObjectPath);
-    void slotUnitUnloaded(QString, QDBusObjectPath);
+    // void slotUnitLoaded(QString, QDBusObjectPath);
+    // void slotUnitUnloaded(QString, QDBusObjectPath);
     void slotUnitFilesChanged();
     void slotPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLeSearchUnitChanged(QString);

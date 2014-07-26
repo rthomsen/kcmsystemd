@@ -25,8 +25,7 @@ class AdvancedDialog : public KDialog
   Q_OBJECT
 
   public:
-    explicit AdvancedDialog(QWidget *parent = 0, 
-                            Qt::WFlags flags = 0,
+    explicit AdvancedDialog(QWidget *parent = 0,
                             QVariantMap args = QVariantMap());
     
     bool getChanged();

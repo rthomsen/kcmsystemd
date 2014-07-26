@@ -131,8 +131,8 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &list) : KCModule(kcm
     iface->call(QDBus::AutoDetect, "Subscribe");
   delete iface;
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","Reloading",this,SLOT(slotSystemdReloading(bool)));
-  QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitNew",this,SLOT(slotUnitLoaded(QString, QDBusObjectPath)));
-  QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitRemoved",this,SLOT(slotUnitUnloaded(QString, QDBusObjectPath)));
+  // QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitNew",this,SLOT(slotUnitLoaded(QString, QDBusObjectPath)));
+  // QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitRemoved",this,SLOT(slotUnitUnloaded(QString, QDBusObjectPath)));
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitFilesChanged",this,SLOT(slotUnitFilesChanged()));
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","","org.freedesktop.DBus.Properties","PropertiesChanged",this,SLOT(slotPropertiesChanged(QString, QVariantMap, QStringList)));
   
@@ -974,7 +974,6 @@ void kcmsystemd::slotCoreStorageChanged(int index)
 void kcmsystemd::slotOpenResourceLimits()
 {
   QPointer<ResLimitsDialog> resDialog = new ResLimitsDialog(this,
-                                                            Qt::Dialog,
                                                             confOption::resLimitsMap);
   
   if (resDialog->exec() == QDialog::Accepted)
@@ -994,7 +993,6 @@ void kcmsystemd::slotOpenResourceLimits()
 void kcmsystemd::slotOpenEnviron()
 {
   QPointer<EnvironDialog> environDialog = new EnvironDialog(this,
-                                                            Qt::Dialog,
                                                             confOptList.at(confOptList.indexOf(confOption("DefaultEnvironment_0"))).getValue().toString());
   if (environDialog->exec() == QDialog::Accepted)
   {
@@ -1027,7 +1025,7 @@ void kcmsystemd::slotOpenAdvanced()
   args["CapabilityBoundingSet"] = confOptList.at(confOptList.indexOf(confOption("CapabilityBoundingSet_0"))).getValue();
   args["CapabilityBoundingSetActive"] = confOptList.at(confOptList.indexOf(confOption("CapabilityBoundingSet_0"))).active;
   
-  QPointer<AdvancedDialog> advancedDialog = new AdvancedDialog(this, Qt::Dialog, args);
+  QPointer<AdvancedDialog> advancedDialog = new AdvancedDialog(this, args);
  
   if (advancedDialog->exec() == QDialog::Accepted)
   {
@@ -1054,7 +1052,7 @@ void kcmsystemd::slotOpenAdvanced()
   delete advancedDialog;
 }
 
-void kcmsystemd::slotTblRowChanged(const QModelIndex &current, const QModelIndex &previous)
+void kcmsystemd::slotTblRowChanged(const QModelIndex &current, __attribute__((unused)) const QModelIndex &previous)
 {
   // Find the selected unit
   selectedUnit = ui.tblServices->model()->index(current.row(),3).data().toString();
@@ -1592,7 +1590,7 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   }
 }
 
-bool kcmsystemd::eventFilter(QObject *watched, QEvent* event)
+bool kcmsystemd::eventFilter(__attribute__((unused)) QObject *watched, QEvent* event)
 {
   // Eventfilter for catching mouse move events over the unit list
   // Used for dynamically generating tooltips for units
@@ -1612,7 +1610,7 @@ bool kcmsystemd::eventFilter(QObject *watched, QEvent* event)
       {
 	if (iter.key() == ui.tblServices->model()->index(ui.tblServices->indexAt(me->pos()).row(),3).data().toString())
 	{
-	  // If unit-id correesponds to column 3:
+	  // If unit-id corresponds to column 3:
 	  QString toolTipText;
 
 	  // Create a DBus interface
@@ -1684,15 +1682,17 @@ void kcmsystemd::slotSystemdReloading(bool status)
     slotRefreshUnitsList();
 }
 
+/*
 void kcmsystemd::slotUnitLoaded(QString id, QDBusObjectPath path)
 {
-  // qDebug() << "Unit loaded: " << id << " (" << path.path() << ")";
+  qDebug() << "Unit loaded: " << id << " (" << path.path() << ")";
 }
 
 void kcmsystemd::slotUnitUnloaded(QString id, QDBusObjectPath path)
 {
-  // qDebug() << "Unit unloaded: " << id << " (" << path.path() << ")";
+  qDebug() << "Unit unloaded: " << id << " (" << path.path() << ")";
 }
+*/
 
 void kcmsystemd::slotUnitFilesChanged()
 {
@@ -1700,7 +1700,7 @@ void kcmsystemd::slotUnitFilesChanged()
   // slotRefreshUnitsList();
 }
 
-void kcmsystemd::slotPropertiesChanged(QString iface_name, QVariantMap changed_props, QStringList invalid_props)
+void kcmsystemd::slotPropertiesChanged(QString iface_name, __attribute__((unused)) QVariantMap changed_props, __attribute__((unused)) QStringList invalid_props)
 {
   // qDebug() << "Properties changed.";
   // This signal gets emitted on two different interfaces,

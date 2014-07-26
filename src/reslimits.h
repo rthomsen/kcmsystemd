@@ -26,7 +26,6 @@ class ResLimitsDialog : public KDialog
 
   public:
     explicit ResLimitsDialog(QWidget *parent = 0,
-                             Qt::WFlags flags = 0,
                              QVariantMap resLimitsMap = QVariantMap());
     bool getChanged();
     QVariantMap getResLimits();

@@ -26,7 +26,6 @@ class CapabilitiesDialog : public KDialog
 
   public:
     explicit CapabilitiesDialog(QWidget *parent=0,
-                                Qt::WFlags flags = 0,
                                 QVariantMap capabilities = QVariantMap(),
                                 bool capActive = false);
     bool getChanged();

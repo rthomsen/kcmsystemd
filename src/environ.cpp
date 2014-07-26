@@ -19,8 +19,7 @@
 #include "environ.h"
 
 EnvironDialog::EnvironDialog (QWidget* parent,
-                              Qt::WFlags flags,
-                              QString rvalPassed) : KDialog ( parent)
+                              QString rvalPassed) : KDialog (parent)
 {
   // Initialize dialog window
   QWidget *widget = new QWidget(this);
