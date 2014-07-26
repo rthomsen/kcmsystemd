@@ -6,6 +6,7 @@ daemon, which allows for viewing and controlling systemd units, as well as
 modifying configuration files.
 Integrates in the System Settings dialogue in KDE.
 
+
 Installation
 ------------
 mkdir build  
@@ -20,6 +21,12 @@ Dependencies
 *   KDE >= 4.4  
 *   Qt >= 4.6  
 *   Boost >= 1.45  
+
+
+Execution
+---------
+Kcmsystemd can be accessed through System Settings, or by issuing the command:
+kcmshell4 kcm_systemd
 
 
 Developed by: Ragnar Thomsen (rthomsen6@gmail.com)  
