@@ -1284,21 +1284,38 @@ void kcmsystemd::slotRefreshUnitsList()
   }
   
   // Update the text color in model
+  QColor newcolor;
+  QStringList normal_inactive;
+  normal_inactive << "emergency.service" << "emergency.target"
+		  << "final.target"
+		  << "halt.target" << "systemd-halt.service"
+		  << "network-pre.target"
+		  << "reboot.target" << "systemd-reboot.service"
+		  << "rescue.service" << "rescue.target"
+		  << "shutdown.target" << "systemd-shutdownd.service"
+		  << "systemd-udev-hwdb-update.service"
+		  << "systemd-udev-settle.service"
+		  << "systemd-update-utmp-runlevel.service"
+		  << "umount.target";
+
   for (int row = 0; row < unitsModel->rowCount(); ++row)
   {
     if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "inactive") {
-      for (int col = 0; col < 4; ++col)
-	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::red)), Qt::ForegroundRole);
+      newcolor = Qt::red;
+      foreach (QString unit, normal_inactive)
+	 if (unitsModel->data(unitsModel->index(row,3), Qt::DisplayRole) == unit) {
+	   newcolor = Qt::black;
+	   break;
+	 }
     } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "active") {
-      for (int col = 0; col < 4; ++col)
-	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::darkGreen)), Qt::ForegroundRole);
+      newcolor = Qt::darkGreen;
     } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "failed") {
-      for (int col = 0; col < 4; ++col)
-	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::darkRed)), Qt::ForegroundRole); 
+      newcolor = Qt::darkRed;
     } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "-") {
-      for (int col = 0; col < 4; ++col)
-	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::darkGray)), Qt::ForegroundRole);
-    }
+      newcolor = Qt::darkGray;
+    } else newcolor = Qt::black;
+    for (int col = 0; col < 4; ++col)
+      unitsModel->setData(unitsModel->index(row,col), QVariant(newcolor), Qt::ForegroundRole);
   }
   
   // Update unit properties for the selected unit
