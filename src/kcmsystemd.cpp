@@ -1285,10 +1285,28 @@ void kcmsystemd::slotRefreshUnitsList()
   
   // Update the text color in model
   QColor newcolor;
+  QStringList normal_inactive;
+  normal_inactive << "emergency.service" << "emergency.target"
+		  << "final.target"
+		  << "halt.target" << "systemd-halt.service"
+		  << "network-pre.target"
+		  << "reboot.target" << "systemd-reboot.service"
+		  << "rescue.service" << "rescue.target"
+		  << "shutdown.target" << "systemd-shutdownd.service"
+		  << "systemd-udev-hwdb-update.service"
+		  << "systemd-udev-settle.service"
+		  << "systemd-update-utmp-runlevel.service"
+		  << "umount.target";
+
   for (int row = 0; row < unitsModel->rowCount(); ++row)
   {
     if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "inactive") {
       newcolor = Qt::red;
+      foreach (QString unit, normal_inactive)
+	 if (unitsModel->data(unitsModel->index(row,3), Qt::DisplayRole) == unit) {
+	   newcolor = Qt::black;
+	   break;
+	 }
     } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "active") {
       newcolor = Qt::darkGreen;
     } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "failed") {
