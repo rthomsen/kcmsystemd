@@ -25,8 +25,8 @@ Dependencies
 
 Execution
 ---------
-Kcmsystemd can be accessed through System Settings, or by issuing the command:
-kcmshell4 kcm_systemd
+Kcmsystemd can be accessed through System Settings, or by issuing the command:  
+`kcmshell4 kcm_systemd`
 
 
 Developed by: Ragnar Thomsen (rthomsen6@gmail.com)  
