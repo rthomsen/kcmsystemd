@@ -200,8 +200,6 @@ void kcmsystemd::load()
   
   // Connect signals to slots, which need to be after initializeInterface()
   connect(confModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotUpdateConfOption(QStandardItem*)));
-
-  // connect(ui.btnUpdConfOptList, SIGNAL(clicked()), this, SLOT(slotUpdateConfOption()));
 }
 
 void kcmsystemd::setupConfigParms()

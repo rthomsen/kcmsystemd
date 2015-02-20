@@ -32,15 +32,11 @@ QWidget *ConfDelegate::createEditor(QWidget *parent,
 {
   // Creates the editor component for an item in qtableview
 
-  //qDebug() << " UserRole +2 is " << index.data(Qt::UserRole+2);
-  QModelIndex leftindex = kcmsystemd::confModel->index(index.row(),index.column()-1);
-  QString name = QString(leftindex.data().toString() + "_" + QString::number(index.data(Qt::UserRole).toInt()));
-  // QString name = "";
-  // qDebug() << "name is: " << name;
+  // qDebug() << "Creating editor";
+
+  QString name = index.data(Qt::UserRole+3).toString();
   int confIndex = kcmsystemd::confOptList.indexOf(confOption(name));
   confOption const *opt = &kcmsystemd::confOptList.at(confIndex);
-  // qDebug() << "name is: " << opt->realName;
-  // qDebug() << "confIndex is " << QString::number(confIndex);
 
   if (index.data(Qt::UserRole+1) == BOOL)
   {
@@ -108,11 +104,7 @@ void ConfDelegate::setEditorData(QWidget *editor,
 {
   // Set the value in the editor (spinbox, lineedit, etc)
 
-  QModelIndex leftindex = kcmsystemd::confModel->index(index.row(),index.column()-1);
-  QString name = QString(leftindex.data().toString() + "_" + QString::number(index.data(Qt::UserRole).toInt()));
-  int confIndex = kcmsystemd::confOptList.indexOf(confOption(name));
-  confOption const *opt = &kcmsystemd::confOptList.at(confIndex);
-  // qDebug() << "value for " << opt->realName << " is " << opt->getValue();
+  // qDebug() << "Setting editor data";
 
   if (index.data(Qt::UserRole+1) == BOOL)
   {
@@ -137,12 +129,11 @@ void ConfDelegate::setEditorData(QWidget *editor,
   {
     QString value = index.model()->data(index, Qt::EditRole).toString();
     QComboBox *cmb = static_cast<QComboBox*>(editor);
-    cmb->setCurrentIndex(opt->possibleVals.indexOf(value));
+    cmb->setCurrentIndex(cmb->findText(value));
   }
   else if (index.data(Qt::UserRole+1) == MULTILIST)
   {
     QComboBox *cmb = static_cast<QComboBox*>(editor);
-    // QVariantMap map = opt->getValue().toMap();
     QVariantMap map = index.data(Qt::UserRole+2).toMap();
 
     for(QVariantMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
@@ -168,8 +159,9 @@ void ConfDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 {
   // Set data in model from the editor
 
-  QModelIndex leftindex = kcmsystemd::confModel->index(index.row(),index.column()-1);
-  QString name = QString(leftindex.data().toString() + "_" + QString::number(index.data(Qt::UserRole).toInt()));
+  // qDebug() << "Setting model data";
+
+  QString name = index.data(Qt::UserRole+3).toString();
   int confIndex = kcmsystemd::confOptList.indexOf(confOption(name));
   confOption const *opt = &kcmsystemd::confOptList.at(confIndex);
   
