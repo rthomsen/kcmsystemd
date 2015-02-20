@@ -826,21 +826,21 @@ void kcmsystemd::slotRefreshUnitsList()
   }
   
   // Update the text color in model
+  QColor newcolor;
   for (int row = 0; row < unitsModel->rowCount(); ++row)
   {
-    if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "inactive") {
-      for (int col = 0; col < 4; ++col)
-	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::red)), Qt::ForegroundRole);
-    } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "active") {
-      for (int col = 0; col < 4; ++col)
-	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::darkGreen)), Qt::ForegroundRole);
-    } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "failed") {
-      for (int col = 0; col < 4; ++col)
-	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::darkRed)), Qt::ForegroundRole); 
-    } else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "-") {
-      for (int col = 0; col < 4; ++col)
-	unitsModel->setData(unitsModel->index(row,col), QVariant(QColor(Qt::darkGray)), Qt::ForegroundRole);
-    }
+    if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "inactive")
+      newcolor = Qt::red;
+    else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "active")
+      newcolor = Qt::darkGreen;
+    else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "failed")
+      newcolor = Qt::darkRed;
+    else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "-")
+      newcolor = Qt::darkGray;
+    else
+      newcolor = Qt::black;
+    for (int col = 0; col < 4; ++col)
+      unitsModel->setData(unitsModel->index(row,col), QVariant(newcolor), Qt::ForegroundRole);
   }
   
   // Update unit properties for the selected unit
