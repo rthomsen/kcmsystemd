@@ -76,8 +76,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   
   // Find the configuration directory
   if (QDir("/etc/systemd").exists()) {
-    //etcDir = "/etc/systemd";
-    etcDir = "/home/ragnar/projects/kcmsystemd5/confwrite";
+    etcDir = "/etc/systemd";
   } else if (QDir("/usr/etc/systemd").exists()) {
     etcDir = "/usr/etc/systemd";
   } else {
@@ -373,9 +372,7 @@ void kcmsystemd::initializeInterface()
 
 void kcmsystemd::readConfFile(QString filename)
 { 
-  QString etcReadDir = QString("/etc/systemd");
-  // QFile file (etcDir + "/" + filename);
-  QFile file (etcReadDir + "/" + filename);
+  QFile file (etcDir + "/" + filename);
   if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QTextStream in(&file);
     QString line = in.readLine();
