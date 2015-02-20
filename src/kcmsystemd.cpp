@@ -326,6 +326,8 @@ void kcmsystemd::setupConfigParms()
   confOptList.append(confOption(LOGIND, "HandleSuspendKey", LIST, "suspend", HandlePowerEvents));
   confOptList.append(confOption(LOGIND, "HandleHibernateKey", LIST, "hibernate", HandlePowerEvents));
   confOptList.append(confOption(LOGIND, "HandleLidSwitch", LIST, "suspend", HandlePowerEvents));
+  if (systemdVersion >= 217)
+    confOptList.append(confOption(LOGIND, "HandleLidSwitchDocked", LIST, "ignore", HandlePowerEvents));
   confOptList.append(confOption(LOGIND, "PowerKeyIgnoreInhibited", BOOL, false));
   confOptList.append(confOption(LOGIND, "SuspendKeyIgnoreInhibited", BOOL, false));
   confOptList.append(confOption(LOGIND, "HibernateKeyIgnoreInhibited", BOOL, false));
