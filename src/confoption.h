@@ -53,12 +53,10 @@ class confOption {
     QVariant defVal;
     QString name;
     settingType type;
-    QStringList possibleVals;
+    QStringList possibleVals, selVals;
     qlonglong minVal, maxVal;
     timeUnit defUnit, defReadUnit, minUnit, maxUnit;
     static QStringList capabilities;
-    static QVariantMap resLimitsMap;
-    static void setResLimitsMap(QVariantMap map);
     
     confOption();
     // Used for comparing
@@ -114,10 +112,14 @@ class confOption {
     QVariant getValue() const;
     QString getLineForFile() const;
     QString getFilename() const;
+    QString realName;
+
+    QString getValueAsString();
+    // QString getValueAsMap();
+    QVariantMap mapMultiList;
     
   private:
     QVariant value;
-    QString realName;
     QVariant convertTimeUnit(double, timeUnit, timeUnit);
 };
 

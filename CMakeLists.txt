@@ -4,18 +4,32 @@ set(KCM_SYSTEMD_VERSION_MINOR "7")
 set(KCM_SYSTEMD_VERSION_PATCH "0")
 set(KCM_SYSTEMD_VERSION "${KCM_SYSTEMD_VERSION_MAJOR}.${KCM_SYSTEMD_VERSION_MINOR}.${KCM_SYSTEMD_VERSION_PATCH}")
 
-cmake_minimum_required(VERSION 2.6)
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
-find_package(Qt4 4.6.0 REQUIRED)
-find_package(KDE4 4.4.0 REQUIRED)
-include(KDE4Defaults)
+# Silence a warning
+cmake_policy(SET CMP0037 OLD)
 
-include_directories( ${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} )
-include_directories( ${KDE4_INCLUDES} )
-add_definitions( ${KDE4_DEFINITIONS} )
+find_package(ECM REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
 
-set(kcmsystemd_INCLUDE_DIRS ${KDE4_INCLUDES})
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+find_package(Qt5 5.0.0 CONFIG REQUIRED COMPONENTS
+             Widgets
+             DBus)
+
+find_package(KF5 REQUIRED COMPONENTS 
+             ConfigWidgets
+             CoreAddons
+             I18n
+             Auth)
+
+include(KDEInstallDirs)
+include(KDECompilerSettings)
+include(KDECMakeSettings)
+include(FeatureSummary)
+include(CheckIncludeFiles)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
 

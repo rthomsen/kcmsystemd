@@ -17,12 +17,14 @@
 
 #include "helper.h"
 
-#include <QtDBus>
+#include <QtDBus/QtDBus>
+#include <QFile>
 
 #include "../config.h"
 
-ActionReply Helper::save(QVariantMap args)
+ActionReply Helper::save(const QVariantMap& args)
 {
+  qDebug() << "In the helper!";
   ActionReply reply;
   QVariantMap files = args["files"].toMap();
   
@@ -31,9 +33,9 @@ ActionReply Helper::save(QVariantMap args)
     QString contents = iter.value().toString();
     QFile file(args["etcDir"].toString() + "/" + iter.key());
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-      reply = ActionReply::HelperErrorReply;
+      reply = ActionReply::HelperErrorReply();
       reply.addData("errorDescription", file.errorString());
-      reply.setErrorCode(file.error());
+      // reply.setErrorCode(file.error());
       reply.addData("filename", iter.key());
       return reply;
     }
@@ -46,7 +48,7 @@ ActionReply Helper::save(QVariantMap args)
   return reply;
 }
 
-ActionReply Helper::dbusaction(QVariantMap args)
+ActionReply Helper::dbusaction(const QVariantMap& args)
 {
   ActionReply reply;
   QDBusMessage dbusreply;
@@ -95,4 +97,4 @@ ActionReply Helper::dbusaction(QVariantMap args)
   return reply;
 }
 
-KDE4_AUTH_HELPER_MAIN("org.kde.kcontrol.kcmsystemd", Helper)
+KAUTH_HELPER_MAIN("org.kde.kcontrol.kcmsystemd", Helper)

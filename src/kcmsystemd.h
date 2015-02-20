@@ -18,13 +18,18 @@
 #ifndef KCMSYSTEMD_H
 #define KCMSYSTEMD_H
 
-#include <QtDBus>
+#include <QtDBus/QtDBus>
 #include <QStandardItemModel>
 #include <QSortFilterProxyModel>
+#include <QDialog>
 
 #include <KCModule>
+// #include <klocalizedstring.h>
+
 #include "ui_kcmsystemd.h"
 #include "confoption.h"
+#include "confmodel.h"
+#include "confdelegate.h"
 
 // struct for storing units retrieved from systemd via DBus
 struct SystemdUnit
@@ -63,44 +68,45 @@ class kcmsystemd : public KCModule
   Q_OBJECT
 
   public:
-    explicit kcmsystemd(QWidget *parent = 0, const QVariantList &list = QVariantList());
+    explicit kcmsystemd(QWidget *parent,  const QVariantList &args);
+    ~kcmsystemd();
     void defaults();
     void load();
     void save();
-        
+    static ConfModel *confModel;
+    static QList<confOption> confOptList;
+
   private:
     Ui::kcmsystemd ui;
     void setupSignalSlots();
     void initializeInterface();
     void setupUnitslist();
     void readConfFile(QString);
-    void applyToInterface();
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
     bool eventFilter(QObject *, QEvent*);
     void updateUnitProps(QString);
     void updateUnitCount();
     void setupConfigParms();
+    void populateConfModel();
     QProcess *kdeConfig;
     QVariantMap unitpaths;
-    QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct;
+    QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct, *proxyModelConf;
     QStandardItemModel *unitsModel;
     QList<SystemdUnit> unitslist;
     QList<unitfile> unitfileslist;
-    QList<confOption> confOptList;
+    QStringList listConfFiles;
     QString kdePrefix, selectedUnit, etcDir, filterUnitType, searchTerm;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
     int systemdVersion, timesLoad, lastRowChecked, selectedRow, noActUnits;
     qulonglong partPersSizeMB, partVolaSizeMB;
     bool isPersistent, varLogDirExists;
+    
+    void setupConf();
 
   private slots:
     void slotKdeConfig();
     void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
-    void slotBtnStartUnit();
-    void slotBtnStopUnit();    
-    void slotBtnRestartUnit();
-    void slotBtnReloadUnit(); 
     void slotChkShowUnits();
     void slotCmbUnitTypes();
     void slotDisplayMenu(const QPoint &);
@@ -111,21 +117,8 @@ class kcmsystemd : public KCModule
     void slotUnitFilesChanged();
     void slotPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLeSearchUnitChanged(QString);
-    void slotOpenResourceLimits();
-    void slotOpenEnviron();
-    void slotOpenAdvanced();
-    void slotJrnlStorageChanged(int);
-    void slotFwdToSyslogChanged();
-    void slotFwdToKmsgChanged();
-    void slotFwdToConsoleChanged();
-    void slotFwdToWallChanged();
-    void slotJrnlStorageChkBoxes(int);
-    void slotSpnMaxUseChanged();
-    void slotSpnKeepFreeChanged();
-    void slotSpnMaxFileSizeChanged();
-    void slotKillUserProcessesChanged();
-    void slotUpdateConfOption();
-    void slotCoreStorageChanged(int);
+    void slotUpdateConfOption(QStandardItem*);
+    void slotCmbConfFileChanged(int);
 };
 
 #endif // kcmsystemd_H

@@ -15,44 +15,18 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************/
 
-#ifndef ADVANCED_H
-#define ADVANCED_H
- 
-#include "ui_advanced.h"
- 
-class AdvancedDialog : public KDialog
+#ifndef CONFMODEL_H
+#define CONFMODEL_H
+
+#include <QStandardItemModel>
+
+class ConfModel : public QStandardItemModel
 {
   Q_OBJECT
-
-  public:
-    explicit AdvancedDialog(QWidget *parent = 0,
-                            QVariantMap args = QVariantMap());
-    
-    bool getChanged();
-    QString getJoinControllers();
-    QString getDefaultControllers();
-    qulonglong getTimerSlack();
-    qulonglong getRuntimeWatchdog();
-    qulonglong getShutdownWatchdog();
-    QVariantMap getCPUAffinity();
-    bool getCPUAffActive();
-    QVariantMap getSystemCallArchitectures();
-    bool getSysCallActive();
-    QVariantMap getCapabilities();
-    bool getCapActive();
   
-  private slots:  
-    virtual void slotButtonClicked(int button);
-    void slotChanged();
-    void slotChkCPUAffinityChanged();
-    void slotChkSystemCallArchitecturesChanged();
-    void slotOpenCapabilities();
- 
-  private:
-    bool changed;
-    QVariantMap tempCap;
-    bool tempCapActive;
-    Ui::AdvancedDialog ui;
+public:
+  ConfModel(QObject *parent = 0);
+  Qt::ItemFlags flags (const QModelIndex & index) const;
 };
- 
-#endif
+  
+#endif // CONFMODEL_H

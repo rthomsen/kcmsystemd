@@ -28,7 +28,6 @@ QStringList confOption::capabilities = QStringList() << "CAP_AUDIT_CONTROL" << "
                                            << "CAP_SETUID" << "CAP_SYS_ADMIN" << "CAP_SYS_BOOT" << "CAP_SYS_CHROOT" << "CAP_SYS_MODULE"
                                            << "CAP_SYS_NICE" << "CAP_SYS_PACCT" << "CAP_SYS_PTRACE" << "CAP_SYS_RAWIO" << "CAP_SYS_RESOURCE"
                                            << "CAP_SYS_TIME" << "CAP_SYS_TTY_CONFIG" << "CAP_SYSLOG" << "CAP_WAKE_ALARM";
-QVariantMap confOption::resLimitsMap = QVariantMap();
 
 bool confOption::operator==(const confOption& other) const
 {
@@ -56,7 +55,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType)
   realName = newName;
   name = QString(newName + "_" + QString::number(file));
   type = newType;
-  defVal = "infinity";
+  defVal = -1;
   value = defVal;
 }
 
@@ -124,6 +123,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
   foreach (QString s, possibleVals)
     map[s] = false;
   defVal = map;
+  value = defVal;
 }
 
 // TIME
@@ -146,6 +146,8 @@ int confOption::setValueFromFile(QString line)
   // Used to set values in confOptions from a file line
   
   QString rval = line.section("=",1).trimmed();
+
+  qDebug() << "setting value: " << rval;
     
   if (type == BOOL)
   {
@@ -223,13 +225,22 @@ int confOption::setValueFromFile(QString line)
       if (readList.contains(possibleVals.at(i)))
       {
         map[possibleVals.at(i)] = true;
+        mapMultiList[possibleVals.at(i)] = true;
       }
       else
       {
         map[possibleVals.at(i)] = false;
+        mapMultiList[possibleVals.at(i)] = false;
       }
     }
-    
+    // qDebug() << map;
+    /*
+    for(QVariantMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
+    {
+      qDebug() << iter.key() << " = " << iter.value();
+    }
+    */
+
     active = true;
     value = map;
     return 0;
@@ -409,14 +420,12 @@ int confOption::setValueFromFile(QString line)
     {
       active = true;
       value = nmbr;
-      resLimitsMap[name] = value;
       return 0;
     }
     else if (rval.toLower().trimmed() == "infinity" || rval.trimmed().isEmpty())
     {
       active = true;
-      value = "infinity";
-      resLimitsMap[name] = value;
+      value = -1;
       return 0;
     }
     qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
@@ -550,6 +559,16 @@ QString confOption::getLineForFile() const
     else
       return QString("#" + realName + "=\n");
   }
+
+  /*
+  else if (type == RESLIMIT)
+  {
+    if (getValue() != defVal)
+      return QString(realName + "=" + value.toString() + "M\n");
+    else
+      return QString("#" + realName + "=\n");
+  }
+  */
   
   if (getValue() != defVal)
     return QString(realName + "=" + value.toString() + "\n");
@@ -568,12 +587,6 @@ QString confOption::getFilename() const
   else if (file == COREDUMP)
     return QString("coredump.conf");
   return QString("");
-}
-
-void confOption::setResLimitsMap(QVariantMap map)
-{
-  resLimitsMap.clear();
-  resLimitsMap = map;
 }
 
 bool confOption::isDefault() const
@@ -668,4 +681,23 @@ QVariant confOption::convertTimeUnit(double value, timeUnit oldTime, timeUnit ne
     convertedVal = boost::chrono::duration_cast<years>(tmpSecs).count();
 
   return convertedVal;
+}
+
+QString confOption::getValueAsString()
+{
+  if (type == MULTILIST)
+  {
+    QVariantMap map = value.toMap();
+    // qDebug() << map;
+    QString mapAsString;
+    for(QVariantMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
+    {
+      if (iter.value() == true && mapAsString.isEmpty())
+        mapAsString = QString(iter.key());
+      else if (iter.value() == true)
+        mapAsString = QString(mapAsString + " " + iter.key());
+    }
+    return mapAsString;
+  }
+  return value.toString();
 }

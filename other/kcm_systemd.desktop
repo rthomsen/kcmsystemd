@@ -2,7 +2,7 @@
 Icon=system-run
 Type=Service
 X-KDE-ServiceTypes=KCModule
-Exec=kcmshell4 kcm_systemd
+Exec=kcmshell5 kcm_systemd
 
 X-KDE-Library=kcm_systemd
 X-KDE-ParentApp=kcontrol

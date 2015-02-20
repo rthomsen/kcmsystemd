@@ -15,29 +15,18 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************/
 
-#ifndef RESLIMITS_H
-#define RESLIMITS_H
- 
-#include "ui_reslimits.h"
- 
-class ResLimitsDialog : public KDialog
+#include "confmodel.h"
+
+ConfModel::ConfModel(QObject *parent)
+ : QStandardItemModel(parent)
 {
-  Q_OBJECT
+}
 
-  public:
-    explicit ResLimitsDialog(QWidget *parent = 0,
-                             QVariantMap resLimitsMap = QVariantMap());
-    bool getChanged();
-    QVariantMap getResLimits();
-
-  private slots:
-    virtual void slotButtonClicked(int button);
-    void slotChkChanged();
-    void slotChanged();
- 
-  private:
-    bool changed;
-    Ui::ResLimitsDialog ui;
-};
- 
-#endif
+Qt::ItemFlags ConfModel::flags ( const QModelIndex & index ) const
+{
+  Qt::ItemFlags flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+  if (index.column() == 1) {
+    return flags | Qt::ItemIsEditable;
+  }
+  return flags;
+}

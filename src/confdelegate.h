@@ -15,32 +15,27 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************/
 
-#ifndef ENVIRON_H
-#define ENVIRON_H
- 
-#include "ui_environ.h"
- 
-class EnvironDialog : public KDialog
+#ifndef CONFDELEGATE_H
+#define CONFDELEGATE_H
+
+#include <QStyledItemDelegate>
+
+class ConfDelegate : public QStyledItemDelegate
 {
   Q_OBJECT
-
-  public:
-    explicit EnvironDialog(QWidget *parent=0,
-                           QString environ = "");
-    void addNewVariable(int, QString, QString);    
-    bool getChanged();
-    QString getEnviron();
   
-  private:
-    Ui::EnvironDialog ui;
-    int addedVars;
-    bool changed;
-    QList<QPair<QString, QString> > environ;
-    
-  private slots:
-    void slotButtonClicked(int button);
-    void slotNewVariable();
-    void slotRemoveVariable(const int &index);
+public:
+  ConfDelegate(QObject *parent = 0);
+
+  QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                        const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+  void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
+  void setModelData(QWidget *editor, QAbstractItemModel *model,
+                    const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+  void updateEditorGeometry(QWidget *editor,
+      const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
 };
- 
-#endif
+
+#endif // CONFDELEGATE_H
