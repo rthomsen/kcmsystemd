@@ -186,17 +186,31 @@ void kcmsystemd::setupSignalSlots()
 
 void kcmsystemd::load()
 {
-  // Only initialize the interface once
+  // Only populate comboboxes once
   if (timesLoad == 0)
-    initializeInterface();
+  {
+    QStringList allowUnitTypes = QStringList() << "All unit types" << "Targets" << "Services"
+                                               << "Devices" << "Mounts" << "Automounts" << "Swaps"
+                                               << "Sockets" << "Paths" << "Timers" << "Snapshots"
+                                               << "Slices" << "Scopes";
+    ui.cmbUnitTypes->addItems(allowUnitTypes);
+    ui.cmbConfFile->addItems(listConfFiles);
+  }
+  timesLoad = timesLoad + 1;
   
+  // Set all confOptions to default
+  // This is needed to clear user changes when resetting the KCM
+  for (int i = 0; i < confOptList.size(); ++i)
+  {
+    confOptList[i].setToDefault();
+  }
+
   // Read the four configuration files
-  readConfFile("system.conf");
-  readConfFile("journald.conf");
-  readConfFile("logind.conf");
-  if (systemdVersion >= 215)
-    readConfFile("coredump.conf");
-  
+  for (int i = 0; i < listConfFiles.size(); ++i)
+  {
+    readConfFile(i);
+  }
+
   // Connect signals to slots, which need to be after initializeInterface()
   connect(confModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(slotConfChanged(const QModelIndex &, const QModelIndex &)));
 }
@@ -355,68 +369,33 @@ void kcmsystemd::setupConfigParms()
   }
 }
 
-void kcmsystemd::initializeInterface()
+void kcmsystemd::readConfFile(int fileindex)
 {
-  // This function must only be run once
-  timesLoad = timesLoad + 1;
-
-  // Populate comboboxes
-  QStringList allowUnitTypes = QStringList() << "All unit types" << "Targets" << "Services"
-                                             << "Devices" << "Mounts" << "Automounts" << "Swaps" 
-                                             << "Sockets" << "Paths" << "Timers" << "Snapshots" 
-                                             << "Slices" << "Scopes";
-  ui.cmbUnitTypes->addItems(allowUnitTypes);
-  ui.cmbConfFile->addItems(listConfFiles);
-}
-
-void kcmsystemd::readConfFile(QString filename)
-{ 
-  QFile file (etcDir + "/" + filename);
-  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+  QFile file (etcDir + "/" + listConfFiles.at(fileindex));
+  if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
     QTextStream in(&file);
     QString line = in.readLine();
 
     while(!line.isNull())
     {
-      // qDebug() << "line is: " << line;
-
-      for (int i = 0; i < confOptList.size(); ++i)
+      if (!line.startsWith('#') && !line.startsWith('[') && !line.isEmpty())
       {
-        
-        if (filename == "system.conf" && 
-            confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_0"))
+        // qDebug() << "line: " << line;
+        int index = confOptList.indexOf(confOption(QString(line.section("=",0,0).trimmed()) + "_" + QString::number(fileindex)));
+        if (index > 0)
         {
-          confOptList[i].setValueFromFile(line);
-          break;
+          // qDebug() << "found " << confOptList.at(index).uniqueName << " at index " << index;
+          confOptList[index].setValueFromFile(line);
         }
-        else if (filename == "journald.conf" &&
-                  confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_1"))
-        {
-          confOptList[i].setValueFromFile(line);
-          break;
-        }            
-        else if (filename == "logind.conf" && 
-                  confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_2"))
-        {
-          confOptList[i].setValueFromFile(line);
-          break;
-        }
-        
-        else if (filename == "coredump.conf" && 
-                  confOptList.at(i) == confOption(QString(line.section("=",0,0).trimmed()) + "_3"))
-        {
-          confOptList[i].setValueFromFile(line);
-          break;
-        }
-
       }
-
       line = in.readLine();
     } // read lines until empty
-        
+
+    qDebug() << QString("Successfully read " + etcDir + "/" + listConfFiles.at(fileindex));
   } // if file open
-  else 
-    KMessageBox::error(this, i18n("Failed to read %1/%2. Using default values.", etcDir, filename));
+  else
+    KMessageBox::error(this, i18n("Failed to read %1/%2. Using default values.", etcDir, listConfFiles.at(fileindex)));
 }
 
 void kcmsystemd::setupConf()

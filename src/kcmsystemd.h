@@ -79,9 +79,8 @@ class kcmsystemd : public KCModule
   private:
     Ui::kcmsystemd ui;
     void setupSignalSlots();
-    void initializeInterface();
     void setupUnitslist();
-    void readConfFile(QString);
+    void readConfFile(int);
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
     bool eventFilter(QObject *, QEvent*);
     void updateUnitProps(QString);
