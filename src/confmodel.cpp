@@ -70,7 +70,7 @@ QVariant ConfModel::data(const QModelIndex & index, int role) const
   }
   if (role == Qt::UserRole+1 && index.column() == 1)
   {
-    return kcmsystemd::confOptList.at(index.row()).name;
+    return kcmsystemd::confOptList.at(index.row()).uniqueName;
   }
   if (role == Qt::UserRole+2 && index.column() == 1)
   {

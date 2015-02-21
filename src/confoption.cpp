@@ -31,7 +31,7 @@ QStringList confOption::capabilities = QStringList() << "CAP_AUDIT_CONTROL" << "
 
 bool confOption::operator==(const confOption& other) const
 {
-  if (name == other.name)
+  if (uniqueName == other.uniqueName)
     return true;
   else
     return false;
@@ -45,7 +45,7 @@ confOption::confOption(QString newName)
 {
   // Used when searching in confOptList using indexOf() or ==
   realName = newName;
-  name = newName;
+  uniqueName = newName;
 }
 
 // RESLIMIT
@@ -53,7 +53,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType)
 {
   file = newFile;
   realName = newName;
-  name = QString(newName + "_" + QString::number(file));
+  uniqueName = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = -1;
   value = defVal;
@@ -64,7 +64,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 {
   file = newFile;
   realName = newName;
-  name = QString(newName + "_" + QString::number(file));
+  uniqueName = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   value = defVal;
@@ -75,7 +75,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 {
   file = newFile;
   realName = newName;
-  name = QString(newName + "_" + QString::number(file));
+  uniqueName = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   value = defVal; 
@@ -87,7 +87,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 {
   file = newFile;
   realName = newName;
-  name = QString(newName + "_" + QString::number(file));
+  uniqueName = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   minVal = newMinVal;
@@ -100,7 +100,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 {
   file = newFile;
   realName = newName;
-  name = QString(newName + "_" + QString::number(file));
+  uniqueName = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   possibleVals = newPossibleVals;
@@ -112,7 +112,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 {
   file = newFile;
   realName = newName;
-  name = QString(newName + "_" + QString::number(file));
+  uniqueName = QString(newName + "_" + QString::number(file));
   type = newType;
   possibleVals = newPossibleVals;  
   QVariantMap map;
@@ -127,7 +127,7 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 {
   file = newFile;
   realName = newName;
-  name = QString(newName + "_" + QString::number(file));
+  uniqueName = QString(newName + "_" + QString::number(file));
   type = newType;
   defVal = newDefVal;
   defReadUnit = newDefReadUnit;

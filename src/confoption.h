@@ -50,7 +50,7 @@ class confOption {
     
     confFile file;
     QVariant defVal;
-    QString name;
+    QString uniqueName;
     settingType type;
     QStringList possibleVals;
     qlonglong minVal, maxVal;
