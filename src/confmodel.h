@@ -18,14 +18,19 @@
 #ifndef CONFMODEL_H
 #define CONFMODEL_H
 
-#include <QStandardItemModel>
+#include <QAbstractTableModel>
 
-class ConfModel : public QStandardItemModel
+class ConfModel : public QAbstractTableModel
 {
   Q_OBJECT
   
 public:
   ConfModel(QObject *parent = 0);
+  int rowCount(const QModelIndex & parent = QModelIndex()) const;
+  int columnCount(const QModelIndex & parent = QModelIndex()) const;
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+  QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+  virtual bool setData(const QModelIndex & index, const QVariant & value, int role);
   Qt::ItemFlags flags (const QModelIndex & index) const;
 };
   

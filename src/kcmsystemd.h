@@ -87,7 +87,6 @@ class kcmsystemd : public KCModule
     void updateUnitProps(QString);
     void updateUnitCount();
     void setupConfigParms();
-    void populateConfModel();
     QProcess *kdeConfig;
     QVariantMap unitpaths;
     QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct, *proxyModelConf;
@@ -117,7 +116,7 @@ class kcmsystemd : public KCModule
     void slotUnitFilesChanged();
     void slotPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLeSearchUnitChanged(QString);
-    void slotUpdateConfOption(QStandardItem*);
+    void slotConfChanged(const QModelIndex &, const QModelIndex &);
     void slotCmbConfFileChanged(int);
 };
 

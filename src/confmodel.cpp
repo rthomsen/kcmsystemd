@@ -16,10 +16,85 @@
  *******************************************************************************/
 
 #include "confmodel.h"
+#include "kcmsystemd.h"
 
 ConfModel::ConfModel(QObject *parent)
- : QStandardItemModel(parent)
+ : QAbstractTableModel(parent)
 {
+}
+
+int ConfModel::rowCount(const QModelIndex &) const
+{
+  return kcmsystemd::confOptList.size();
+}
+
+int ConfModel::columnCount(const QModelIndex &) const
+{
+  return 3;
+}
+
+QVariant ConfModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (orientation == Qt::Horizontal && role == Qt::DisplayRole && section == 0)
+    return QString("Item");
+  if (orientation == Qt::Horizontal && role == Qt::DisplayRole && section == 1)
+    return QString("Value");
+  return QVariant();
+}
+
+QVariant ConfModel::data(const QModelIndex & index, int role) const
+{
+  if (!index.isValid())
+    return QVariant();
+
+  if (role == Qt::DisplayRole)
+  {
+    if (index.column() == 0)
+      return kcmsystemd::confOptList.at(index.row()).realName;
+    else if (index.column() == 1)
+      return kcmsystemd::confOptList.at(index.row()).getValueAsString();
+    else if (index.column() == 2)
+      return kcmsystemd::confOptList.at(index.row()).getFilename();
+  }
+  if (role == Qt::UserRole && index.column() == 1)
+  {
+    return kcmsystemd::confOptList.at(index.row()).type;
+  }
+  if (role == Qt::UserRole+1 && index.column() == 1)
+  {
+    return kcmsystemd::confOptList.at(index.row()).name;
+  }
+  if (role == Qt::UserRole+2 && index.column() == 1)
+  {
+    return QVariant(kcmsystemd::confOptList.at(index.row()).getValue().toMap());
+  }
+
+  QFont newfont;
+  newfont.setBold(true);
+
+  if (role == Qt::FontRole && !kcmsystemd::confOptList.at(index.row()).isDefault())
+    return newfont;
+
+  // qDebug() << kcmsystemd::confOptList.at(index.row()).realName;
+  return QVariant();
+}
+
+bool ConfModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+  if (!value.isValid())
+    return false;
+
+  if (role == Qt::DisplayRole && index.column() == 1)
+  {
+    kcmsystemd::confOptList[index.row()].setValue(value);
+  }
+  else if (role == Qt::UserRole+2 && index.column() == 1)
+  {
+    kcmsystemd::confOptList[index.row()].setValue(value);
+  }
+
+  emit dataChanged(index, index);
+  return true;
 }
 
 Qt::ItemFlags ConfModel::flags ( const QModelIndex & index ) const

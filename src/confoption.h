@@ -49,11 +49,10 @@ class confOption {
     typedef enum timeUnit { ns, us, ms, s, min, h, d, w, month, year } timeUnit;
     
     confFile file;
-    bool active;
     QVariant defVal;
     QString name;
     settingType type;
-    QStringList possibleVals, selVals;
+    QStringList possibleVals;
     qlonglong minVal, maxVal;
     timeUnit defUnit, defReadUnit, minUnit, maxUnit;
     static QStringList capabilities;
@@ -114,9 +113,8 @@ class confOption {
     QString getFilename() const;
     QString realName;
 
-    QString getValueAsString();
-    // QString getValueAsMap();
-    QVariantMap mapMultiList;
+    QString getValueAsString() const;
+    QString getFileName() const;
     
   private:
     QVariant value;

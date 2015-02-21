@@ -24,7 +24,6 @@
 
 ActionReply Helper::save(const QVariantMap& args)
 {
-  qDebug() << "In the helper!";
   ActionReply reply;
   QVariantMap files = args["files"].toMap();
   

@@ -62,7 +62,6 @@ confOption::confOption(confFile newFile, QString newName, settingType newType)
 // BOOL and STRING
 confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal)
 {
-  active = false;
   file = newFile;
   realName = newName;
   name = QString(newName + "_" + QString::number(file));
@@ -74,7 +73,6 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 // SIZE
 confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, qulonglong newMaxVal)
 {
-  active = false;
   file = newFile;
   realName = newName;
   name = QString(newName + "_" + QString::number(file));
@@ -101,7 +99,6 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, QStringList newPossibleVals)
 {
   file = newFile;
-  active = false;
   realName = newName;
   name = QString(newName + "_" + QString::number(file));
   type = newType;
@@ -114,7 +111,6 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
 confOption::confOption(confFile newFile, QString newName, settingType newType, QStringList newPossibleVals)
 {
   file = newFile;
-  active = false;
   realName = newName;
   name = QString(newName + "_" + QString::number(file));
   type = newType;
@@ -147,7 +143,7 @@ int confOption::setValueFromFile(QString line)
   
   QString rval = line.section("=",1).trimmed();
 
-  qDebug() << "setting value: " << rval;
+  qDebug() << "setting " << realName << " to " << rval << " (from file)";
     
   if (type == BOOL)
   {
@@ -171,7 +167,6 @@ int confOption::setValueFromFile(QString line)
     qlonglong rvalToNmbr = rval.toLongLong(&ok);
     if (ok && rvalToNmbr >= minVal && rvalToNmbr <= maxVal)
     {
-      active = true;
       value = rvalToNmbr;
       return 0;
     }
@@ -181,7 +176,6 @@ int confOption::setValueFromFile(QString line)
 
   else if (type == STRING)
   {
-    active = true;
     value = rval;
     return 0;
   }  
@@ -197,7 +191,6 @@ int confOption::setValueFromFile(QString line)
     }
     if (possibleVals.contains(rval.toLower()))
     {
-      active = true;
       value = rval.toLower();
       return 0;
     }
@@ -225,23 +218,15 @@ int confOption::setValueFromFile(QString line)
       if (readList.contains(possibleVals.at(i)))
       {
         map[possibleVals.at(i)] = true;
-        mapMultiList[possibleVals.at(i)] = true;
+        // mapMultiList[possibleVals.at(i)] = true;
       }
       else
       {
         map[possibleVals.at(i)] = false;
-        mapMultiList[possibleVals.at(i)] = false;
+        // mapMultiList[possibleVals.at(i)] = false;
       }
     }
-    // qDebug() << map;
-    /*
-    for(QVariantMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
-    {
-      qDebug() << iter.key() << " = " << iter.value();
-    }
-    */
 
-    active = true;
     value = map;
     return 0;
 
@@ -418,13 +403,11 @@ int confOption::setValueFromFile(QString line)
     int nmbr = rval.toUInt(&ok);
     if (ok)
     {
-      active = true;
       value = nmbr;
       return 0;
     }
     else if (rval.toLower().trimmed() == "infinity" || rval.trimmed().isEmpty())
     {
-      active = true;
       value = -1;
       return 0;
     }
@@ -473,6 +456,7 @@ int confOption::setValueFromFile(QString line)
 
 int confOption::setValue(QVariant variant)
 {
+  qDebug() << "Setting " << realName << " to " << variant;
   value = variant;
   return 0;
 }
@@ -500,7 +484,7 @@ QString confOption::getLineForFile() const
   
   else if (type == MULTILIST)
   {
-    if (active && getValue() != defVal)
+    if (getValue() != defVal)
     {
       if (!value.toMap().isEmpty())
       {
@@ -683,7 +667,7 @@ QVariant confOption::convertTimeUnit(double value, timeUnit oldTime, timeUnit ne
   return convertedVal;
 }
 
-QString confOption::getValueAsString()
+QString confOption::getValueAsString() const
 {
   if (type == MULTILIST)
   {
@@ -700,4 +684,17 @@ QString confOption::getValueAsString()
     return mapAsString;
   }
   return value.toString();
+}
+
+QString confOption::getFileName() const
+{
+  if (file == SYSTEMD)
+    return QString("system.conf");
+  else if (file == JOURNALD)
+    return QString("journald.conf");
+  else if (file == LOGIND)
+    return QString("logind.conf");
+  else if (file == COREDUMP)
+    return QString("coredump.conf");
+  return QString();
 }

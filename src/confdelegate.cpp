@@ -34,34 +34,34 @@ QWidget *ConfDelegate::createEditor(QWidget *parent,
 
   // qDebug() << "Creating editor";
 
-  QString name = index.data(Qt::UserRole+3).toString();
+  QString name = index.data(Qt::UserRole+1).toString();
   int confIndex = kcmsystemd::confOptList.indexOf(confOption(name));
   confOption const *opt = &kcmsystemd::confOptList.at(confIndex);
 
-  if (index.data(Qt::UserRole+1) == BOOL)
+  if (index.data(Qt::UserRole) == BOOL)
   {
     QComboBox *editor = new QComboBox(parent);
     QStringList list = (QStringList() << "true" << "false");
     editor->addItems(list);
     return editor;
   }
-  else if (index.data(Qt::UserRole+1) == TIME ||
-           index.data(Qt::UserRole+1) == INTEGER ||
-           index.data(Qt::UserRole+1) == RESLIMIT ||
-           index.data(Qt::UserRole+1) == SIZE)
+  else if (index.data(Qt::UserRole) == TIME ||
+           index.data(Qt::UserRole) == INTEGER ||
+           index.data(Qt::UserRole) == RESLIMIT ||
+           index.data(Qt::UserRole) == SIZE)
   {
     QSpinBox *editor = new QSpinBox(parent);
-    if (index.data(Qt::UserRole+1) == RESLIMIT)
+    if (index.data(Qt::UserRole) == RESLIMIT)
       editor->setMinimum(-1);
     else
       editor->setMinimum(0);
-    if (index.data(Qt::UserRole+1) == SIZE)
+    if (index.data(Qt::UserRole) == SIZE)
       editor->setMaximum(opt->maxVal);
     else
       editor->setMaximum(999999999);
     return editor;
   }
-  else if (index.data(Qt::UserRole+1) == LIST)
+  else if (index.data(Qt::UserRole) == LIST)
   {
     QComboBox *editor = new QComboBox(parent);
 
@@ -72,7 +72,7 @@ QWidget *ConfDelegate::createEditor(QWidget *parent,
     // editor->setFrame(false);
     return editor;
   }
-  else if (index.data(Qt::UserRole+1) == MULTILIST)
+  else if (index.data(Qt::UserRole) == MULTILIST)
   {
     QComboBox *editor = new QComboBox(parent);
 
@@ -106,9 +106,9 @@ void ConfDelegate::setEditorData(QWidget *editor,
 
   // qDebug() << "Setting editor data";
 
-  if (index.data(Qt::UserRole+1) == BOOL)
+  if (index.data(Qt::UserRole) == BOOL)
   {
-    QString value = index.model()->data(index, Qt::EditRole).toString().toLower();
+    QString value = index.model()->data(index, Qt::DisplayRole).toString().toLower();
     if (value == "true" || value == "on" || value == "yes")
       value = "true";
     else if (value == "false" || value == "off" || value == "no")
@@ -116,22 +116,22 @@ void ConfDelegate::setEditorData(QWidget *editor,
     QComboBox *cmb = static_cast<QComboBox*>(editor);
     cmb->setCurrentIndex(cmb->findText(value));
   }
-  else if (index.data(Qt::UserRole+1) == TIME ||
-           index.data(Qt::UserRole+1) == INTEGER ||
-           index.data(Qt::UserRole+1) == RESLIMIT ||
-           index.data(Qt::UserRole+1) == SIZE)
+  else if (index.data(Qt::UserRole) == TIME ||
+           index.data(Qt::UserRole) == INTEGER ||
+           index.data(Qt::UserRole) == RESLIMIT ||
+           index.data(Qt::UserRole) == SIZE)
   {
     QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
-    int value = index.model()->data(index, Qt::EditRole).toInt();
+    int value = index.model()->data(index, Qt::DisplayRole).toInt();
     spinBox->setValue(value);
   }
-  else if (index.data(Qt::UserRole+1) == LIST)
+  else if (index.data(Qt::UserRole) == LIST)
   {
-    QString value = index.model()->data(index, Qt::EditRole).toString();
+    QString value = index.model()->data(index, Qt::DisplayRole).toString();
     QComboBox *cmb = static_cast<QComboBox*>(editor);
     cmb->setCurrentIndex(cmb->findText(value));
   }
-  else if (index.data(Qt::UserRole+1) == MULTILIST)
+  else if (index.data(Qt::UserRole) == MULTILIST)
   {
     QComboBox *cmb = static_cast<QComboBox*>(editor);
     QVariantMap map = index.data(Qt::UserRole+2).toMap();
@@ -144,11 +144,10 @@ void ConfDelegate::setEditorData(QWidget *editor,
       else
         cmb->setItemData(cmb->findText(iter.key()), Qt::Unchecked, Qt::CheckStateRole);
     }
-
   }
   else
   {
-    QString value = index.model()->data(index, Qt::EditRole).toString();
+    QString value = index.model()->data(index, Qt::DisplayRole).toString();
     QLineEdit *le = static_cast<QLineEdit*>(editor);
     le->setText(value);
   }
@@ -159,34 +158,30 @@ void ConfDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 {
   // Set data in model from the editor
 
-  // qDebug() << "Setting model data";
-
-  QString name = index.data(Qt::UserRole+3).toString();
-  int confIndex = kcmsystemd::confOptList.indexOf(confOption(name));
-  confOption const *opt = &kcmsystemd::confOptList.at(confIndex);
+  // qDebug() << "Setting model data (index " << index << ")";
   
   QVariant value;
   
-  if (index.data(Qt::UserRole+1) == BOOL)
+  if (index.data(Qt::UserRole) == BOOL)
   {
     QComboBox *cmb = static_cast<QComboBox*>(editor);
     value = cmb->currentText();
   }
-  else if (index.data(Qt::UserRole+1) == TIME ||
-           index.data(Qt::UserRole+1) == INTEGER ||
-           index.data(Qt::UserRole+1) == RESLIMIT ||
-           index.data(Qt::UserRole+1) == SIZE)
+  else if (index.data(Qt::UserRole) == TIME ||
+           index.data(Qt::UserRole) == INTEGER ||
+           index.data(Qt::UserRole) == RESLIMIT ||
+           index.data(Qt::UserRole) == SIZE)
   {
     QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
     spinBox->interpretText();
     value = spinBox->value();
   }
-  else if (index.data(Qt::UserRole+1) == LIST)
+  else if (index.data(Qt::UserRole) == LIST)
   {
     QComboBox *cmb = static_cast<QComboBox*>(editor);
     value = cmb->currentText();
   }
-  else if (index.data(Qt::UserRole+1) == MULTILIST)
+  else if (index.data(Qt::UserRole) == MULTILIST)
   {
     QComboBox *cmb = static_cast<QComboBox*>(editor);
 
@@ -194,48 +189,21 @@ void ConfDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
     for(int i = 0; i < cmb->count(); i++)
     {
       if (cmb->itemData(i, Qt::CheckStateRole) == Qt::Checked)
-      {
         map[cmb->itemText(i)] = true;
-      }
       else
-      {
         map[cmb->itemText(i)] = false;
-      }
-      // qDebug() << "Setting " << cmb->itemText(i) << "to " << map[cmb->itemText(i)];
     }
     model->setData(index, QVariant(map), Qt::UserRole+2);
-
-    QString mapAsString;
-    for(QVariantMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
-    {
-      if (iter.value() == true && mapAsString.isEmpty())
-        mapAsString = QString(iter.key());
-      else if (iter.value() == true)
-        mapAsString = QString(mapAsString + " " + iter.key());
-    }
-    value = mapAsString;
+    return;
   }
   else
   {
     QLineEdit *le = static_cast<QLineEdit*>(editor);
     value = le->text();
   }
-  model->setData(index, value, Qt::EditRole);
-
-  QFont reg, bold;
-  reg = kcmsystemd::confModel->item(0,0)->font();
-  bold = reg;
-  bold.setBold(true);
-  if (!opt->isDefault())
-  {
-    kcmsystemd::confModel->item(index.row(),0)->setFont(bold);
-    kcmsystemd::confModel->item(index.row(),1)->setFont(bold);
-  }
-  else
-  {
-    kcmsystemd::confModel->item(index.row(),0)->setFont(reg);
-    kcmsystemd::confModel->item(index.row(),1)->setFont(reg);
-  }
+  // qDebug() << "before" << model->data(index, Qt::DisplayRole);
+  model->setData(index, value, Qt::DisplayRole);
+  // qDebug() << "after" << model->data(index, Qt::DisplayRole);
 }
 
 void ConfDelegate::updateEditorGeometry(QWidget *editor,
@@ -243,4 +211,3 @@ void ConfDelegate::updateEditorGeometry(QWidget *editor,
 {
     editor->setGeometry(option.rect);
 }
-
