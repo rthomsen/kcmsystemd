@@ -130,7 +130,7 @@
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reload the list of units from systemd.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>Refresh list</string>
+                <string>Refresh</string>
                </property>
                <property name="flat">
                 <bool>false</bool>

@@ -459,7 +459,7 @@ void kcmsystemd::setupUnitslist()
 
 void kcmsystemd::defaults()
 {
-  if (KMessageBox::warningYesNo(this, i18n("Load deafult settings for all tabs?")) == KMessageBox::Yes)
+  if (KMessageBox::warningYesNo(this, i18n("Load default settings for all files?")) == KMessageBox::Yes)
   { 
     //defaults for system.conf
     for (int i = 0; i < confOptList.size(); ++i)
