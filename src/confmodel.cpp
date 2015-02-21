@@ -50,7 +50,12 @@ QVariant ConfModel::data(const QModelIndex & index, int role) const
   if (role == Qt::DisplayRole)
   {
     if (index.column() == 0)
-      return kcmsystemd::confOptList.at(index.row()).realName;
+    {
+      if (kcmsystemd::confOptList.at(index.row()).type == SIZE)
+        return QString(kcmsystemd::confOptList.at(index.row()).realName + " (MB)");
+      else
+        return kcmsystemd::confOptList.at(index.row()).realName;
+    }
     else if (index.column() == 1)
       return kcmsystemd::confOptList.at(index.row()).getValueAsString();
     else if (index.column() == 2)
