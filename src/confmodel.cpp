@@ -53,6 +53,9 @@ QVariant ConfModel::data(const QModelIndex & index, int role) const
     {
       if (kcmsystemd::confOptList.at(index.row()).type == SIZE)
         return QString(kcmsystemd::confOptList.at(index.row()).realName + " (MB)");
+      else if (kcmsystemd::confOptList.at(index.row()).type == TIME)
+        return QString(kcmsystemd::confOptList.at(index.row()).realName + " (" +
+                       kcmsystemd::confOptList.at(index.row()).getTimeUnit() + ")");
       else
         return kcmsystemd::confOptList.at(index.row()).realName;
     }

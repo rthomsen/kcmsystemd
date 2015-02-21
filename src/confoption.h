@@ -115,6 +115,7 @@ class confOption {
 
     QString getValueAsString() const;
     QString getFileName() const;
+    QString getTimeUnit() const;
     
   private:
     QVariant value;

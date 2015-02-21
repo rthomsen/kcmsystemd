@@ -698,3 +698,11 @@ QString confOption::getFileName() const
     return QString("coredump.conf");
   return QString();
 }
+
+QString confOption::getTimeUnit() const
+{
+  QStringList timeUnitAsString = QStringList() << "ns" << "us" << "ms" << "s" <<
+                                          "min" << "h" << "d" << "w" <<
+                                          "month" << "year";
+  return timeUnitAsString.at(defUnit);
+}
