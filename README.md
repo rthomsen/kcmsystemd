@@ -33,4 +33,6 @@ Kcmsystemd can be accessed through System Settings, or by issuing the command:
 
 
 Developed by: Ragnar Thomsen (rthomsen6@gmail.com)  
-Website: https://github.com/rthomsen/kcmsystemd  
+Website: https://github.com/rthomsen/kcmsystemd
+
+![](https://github.com/github/rthomsen/kcmsystemd/master/screenshot1.png)
