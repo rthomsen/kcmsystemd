@@ -9,11 +9,11 @@ Integrates in the System Settings dialogue in KDE.
 
 Installation
 ------------
-mkdir build  
-cd build  
-cmake -DCMAKE_INSTALL_PREFIX=\`kf5-config --prefix\` ..  
-make  
-make install  
+    mkdir build  
+    cd build  
+    cmake -DCMAKE_INSTALL_PREFIX=\`kf5-config --prefix\` ..  
+    make  
+    make install  
 
 
 Dependencies
@@ -29,7 +29,7 @@ Dependencies
 Execution
 ---------
 Kcmsystemd can be accessed through System Settings, or by issuing the command:
-kcmshell5 kcm_systemd
+    kcmshell5 kcm_systemd
 
 
 Developed by: Ragnar Thomsen (rthomsen6@gmail.com)  
