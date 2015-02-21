@@ -71,7 +71,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   }
   delete iface;
 
-  // Use kde4-config to get kde prefix
+  // Use kf5-config to get kde prefix
   kdeConfig = new QProcess(this);
   connect(kdeConfig, SIGNAL(readyReadStandardOutput()), this, SLOT(slotKdeConfig()));
   kdeConfig->start("kf5-config", QStringList() << "--prefix");
@@ -189,7 +189,7 @@ void kcmsystemd::load()
   // Only populate comboboxes once
   if (timesLoad == 0)
   {
-    QStringList allowUnitTypes = QStringList() << "All unit types" << "Targets" << "Services"
+    QStringList allowUnitTypes = QStringList() << "All" << "Targets" << "Services"
                                                << "Devices" << "Mounts" << "Automounts" << "Swaps"
                                                << "Sockets" << "Paths" << "Timers" << "Snapshots"
                                                << "Slices" << "Scopes";
@@ -919,7 +919,14 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   if (a == edit)
   {
     QProcess kwrite (this);
-    kwrite.startDetached(kdePrefix + "/lib/libexec/kdesu", QStringList() << "-t" << "--" << "kwrite" << frpath);
+    QString alt1 = QString(kdePrefix + "/lib/libexec/kdesu");
+    QString alt2 = QString(kdePrefix + "/bin/kdesu");
+    if (QFile(alt1).exists())
+      kwrite.startDetached(alt1, QStringList() << "-t" << "--" << "kwrite" << frpath);
+    else if (QFile(alt2).exists())
+      kwrite.startDetached(alt2, QStringList() << "-t" << "--" << "kwrite" << frpath);
+    else
+      KMessageBox::error(this, i18n("kdesu executable not found. Unable to start kwrite!"));
     return;
   }
 
