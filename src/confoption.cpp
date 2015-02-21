@@ -31,6 +31,7 @@ QStringList confOption::capabilities = QStringList() << "CAP_AUDIT_CONTROL" << "
 
 bool confOption::operator==(const confOption& other) const
 {
+  // Required for indexOf()
   if (uniqueName == other.uniqueName)
     return true;
   else
@@ -43,8 +44,7 @@ confOption::confOption()
 
 confOption::confOption(QString newName)
 {
-  // Used when searching in confOptList using indexOf() or ==
-  realName = newName;
+  // Create an instance necessary for indexOf() or ==
   uniqueName = newName;
 }
 
@@ -135,6 +135,13 @@ confOption::confOption(confFile newFile, QString newName, settingType newType, Q
   minUnit = newMinUnit;
   maxUnit = newMaxUnit;
   value = defVal;
+}
+
+int confOption::setValue(QVariant variant)
+{
+  qDebug() << "Setting " << realName << " to " << variant;
+  value = variant;
+  return 0;
 }
 
 int confOption::setValueFromFile(QString line)
@@ -454,16 +461,41 @@ int confOption::setValueFromFile(QString line)
   return -1;
 }
 
-int confOption::setValue(QVariant variant)
+bool confOption::isDefault() const
 {
-  qDebug() << "Setting " << realName << " to " << variant;
-  value = variant;
-  return 0;
+  if (value == defVal)
+    return true;
+  else
+    return false;
+}
+
+void confOption::setToDefault()
+{
+  value = defVal;
 }
 
 QVariant confOption::getValue() const
 {
   return value;
+}
+
+QString confOption::getValueAsString() const
+{
+  if (type == MULTILIST)
+  {
+    QVariantMap map = value.toMap();
+    // qDebug() << map;
+    QString mapAsString;
+    for(QVariantMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
+    {
+      if (iter.value() == true && mapAsString.isEmpty())
+        mapAsString = QString(iter.key());
+      else if (iter.value() == true)
+        mapAsString = QString(mapAsString + " " + iter.key());
+    }
+    return mapAsString;
+  }
+  return value.toString();
 }
 
 QString confOption::getLineForFile() const
@@ -543,16 +575,6 @@ QString confOption::getLineForFile() const
     else
       return QString("#" + realName + "=\n");
   }
-
-  /*
-  else if (type == RESLIMIT)
-  {
-    if (getValue() != defVal)
-      return QString(realName + "=" + value.toString() + "M\n");
-    else
-      return QString("#" + realName + "=\n");
-  }
-  */
   
   if (getValue() != defVal)
     return QString(realName + "=" + value.toString() + "\n");
@@ -573,17 +595,12 @@ QString confOption::getFilename() const
   return QString("");
 }
 
-bool confOption::isDefault() const
+QString confOption::getTimeUnit() const
 {
-  if (value == defVal)
-    return true;
-  else
-    return false;
-}
-
-void confOption::setToDefault()
-{
-  value = defVal;
+  QStringList timeUnitAsString = QStringList() << "ns" << "us" << "ms" << "s" <<
+                                          "min" << "h" << "d" << "w" <<
+                                          "month" << "year";
+  return timeUnitAsString.at(defUnit);
 }
 
 QVariant confOption::convertTimeUnit(double value, timeUnit oldTime, timeUnit newTime)
@@ -665,44 +682,4 @@ QVariant confOption::convertTimeUnit(double value, timeUnit oldTime, timeUnit ne
     convertedVal = boost::chrono::duration_cast<years>(tmpSecs).count();
 
   return convertedVal;
-}
-
-QString confOption::getValueAsString() const
-{
-  if (type == MULTILIST)
-  {
-    QVariantMap map = value.toMap();
-    // qDebug() << map;
-    QString mapAsString;
-    for(QVariantMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
-    {
-      if (iter.value() == true && mapAsString.isEmpty())
-        mapAsString = QString(iter.key());
-      else if (iter.value() == true)
-        mapAsString = QString(mapAsString + " " + iter.key());
-    }
-    return mapAsString;
-  }
-  return value.toString();
-}
-
-QString confOption::getFileName() const
-{
-  if (file == SYSTEMD)
-    return QString("system.conf");
-  else if (file == JOURNALD)
-    return QString("journald.conf");
-  else if (file == LOGIND)
-    return QString("logind.conf");
-  else if (file == COREDUMP)
-    return QString("coredump.conf");
-  return QString();
-}
-
-QString confOption::getTimeUnit() const
-{
-  QStringList timeUnitAsString = QStringList() << "ns" << "us" << "ms" << "s" <<
-                                          "min" << "h" << "d" << "w" <<
-                                          "month" << "year";
-  return timeUnitAsString.at(defUnit);
 }

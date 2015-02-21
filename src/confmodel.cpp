@@ -66,24 +66,29 @@ QVariant ConfModel::data(const QModelIndex & index, int role) const
   }
   if (role == Qt::UserRole && index.column() == 1)
   {
+    // Holds the type, used in the delegate to set different
+    // types of editor widgets
     return kcmsystemd::confOptList.at(index.row()).type;
   }
   if (role == Qt::UserRole+1 && index.column() == 1)
   {
+    // Holds the uniqueName, used in createEditor in the delegate,
+    // to set a pointer to the correct confOption.
     return kcmsystemd::confOptList.at(index.row()).uniqueName;
   }
   if (role == Qt::UserRole+2 && index.column() == 1)
   {
+    // Holds a QVariantMap, used in the delegate to save/retrieve selected
+    // values in comboboxes for type MULTILIST
     return QVariant(kcmsystemd::confOptList.at(index.row()).getValue().toMap());
   }
 
+  // Set font to bold if value is not default
   QFont newfont;
   newfont.setBold(true);
-
   if (role == Qt::FontRole && !kcmsystemd::confOptList.at(index.row()).isDefault())
     return newfont;
 
-  // qDebug() << kcmsystemd::confOptList.at(index.row()).realName;
   return QVariant();
 }
 

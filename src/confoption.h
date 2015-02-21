@@ -49,12 +49,10 @@ class confOption {
     typedef enum timeUnit { ns, us, ms, s, min, h, d, w, month, year } timeUnit;
     
     confFile file;
-    QVariant defVal;
-    QString uniqueName;
     settingType type;
-    QStringList possibleVals;
+    QString uniqueName, realName;
     qlonglong minVal, maxVal;
-    timeUnit defUnit, defReadUnit, minUnit, maxUnit;
+    QStringList possibleVals;
     static QStringList capabilities;
     
     confOption();
@@ -109,16 +107,14 @@ class confOption {
     bool isDefault() const;
     void setToDefault();
     QVariant getValue() const;
+    QString getValueAsString() const;
     QString getLineForFile() const;
     QString getFilename() const;
-    QString realName;
-
-    QString getValueAsString() const;
-    QString getFileName() const;
     QString getTimeUnit() const;
-    
+
   private:
-    QVariant value;
+    QVariant value, defVal;
+    timeUnit defUnit, defReadUnit, minUnit, maxUnit;
     QVariant convertTimeUnit(double, timeUnit, timeUnit);
 };
 

@@ -34,8 +34,8 @@ QWidget *ConfDelegate::createEditor(QWidget *parent,
 
   // qDebug() << "Creating editor";
 
-  QString name = index.data(Qt::UserRole+1).toString();
-  int confIndex = kcmsystemd::confOptList.indexOf(confOption(name));
+  QString uniqueName = index.data(Qt::UserRole+1).toString();
+  int confIndex = kcmsystemd::confOptList.indexOf(confOption(uniqueName));
   confOption const *opt = &kcmsystemd::confOptList.at(confIndex);
 
   if (index.data(Qt::UserRole) == BOOL)
