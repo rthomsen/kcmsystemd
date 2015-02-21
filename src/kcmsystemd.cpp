@@ -562,8 +562,6 @@ void kcmsystemd::slotTblRowChanged(const QModelIndex &current, __attribute__((un
   // Find the selected row
   QModelIndex inProxyModelAct = proxyModelUnitId->mapToSource(const_cast<QModelIndex &> (current));
   selectedRow = proxyModelAct->mapToSource(inProxyModelAct).row();
-  
-  updateUnitProps(selectedUnit);
 }
 
 void kcmsystemd::slotChkShowUnits()
@@ -774,72 +772,7 @@ void kcmsystemd::slotRefreshUnitsList()
       unitsModel->setData(unitsModel->index(row,col), QVariant(newcolor), Qt::ForegroundRole);
   }
   
-  // Update unit properties for the selected unit
-  if (!selectedUnit.isEmpty())
-    updateUnitProps(selectedUnit);
   slotChkShowUnits();
-}
-
-void kcmsystemd::updateUnitProps(QString unit)
-{
-  // Function to update the selected units properties
-  
-  // Create a DBus interface
-  QDBusConnection systembus = QDBusConnection::systemBus();
-  QDBusInterface *iface = new QDBusInterface (
-	  "org.freedesktop.systemd1",
-	  unitpaths[unit].toString(),
-	  "org.freedesktop.systemd1.Unit",
-	  systembus,
-	  this);
-  
-  // Use the DBus interface to get unit properties and update labels
-  if (iface->isValid())
-  {
-    ui.lblDesc->setText(iface->property("Description").toString());
-    ui.lblFragmentPath->setText(iface->property("FragmentPath").toString());
-    if (iface->property("ActiveEnterTimestamp").toULongLong() == 0)
-      ui.lblTimeActivated->setText("n/a");
-    else
-    {
-      QDateTime timeActivated;
-      timeActivated.setMSecsSinceEpoch(iface->property("ActiveEnterTimestamp").toULongLong()/1000);
-      ui.lblTimeActivated->setText(timeActivated.toString());
-    }
-    if (iface->property("InactiveEnterTimestamp").toULongLong() == 0)
-      ui.lblTimeDeactivated->setText("n/a");
-    else
-    {
-      QDateTime timeDeactivated;
-      timeDeactivated.setMSecsSinceEpoch(iface->property("InactiveEnterTimestamp").toULongLong()/1000);
-      ui.lblTimeDeactivated->setText(timeDeactivated.toString());
-    }
-    ui.lblUnitFileState->setText(iface->property("UnitFileState").toString());	  
-  } else {
-    iface = new QDBusInterface (
-	  "org.freedesktop.systemd1",
-	  "/org/freedesktop/systemd1",
-	  "org.freedesktop.systemd1.Manager",
-	  systembus,
-	  this);
-    QList<QVariant> args;
-    args << selectedUnit;
-
-    ui.lblDesc->setText("");
-    unitfile a;
-    a.name = selectedUnit;
-    if (!a.name.isEmpty())
-    {
-      ui.lblFragmentPath->setText(unitfileslist.at(unitfileslist.indexOf(a)).name);
-      ui.lblUnitFileState->setText(iface->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString());
-    } else {
-      ui.lblFragmentPath->setText("");
-      ui.lblUnitFileState->setText("");
-    }
-    ui.lblTimeActivated->setText("");
-    ui.lblTimeDeactivated->setText("");
-  }
-  delete iface;
 }
 
 void kcmsystemd::updateUnitCount()
@@ -1074,7 +1007,8 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   delete dbusIfaceUnit;
 }
 
-bool kcmsystemd::eventFilter(__attribute__((unused)) QObject *watched, QEvent* event)
+// bool kcmsystemd::eventFilter(__attribute__((unused)) QObject *watched, QEvent* event)
+bool kcmsystemd::eventFilter(QObject *, QEvent* event)
 {
   // Eventfilter for catching mouse move events over the unit list
   // Used for dynamically generating tooltips for units
@@ -1090,71 +1024,97 @@ bool kcmsystemd::eventFilter(__attribute__((unused)) QObject *watched, QEvent* e
 
     if (unitsModel->itemFromIndex(inUnitsModel)->row() != lastRowChecked)
     {
-      for(QVariantMap::const_iterator iter = unitpaths.begin(); iter != unitpaths.end(); ++iter)
-      {
-	if (iter.key() == ui.tblServices->model()->index(ui.tblServices->indexAt(me->pos()).row(),3).data().toString())
-	{
-	  // If unit-id corresponds to column 3:
-	  QString toolTipText;
+      // Cursor moved to a different row. Only build tooptips when moving
+      // cursor to a new row to avoid excessive DBus calls.
 
-	  // Create a DBus interface
-	  QDBusConnection systembus = QDBusConnection::systemBus();
-	  QDBusInterface *iface = new QDBusInterface (
-		  "org.freedesktop.systemd1",
-		  iter.value().toString(),
-		  "org.freedesktop.systemd1.Unit",
-		  systembus,
-		  this);
-	  
-	  // Use the DBus interface to get unit properties
-	  if (iface->isValid())
-	  {
-	    QStringList req = iface->property("Requires").toStringList();
-	    QStringList wan = iface->property("Wants").toStringList();
-	    QStringList con = iface->property("Conflicts").toStringList();
-	    QStringList reqby = iface->property("RequiredBy").toStringList();
-	    QStringList wanby = iface->property("WantedBy").toStringList();
-	    QStringList conby = iface->property("ConflictedBy").toStringList();
-	    QStringList aft = iface->property("After").toStringList();	    
-	    QStringList bef = iface->property("Before").toStringList();	    
+      QString selUnit = ui.tblServices->model()->index(ui.tblServices->indexAt(me->pos()).row(),3).data().toString();
+      // qDebug() << "selUnit: " << selUnit;
 
+      QString toolTipText;
       toolTipText.append("<FONT COLOR=white>");
-	    toolTipText.append("<span style=\"font-weight:bold;\">" + iface->property("Id").toString() + "</span><hr>");
-	    
-	    toolTipText.append("<span style=\"font-weight:bold;\">Requires:</span> ");
-	    foreach (QString i, req)
-	      toolTipText.append(i + " ");
-	    toolTipText.append("<br><span style=\"font-weight:bold;\">Wants:</span> ");
-	    foreach (QString i, wan)
-	      toolTipText.append(i + " ");
-	    toolTipText.append("<br><span style=\"font-weight:bold;\">Conflicts:</span> ");
-	    foreach (QString i, con)
-	      toolTipText.append(i + " ");
-	    toolTipText.append("<hr><span style=\"font-weight:bold;\">Required by:</span> ");
-	    foreach (QString i, reqby)
-	      toolTipText.append(i + " ");
-	    toolTipText.append("<br><span style=\"font-weight:bold;\">Wanted by:</span> ");
-	    foreach (QString i, wanby)
-	      toolTipText.append(i + " ");
-	    toolTipText.append("<br><span style=\"font-weight:bold;\">Conflicted by:</span> ");
-	    foreach (QString i, conby)
-	      toolTipText.append(i + " ");
-	    toolTipText.append("<hr><span style=\"font-weight:bold;\">After:</span> ");
-	    foreach (QString i, aft)
-	      toolTipText.append(i + " ");
-	    toolTipText.append("<br><span style=\"font-weight:bold;\">Before:</span> ");
-	    foreach (QString i, bef)
-	      toolTipText.append(i + " ");
-	    toolTipText.append("</FONT");
-	  }
-	  unitsModel->itemFromIndex(inUnitsModel)->setToolTip(toolTipText);
-	  delete iface;
-	}
+      toolTipText.append("<span style=\"font-weight:bold;\">" + selUnit + "</span><hr>");
+
+      QDBusConnection systembus = QDBusConnection::systemBus();
+      QDBusInterface *iface;
+
+      if (unitpaths.contains(selUnit))
+      {
+        // Unit has a valid unit DBus object
+
+        // Create a DBus interface
+        iface = new QDBusInterface (
+              "org.freedesktop.systemd1",
+              unitpaths[selUnit].toString(),
+              "org.freedesktop.systemd1.Unit",
+              systembus,
+              this);
+
+        // Use the DBus interface to get unit properties
+        if (iface->isValid())
+        {
+          toolTipText.append("<span style=\"font-weight:bold;\">Description: </span>");
+          toolTipText.append(iface->property("Description").toString());
+          toolTipText.append("<br><span style=\"font-weight:bold;\">Fragment path: </span>");
+          toolTipText.append(iface->property("FragmentPath").toString());
+          toolTipText.append("<br><span style=\"font-weight:bold;\">Unit file state: </span>");
+          toolTipText.append(iface->property("UnitFileState").toString());
+
+          toolTipText.append("<br><span style=\"font-weight:bold;\">Activated: </span>");
+          if (iface->property("ActiveEnterTimestamp").toULongLong() == 0)
+            toolTipText.append("n/a");
+          else
+          {
+            QDateTime timeActivated;
+            timeActivated.setMSecsSinceEpoch(iface->property("ActiveEnterTimestamp").toULongLong()/1000);
+            toolTipText.append(timeActivated.toString());
+          }
+
+          toolTipText.append("<br><span style=\"font-weight:bold;\">Deactivated: </span>");
+          if (iface->property("InactiveEnterTimestamp").toULongLong() == 0)
+            toolTipText.append("n/a");
+          else
+          {
+            QDateTime timeDeactivated;
+            timeDeactivated.setMSecsSinceEpoch(iface->property("InactiveEnterTimestamp").toULongLong()/1000);
+            toolTipText.append(timeDeactivated.toString());
+          }
+          delete iface;
+        }
       }
-    lastRowChecked = unitsModel->itemFromIndex(inUnitsModel)->row();
-    return true;
-    }
-  }
+      else
+      {
+        // Unit does not have a valid unit DBus object
+        // Retrieve UnitFileState from Manager object
+
+        iface = new QDBusInterface ("org.freedesktop.systemd1",
+                                    "/org/freedesktop/systemd1",
+                                    "org.freedesktop.systemd1.Manager",
+                                    systembus,
+                                    this);
+        QList<QVariant> args;
+        args << selUnit;
+        unitfile a;
+        a.name = selUnit;
+
+        toolTipText.append("<span style=\"font-weight:bold;\">Fragment path: </span>");
+        if (!a.name.isEmpty())
+          toolTipText.append(unitfileslist.at(unitfileslist.indexOf(a)).name);
+
+        toolTipText.append("<br><span style=\"font-weight:bold;\">Unit file state: </span>");
+        if (!a.name.isEmpty())
+          toolTipText.append(iface->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString());
+
+        delete iface;
+      }
+
+      toolTipText.append("</FONT");
+      unitsModel->itemFromIndex(inUnitsModel)->setToolTip(toolTipText);
+
+      lastRowChecked = unitsModel->itemFromIndex(inUnitsModel)->row();
+      return true;
+
+    } // Row was iff
+  } // Cursor was moved
   return false;
 }
 

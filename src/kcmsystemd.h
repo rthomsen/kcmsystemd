@@ -83,7 +83,6 @@ class kcmsystemd : public KCModule
     void readConfFile(int);
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
     bool eventFilter(QObject *, QEvent*);
-    void updateUnitProps(QString);
     void updateUnitCount();
     void setupConfigParms();
     QProcess *kdeConfig;
