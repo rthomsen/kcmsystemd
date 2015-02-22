@@ -1,11 +1,17 @@
 NEWS file for kcmsystemd
 
+1.0.0 (2015-02-22)
+---
+- Kcmsystemd was ported to KDE Frameworks 5 and Qt 5.
+- Major visual overhaul with simplified interface.
+- The interface for editing of systemd configurations files was completely redesigned, and is now done in a single tab.
+
 0.7.0 (2014-07-26)
 ---
-- Added ability to configure core dumps (requires systemd 215 or higher)
-- Added support for RemoveIPC option in logind.conf
-- Minor user interface changes
-- Bugfixes
+- Added ability to configure core dumps (requires systemd 215 or higher).
+- Added support for RemoveIPC option in logind.conf.
+- Minor user interface changes.
+- Bugfixes.
 
 0.6.1 (2014-04-04)
 ---
