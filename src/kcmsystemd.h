@@ -103,7 +103,6 @@ class kcmsystemd : public KCModule
 
   private slots:
     void slotKdeConfig();
-    void slotTblRowChanged(const QModelIndex &, const QModelIndex &);
     void slotChkShowUnits();
     void slotCmbUnitTypes();
     void slotDisplayMenu(const QPoint &);

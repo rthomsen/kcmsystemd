@@ -1010,10 +1010,6 @@ void kcmsystemd::setupUnitslist()
   // Set model for QTableView (should be called after headers are set)
   ui.tblServices->setModel(proxyModelUnitId);
   
-  // Connect the currentRowChanged signal
-  QItemSelectionModel *selectionModel = ui.tblServices->selectionModel();
-  connect(selectionModel, SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(slotTblRowChanged(const QModelIndex &, const QModelIndex &)));
-  
   // Setup initial filters and sorting
   ui.tblServices->sortByColumn(3, Qt::AscendingOrder);
   proxyModelUnitId->setSortCaseSensitivity(Qt::CaseInsensitive);
@@ -1118,16 +1114,6 @@ void kcmsystemd::slotKdeConfig()
 {
   // Set a QString containing the kde prefix
   kdePrefix = QString::fromLatin1(kdeConfig->readAllStandardOutput()).trimmed();
-}
-
-void kcmsystemd::slotTblRowChanged(const QModelIndex &current, __attribute__((unused)) const QModelIndex &previous)
-{
-  // Find the selected unit
-  selectedUnit = ui.tblServices->model()->index(current.row(),3).data().toString();
-
-  // Find the selected row
-  QModelIndex inProxyModelAct = proxyModelUnitId->mapToSource(const_cast<QModelIndex &> (current));
-  selectedRow = proxyModelAct->mapToSource(inProxyModelAct).row();
 }
 
 void kcmsystemd::slotChkShowUnits()
