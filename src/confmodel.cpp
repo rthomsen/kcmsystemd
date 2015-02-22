@@ -64,30 +64,35 @@ QVariant ConfModel::data(const QModelIndex & index, int role) const
     else if (index.column() == 2)
       return kcmsystemd::confOptList.at(index.row()).getFilename();
   }
-  if (role == Qt::UserRole && index.column() == 1)
+  else if (role == Qt::UserRole && index.column() == 1)
   {
     // Holds the type, used in the delegate to set different
     // types of editor widgets
     return kcmsystemd::confOptList.at(index.row()).type;
   }
-  if (role == Qt::UserRole+1 && index.column() == 1)
+  else if (role == Qt::UserRole+1 && index.column() == 1)
   {
     // Holds the uniqueName, used in createEditor in the delegate,
     // to set a pointer to the correct confOption.
     return kcmsystemd::confOptList.at(index.row()).uniqueName;
   }
-  if (role == Qt::UserRole+2 && index.column() == 1)
+  else if (role == Qt::UserRole+2 && index.column() == 1)
   {
     // Holds a QVariantMap, used in the delegate to save/retrieve selected
     // values in comboboxes for type MULTILIST
     return QVariant(kcmsystemd::confOptList.at(index.row()).getValue().toMap());
   }
-
-  // Set font to bold if value is not default
-  QFont newfont;
-  newfont.setBold(true);
-  if (role == Qt::FontRole && !kcmsystemd::confOptList.at(index.row()).isDefault())
+  else if (role == Qt::FontRole && !kcmsystemd::confOptList.at(index.row()).isDefault())
+  {
+    // Set font to bold if value is not default
+    QFont newfont;
+    newfont.setBold(true);
     return newfont;
+  }
+  else if (role == Qt::ToolTipRole)
+  {
+    return kcmsystemd::confOptList.at(index.row()).toolTip;
+  }
 
   return QVariant();
 }

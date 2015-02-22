@@ -217,156 +217,720 @@ void kcmsystemd::load()
 
 void kcmsystemd::setupConfigParms()
 {
-  // Setup classes for all configuration options in conf.files
-  
+  // Creates an instance of confOption for each option in the systemd configuration
+  // files and adds them to confOptList. Arguments are passed as a QVariantMap.
+
+  QVariantMap map;
+
   // system.conf
-  QStringList LogLevelList = QStringList() << "emerg" << "alert" << "crit" << "err" << "warning" << "notice" << "info" << "debug";
-  confOptList.append(confOption(SYSTEMD, "LogLevel", LIST, "info", LogLevelList));
-  QStringList LogTargetList = QStringList() << "console" << "journal" << "syslog" << "kmsg" << "journal-or-kmsg" << "syslog-or-kmsg" << "null";
-  confOptList.append(confOption(SYSTEMD, "LogTarget", LIST, "journal-or-kmsg", LogTargetList));  
-  confOptList.append(confOption(SYSTEMD, "LogColor", BOOL, true));
-  confOptList.append(confOption(SYSTEMD, "LogLocation", BOOL, true));
-  confOptList.append(confOption(SYSTEMD, "DumpCore", BOOL, true));
-  confOptList.append(confOption(SYSTEMD, "CrashShell", BOOL, false));
-  QStringList ShowStatusList = QStringList() << "yes" << "no" << "auto";
-  confOptList.append(confOption(SYSTEMD, "ShowStatus", LIST, "yes", ShowStatusList));
-  QStringList CrashChVTList = QStringList() << "-1" << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8";
-  confOptList.append(confOption(SYSTEMD, "CrashChVT", LIST, "-1", CrashChVTList));
+
+  map.clear();
+  map["name"] = "LogLevel";
+  map["file"] = SYSTEMD;
+  map["type"] = LIST;
+  map["defVal"] = "info";
+  map["possibleVals"] = QStringList() << "emerg" << "alert" << "crit" << "err" << "warning" << "notice" << "info" << "debug";
+  map["toolTip"] = "Set the level of log entries in systemd.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "LogTarget";
+  map["file"] = SYSTEMD;
+  map["type"] = LIST;
+  map["defVal"] = "journal-or-kmsg";
+  map["possibleVals"] = QStringList() <<  "console" << "journal" << "syslog" << "kmsg" << "journal-or-kmsg" << "syslog-or-kmsg" << "null";
+  map["toolTip"] = "Set target for logs.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "LogColor";
+  map["file"] = SYSTEMD;
+  map["type"] = BOOL;
+  map["defVal"] = true;
+  map["toolTip"] = "Use color to highlight important log messages.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "LogLocation";
+  map["file"] = SYSTEMD;
+  map["type"] = BOOL;
+  map["defVal"] = true;
+  map["toolTip"] = "Include code location in log messages.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "DumpCore";
+  map["file"] = SYSTEMD;
+  map["type"] = BOOL;
+  map["defVal"] = true;
+  map["toolTip"] = "Dump core on systemd crash.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "CrashShell";
+  map["file"] = SYSTEMD;
+  map["type"] = BOOL;
+  map["defVal"] = false;
+  map["toolTip"] = "Spawn a shell when systemd crashes. Note: The shell is not password-protected.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "ShowStatus";
+  map["file"] = SYSTEMD;
+  map["type"] = LIST;
+  map["defVal"] = "yes";
+  map["possibleVals"] = QStringList() << "yes" << "no" << "auto";
+  map["toolTip"] = "Show terse service status information while booting.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "CrashChVT";
+  map["file"] = SYSTEMD;
+  map["type"] = LIST;
+  map["defVal"] = "-1";
+  map["possibleVals"] = QStringList() << "-1" << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8";
+  map["toolTip"] = "Activate the specified virtual terminal when systemd crashes (-1 to deactivate).";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "CPUAffinity";
+  map["file"] = SYSTEMD;
+  map["type"] = MULTILIST;
   QStringList CPUAffinityList;
   for (int i = 1; i <= QThread::idealThreadCount(); ++i)
     CPUAffinityList << QString::number(i);
-  confOptList.append(confOption(SYSTEMD, "CPUAffinity", MULTILIST, CPUAffinityList));
-  confOptList.append(confOption(SYSTEMD, "JoinControllers", STRING, "cpu,cpuacct net_cls,net_prio"));
+  map["possibleVals"] = CPUAffinityList;
+  map["toolTip"] = "The initial CPU affinity for the systemd init process.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "JoinControllers";
+  map["file"] = SYSTEMD;
+  map["type"] = STRING;
+  map["defVal"] = "cpu,cpuacct net_cls,net_prio";
+  map["toolTip"] = "Controllers that shall be mounted in a single hierarchy. Takes a space-separated list of comma-separated controller names, in order to allow multiple joined hierarchies. Pass an empty string to ensure that systemd mounts all controllers in separate hierarchies.";
+  confOptList.append(confOption(map));
+
   if (systemdVersion < 208)
-    confOptList.append(confOption(SYSTEMD, "DefaultControllers", STRING, "cpu"));
-  confOptList.append(confOption(SYSTEMD, "RuntimeWatchdogSec", TIME, 0, confOption::s, confOption::s, confOption::ms, confOption::w));
-  confOptList.append(confOption(SYSTEMD, "ShutdownWatchdogSec", TIME, 10, confOption::min, confOption::s, confOption::ms, confOption::w));
-  QStringList CapabilityBoundingSetList = confOption::capabilities;
-  confOptList.append(confOption(SYSTEMD, "CapabilityBoundingSet", MULTILIST, CapabilityBoundingSetList));
+  {
+    map.clear();
+    map["name"] = "DefaultControllers";
+    map["file"] = SYSTEMD;
+    map["type"] = STRING;
+    map["defVal"] = "cpu";
+    map["toolTip"] = "Configures in which control group hierarchies to create per-service cgroups automatically, in addition to the name=systemd named hierarchy. Takes a space-separated list of controller names. Pass the empty string to ensure that systemd does not touch any hierarchies but its own.";
+    confOptList.append(confOption(map));
+  }
+
+  map.clear();
+  map["name"] = "RuntimeWatchdogSec";
+  map["file"] = SYSTEMD;
+  map["type"] = TIME;
+  map["defVal"] = 0;
+  map["defUnit"] = confOption::s;
+  map["toolTip"] = "The watchdog hardware (/dev/watchdog) will be programmed to automatically reboot the system if it is not contacted within the specified timeout interval. The system manager will ensure to contact it at least once in half the specified timeout interval. This feature requires a hardware watchdog device.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "ShutdownWatchdogSec";
+  map["file"] = SYSTEMD;
+  map["type"] = TIME;
+  map["defVal"] = 10;
+  map["defUnit"] = confOption::min;
+  map["defReadUnit"] = confOption::s;
+  map["toolTip"] = "This setting may be used to configure the hardware watchdog when the system is asked to reboot. It works as a safety net to ensure that the reboot takes place even if a clean reboot attempt times out. This feature requires a hardware watchdog device.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "CapabilityBoundingSet";
+  map["file"] = SYSTEMD;
+  map["type"] = MULTILIST;
+  map["possibleVals"] = confOption::capabilities;
+  map["toolTip"] = "Capabilities for the systemd daemon and its children.";
+  confOptList.append(confOption(map));
+
   if (systemdVersion >= 209)
   {
-    QStringList SystemCallArchitecturesList = QStringList() << "native" << "x86" << "x86-64" << "x32" << "arm";
-    confOptList.append(confOption(SYSTEMD, "SystemCallArchitectures", MULTILIST, SystemCallArchitecturesList));
+    map.clear();
+    map["name"] = "SystemCallArchitectures";
+    map["file"] = SYSTEMD;
+    map["type"] = MULTILIST;
+    map["possibleVals"] = QStringList() << "native" << "x86" << "x86-64" << "x32" << "arm";
+    map["toolTip"] = "Architectures of which system calls may be invoked on the system.";
+    confOptList.append(confOption(map));
   }
-  confOptList.append(confOption(SYSTEMD, "TimerSlackNSec", TIME, 0, confOption::ns, confOption::ns, confOption::ns, confOption::w));
+
+  map.clear();
+  map["name"] = "TimerSlackNSec";
+  map["file"] = SYSTEMD;
+  map["type"] = TIME;
+  map["defVal"] = 0;
+  map["defUnit"] = confOption::ns;
+  map["toolTip"] = "Sets the timer slack for PID 1 which is then inherited to all executed processes, unless overridden individually. The timer slack controls the accuracy of wake-ups triggered by timers.";
+  confOptList.append(confOption(map));
+
   if (systemdVersion >= 212)
-    confOptList.append(confOption(SYSTEMD, "DefaultTimerAccuracySec", TIME, 60, confOption::s, confOption::s, confOption::us, confOption::w));
-  QStringList DefaultStandardOutputList = QStringList() << "inherit" << "null" << "tty" << "journal"
-                                                        << "journal+console" << "syslog" << "syslog+console"
-                                                        << "kmsg" << "kmsg+console";
-  confOptList.append(confOption(SYSTEMD, "DefaultStandardOutput", LIST, "journal", DefaultStandardOutputList));
-  confOptList.append(confOption(SYSTEMD, "DefaultStandardError", LIST, "inherit", DefaultStandardOutputList));
+  {
+    map.clear();
+    map["name"] = "DefaultTimerAccuracySec";
+    map["file"] = SYSTEMD;
+    map["type"] = TIME;
+    map["defVal"] = 60;
+    map["defUnit"] = confOption::s;
+    map["toolTip"] = "The default accuracy of timer units. Note that the accuracy of timer units is also affected by the configured timer slack for PID 1.";
+    confOptList.append(confOption(map));
+  }
+
+  map.clear();
+  map["name"] = "DefaultStandardOutput";
+  map["file"] = SYSTEMD;
+  map["type"] = LIST;
+  map["defVal"] = "journal";
+  map["possibleVals"] = QStringList() << "inherit" << "null" << "tty" << "journal"
+                                      << "journal+console" << "syslog" << "syslog+console"
+                                      << "kmsg" << "kmsg+console";
+  map["toolTip"] = "Sets the default output for all services and sockets.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "DefaultStandardError";
+  map["file"] = SYSTEMD;
+  map["type"] = LIST;
+  map["defVal"] = "inherit";
+  map["possibleVals"] = QStringList() << "inherit" << "null" << "tty" << "journal"
+                                      << "journal+console" << "syslog" << "syslog+console"
+                                      << "kmsg" << "kmsg+console";
+  map["toolTip"] = "Sets the default error output for all services and sockets.";
+  confOptList.append(confOption(map));
+
   if (systemdVersion >= 209)
   {
-    confOptList.append(confOption(SYSTEMD, "DefaultTimeoutStartSec", TIME, 90, confOption::s, confOption::s, confOption::us, confOption::w));
-    confOptList.append(confOption(SYSTEMD, "DefaultTimeoutStopSec", TIME, 90, confOption::s, confOption::s, confOption::us, confOption::w));
-    confOptList.append(confOption(SYSTEMD, "DefaultRestartSec", TIME, 100, confOption::ms, confOption::s, confOption::us, confOption::w));
-    confOptList.append(confOption(SYSTEMD, "DefaultStartLimitInterval", TIME, 10, confOption::s, confOption::s, confOption::us, confOption::w));
-    confOptList.append(confOption(SYSTEMD, "DefaultStartLimitBurst", INTEGER, 5, 0, 99999));
+    map.clear();
+    map["name"] = "DefaultTimeoutStartSec";
+    map["file"] = SYSTEMD;
+    map["type"] = TIME;
+    map["defVal"] = 90;
+    map["defUnit"] = confOption::s;
+    map["toolTip"] = "The default timeout for starting of units.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "DefaultTimeoutStopSec";
+    map["file"] = SYSTEMD;
+    map["type"] = TIME;
+    map["defVal"] = 90;
+    map["defUnit"] = confOption::s;
+    map["toolTip"] = "The default timeout for stopping of units.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "DefaultRestartSec";
+    map["file"] = SYSTEMD;
+    map["type"] = TIME;
+    map["defVal"] = 100;
+    map["defUnit"] = confOption::ms;
+    map["defReadUnit"] = confOption::s;
+    map["toolTip"] = "The default time to sleep between automatic restart of units.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "DefaultStartLimitInterval";
+    map["file"] = SYSTEMD;
+    map["type"] = TIME;
+    map["defVal"] = 10;
+    map["defUnit"] = confOption::s;
+    map["toolTip"] = "Time interval used in start rate limit for services.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "DefaultStartLimitBurst";
+    map["file"] = SYSTEMD;
+    map["type"] = INTEGER;
+    map["defVal"] = 5;
+    map["minVal"] = 0;
+    map["maxVal"] = 99999;
+    map["toolTip"] = "Services are not allowed to start more than this number of times within the time interval defined in DefaultStartLimitInterval";
+    confOptList.append(confOption(map));
   }
+
   if (systemdVersion >= 205)
-    confOptList.append(confOption(SYSTEMD, "DefaultEnvironment", STRING, ""));
+  {
+    map.clear();
+    map["name"] = "DefaultEnvironment";
+    map["file"] = SYSTEMD;
+    map["type"] = STRING;
+    map["defVal"] = QString("");
+    map["toolTip"] = "Manager environment variables passed to all executed processes. Takes a space-separated list of variable assignments.";
+    confOptList.append(confOption(map));
+  }
+
   if (systemdVersion >= 211)
   {
-    confOptList.append(confOption(SYSTEMD, "DefaultCPUAccounting", BOOL, false));
-    confOptList.append(confOption(SYSTEMD, "DefaultBlockIOAccounting", BOOL, false));
-    confOptList.append(confOption(SYSTEMD, "DefaultMemoryAccounting", BOOL, false));
+    map.clear();
+    map["name"] = "DefaultCPUAccounting";
+    map["file"] = SYSTEMD;
+    map["type"] = BOOL;
+    map["defVal"] = false;
+    map["toolTip"] = "Default CPU usage accounting.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "DefaultBlockIOAccounting";
+    map["file"] = SYSTEMD;
+    map["type"] = BOOL;
+    map["defVal"] = false;
+    map["toolTip"] = "Default block IO accounting.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "DefaultMemoryAccounting";
+    map["file"] = SYSTEMD;
+    map["type"] = BOOL;
+    map["defVal"] = false;
+    map["toolTip"] = "Default process and kernel memory accounting.";
+    confOptList.append(confOption(map));
   }
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitCPU", RESLIMIT));  
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitFSIZE", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitDATA", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitSTACK", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitCORE", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitRSS", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitNOFILE", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitAS", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitNPROC", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitMEMLOCK", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitLOCKS", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitSIGPENDING", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitMSGQUEUE", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitNICE", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitRTPRIO", RESLIMIT));
-  confOptList.append(confOption(SYSTEMD, "DefaultLimitRTTIME", RESLIMIT));
-  
+
+  // Loop through all RESLIMITs
+  QStringList resLimits = QStringList() << "DefaultLimitCPU" << "DefaultLimitFSIZE" << "DefaultLimitDATA"
+                                        << "DefaultLimitSTACK" << "DefaultLimitCORE" << "DefaultLimitRSS"
+                                        << "DefaultLimitNOFILE" << "DefaultLimitAS" << "DefaultLimitNPROC"
+                                        << "DefaultLimitMEMLOCK" << "DefaultLimitLOCKS" << "DefaultLimitSIGPENDING"
+                                        << "DefaultLimitMSGQUEUE" << "DefaultLimitNICE" << "DefaultLimitRTPRIO"
+                                        << "DefaultLimitRTTIME";
+  foreach (QString s, resLimits)
+  {
+    map.clear();
+    map["name"] = s;
+    map["file"] = SYSTEMD;
+    map["type"] = RESLIMIT;
+    map["minVal"] = -1;
+    map["toolTip"] = "Default resource limit for units. Set to -1 for no limit.";
+    confOptList.append(confOption(map));
+  }
+
   // journald.conf
-  QStringList StorageList = QStringList() << "volatile" << "persistent" << "auto" << "none";
-  confOptList.append(confOption(JOURNALD, "Storage", LIST, "auto", StorageList));
-  confOptList.append(confOption(JOURNALD, "Compress", BOOL, true));
-  confOptList.append(confOption(JOURNALD, "Seal", BOOL, true));
-  QStringList SplitModeList = QStringList() << "login" << "uid" << "none";
+
+  map.clear();
+  map["name"] = "Storage";
+  map["file"] = JOURNALD;
+  map["type"] = LIST;
+  map["defVal"] = "auto";
+  map["possibleVals"] = QStringList() << "volatile" << "persistent" << "auto" << "none";
+  map["toolTip"] = "Where to store log files.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "Compress";
+  map["file"] = JOURNALD;
+  map["type"] = BOOL;
+  map["defVal"] = true;
+  map["toolTip"] = "Compress log files.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "Seal";
+  map["file"] = JOURNALD;
+  map["type"] = BOOL;
+  map["defVal"] = true;
+  map["toolTip"] = "Enable Forward Secure Sealing (FSS) for all persistent journal files.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "SplitMode";
+  map["file"] = JOURNALD;
+  map["type"] = LIST;
   if (systemdVersion >= 215)
-    confOptList.append(confOption(JOURNALD, "SplitMode", LIST, "uid", SplitModeList));
+    map["defVal"] = "uid";
   else
-    confOptList.append(confOption(JOURNALD, "SplitMode", LIST, "login", SplitModeList));
-  confOptList.append(confOption(JOURNALD, "SyncIntervalSec", TIME, 5, confOption::min, confOption::s, confOption::us, confOption::w));
-  confOptList.append(confOption(JOURNALD, "RateLimitInterval", TIME, 10, confOption::s, confOption::s, confOption::us, confOption::h));
-  confOptList.append(confOption(JOURNALD, "RateLimitBurst", INTEGER, 200, 0, 99999));
-  confOptList.append(confOption(JOURNALD, "SystemMaxUse", SIZE, QVariant(0.1 * partPersSizeMB).toULongLong(), partPersSizeMB));
-  confOptList.append(confOption(JOURNALD, "SystemKeepFree", SIZE, QVariant(0.15 * partPersSizeMB).toULongLong(), partPersSizeMB));
-  confOptList.append(confOption(JOURNALD, "SystemMaxFileSize", SIZE, QVariant(0.125 * 0.1 * partPersSizeMB).toULongLong(), partPersSizeMB));
-  confOptList.append(confOption(JOURNALD, "RuntimeMaxUse", SIZE, QVariant(0.1 * partVolaSizeMB).toULongLong(), partVolaSizeMB));
-  confOptList.append(confOption(JOURNALD, "RuntimeKeepFree", SIZE, QVariant(0.15 * partVolaSizeMB).toULongLong(), partVolaSizeMB));
-  confOptList.append(confOption(JOURNALD, "RuntimeMaxFileSize", SIZE, QVariant(0.125 * 0.1 * partVolaSizeMB).toULongLong(), partVolaSizeMB));
-  confOptList.append(confOption(JOURNALD, "MaxRetentionSec", TIME, 0, confOption::d, confOption::s, confOption::s, confOption::year));
-  confOptList.append(confOption(JOURNALD, "MaxFileSec", TIME, 30, confOption::d, confOption::s, confOption::s, confOption::year));
-  confOptList.append(confOption(JOURNALD, "ForwardToSyslog", BOOL, true));
-  confOptList.append(confOption(JOURNALD, "ForwardToKMsg", BOOL, false));
-  confOptList.append(confOption(JOURNALD, "ForwardToConsole", BOOL, false));
+    map["defVal"] = "login";
+  map["possibleVals"] = QStringList() << "login" << "uid" << "none";
+  map["toolTip"] = "Whether and how to split log files. If uid, all users will get each their own journal files regardless of whether they possess a login session or not, however system users will log into the system journal. If login, actually logged-in users will get each their own journal files, but users without login session and system users will log into the system journal. If none, journal files are not split up by user and all messages are instead stored in the single system journal.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "SyncIntervalSec";
+  map["file"] = JOURNALD;
+  map["type"] = TIME;
+  map["defVal"] = 5;
+  map["defUnit"] = confOption::min;
+  map["defReadUnit"] = confOption::s;
+  map["toolTip"] = "The timeout before synchronizing journal files to disk.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "RateLimitInterval";
+  map["file"] = JOURNALD;
+  map["type"] = TIME;
+  map["defVal"] = 30;
+  map["defUnit"] = confOption::s;
+  map["toolTip"] = "Time interval for rate limiting of log messages. Set to 0 to turn off rate-limiting.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "RateLimitBurst";
+  map["file"] = JOURNALD;
+  map["type"] = INTEGER;
+  map["defVal"] = 1000;
+  map["minVal"] = 0;
+  map["toolTip"] = "Maximum number of messages logged for a unit in the interval specified in RateLimitInterval. Set to 0 to turn off rate-limiting.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "SystemMaxUse";
+  map["file"] = JOURNALD;
+  map["type"] = SIZE;
+  map["defVal"] = QVariant(0.1 * partPersSizeMB).toULongLong();
+  map["maxVal"] = partPersSizeMB;
+  map["toolTip"] = "Maximum disk space the persistent journal may take up. Defaults to 10% of file system size.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "SystemKeepFree";
+  map["file"] = JOURNALD;
+  map["type"] = SIZE;
+  map["defVal"] = QVariant(0.15 * partPersSizeMB).toULongLong();
+  map["maxVal"] = partPersSizeMB;
+  map["toolTip"] = "Minimum disk space the persistent journal should keep free for other uses. Defaults to 15% of file system size.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "SystemMaxFileSize";
+  map["file"] = JOURNALD;
+  map["type"] = SIZE;
+  map["defVal"] = QVariant(0.125 * 0.1 * partPersSizeMB).toULongLong();
+  map["maxVal"] = partPersSizeMB;
+  map["toolTip"] = "Maximum size of individual journal files on persistent storage. Defaults to 1/8 of SystemMaxUse.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "RuntimeMaxUse";
+  map["file"] = JOURNALD;
+  map["type"] = SIZE;
+  map["defVal"] = QVariant(0.1 * partVolaSizeMB).toULongLong();
+  map["maxVal"] = partVolaSizeMB;
+  map["toolTip"] = "Maximum disk space the volatile journal may take up. Defaults to 10% of file system size.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "RuntimeKeepFree";
+  map["file"] = JOURNALD;
+  map["type"] = SIZE;
+  map["defVal"] = QVariant(0.15 * partVolaSizeMB).toULongLong();
+  map["maxVal"] = partVolaSizeMB;
+  map["toolTip"] = "Minimum disk space the volatile journal should keep free for other uses. Defaults to 15% of file system size.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "RuntimeMaxFileSize";
+  map["file"] = JOURNALD;
+  map["type"] = SIZE;
+  map["defVal"] = QVariant(0.125 * 0.1 * partVolaSizeMB).toULongLong();
+  map["maxVal"] = partVolaSizeMB;
+  map["toolTip"] = "Maximum size of individual journal files on volatile storage. Defaults to 1/8 of RuntimeMaxUse.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "MaxRetentionSec";
+  map["file"] = JOURNALD;
+  map["type"] = TIME;
+  map["defVal"] = 0;
+  map["defUnit"] = confOption::d;
+  map["defReadUnit"] = confOption::s;
+  map["toolTip"] = "Maximum time to store journal entries. Set to 0 to disable.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "MaxFileSec";
+  map["file"] = JOURNALD;
+  map["type"] = TIME;
+  map["defVal"] = 30;
+  map["defUnit"] = confOption::d;
+  map["defReadUnit"] = confOption::s;
+  map["toolTip"] = "Maximum time to store entries in a single journal file before rotating to the next one. Set to 0 to disable.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "ForwardToSyslog";
+  map["file"] = JOURNALD;
+  map["type"] = BOOL;
+  map["defVal"] = true;
+  map["toolTip"] = "Forward journal messages to syslog.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "ForwardToKMsg";
+  map["file"] = JOURNALD;
+  map["type"] = BOOL;
+  map["defVal"] = false;
+  map["toolTip"] = "Forward journal messages to kernel log buffer";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "ForwardToConsole";
+  map["file"] = JOURNALD;
+  map["type"] = BOOL;
+  map["defVal"] = false;
+  map["toolTip"] = "Forward journal messages to the system console. The console can be changed with TTYPath.";
+  confOptList.append(confOption(map));
+
   if (systemdVersion >= 212)
-    confOptList.append(confOption(JOURNALD, "ForwardToWall", BOOL, true));
-  confOptList.append(confOption(JOURNALD, "TTYPath", STRING, "/dev/console"));
-  QStringList SyslogList = QStringList() << "emerg" << "alert" << "crit" << "err" 
-                                         << "warning" << "notice" << "info" << "debug";
-  confOptList.append(confOption(JOURNALD, "MaxLevelStore", LIST, "debug", SyslogList));
-  confOptList.append(confOption(JOURNALD, "MaxLevelSyslog", LIST, "debug", SyslogList));
-  confOptList.append(confOption(JOURNALD, "MaxLevelKMsg", LIST, "notice", SyslogList));
-  confOptList.append(confOption(JOURNALD, "MaxLevelConsole", LIST, "info", SyslogList));
+  {
+    map.clear();
+    map["name"] = "ForwardToWall";
+    map["file"] = JOURNALD;
+    map["type"] = BOOL;
+    map["defVal"] = true;
+    map["toolTip"] = "Forward journal messages as wall messages to all logged-in users.";
+    confOptList.append(confOption(map));
+  }
+
+  map.clear();
+  map["name"] = "TTYPath";
+  map["file"] = JOURNALD;
+  map["type"] = STRING;
+  map["defVal"] = "/dev/console";
+  map["toolTip"] = "Forward journal messages to this TTY if ForwardToConsole is set.";
+  confOptList.append(confOption(map));
+
+  QStringList listLogLevel = QStringList() << "MaxLevelStore" << "MaxLevelSyslog"
+                                           << "MaxLevelKMsg" << "MaxLevelConsole";
   if (systemdVersion >= 212)
-    confOptList.append(confOption(JOURNALD, "MaxLevelWall", LIST, "emerg", SyslogList));
+    listLogLevel << "MaxLevelWall";
+
+  foreach (QString s, listLogLevel)
+  {
+    map.clear();
+    map["name"] = s;
+    map["file"] = JOURNALD;
+    map["type"] = LIST;
+    if (s == "MaxLevelKMsg")
+      map["defVal"] = "notice";
+    else if (s == "MaxLevelConsole")
+      map["defVal"] = "info";
+    else if (s == "MaxLevelWall")
+      map["defVal"] = "emerg";
+    else
+      map["defVal"] = "debug";
+    map["possibleVals"] = QStringList() << "emerg" << "alert" << "crit" << "err"
+                                        << "warning" << "notice" << "info" << "debug";
+    map["toolTip"] = "Max log level to forward/store to the specified target.";
+    confOptList.append(confOption(map));
+  }
   
   // logind.conf
-  confOptList.append(confOption(LOGIND, "NAutoVTs", INTEGER, 6, 0, 12));
-  confOptList.append(confOption(LOGIND, "ReserveVT", INTEGER, 6, 0, 12));
-  confOptList.append(confOption(LOGIND, "KillUserProcesses", BOOL, false));
-  confOptList.append(confOption(LOGIND, "KillOnlyUsers", STRING, ""));
-  confOptList.append(confOption(LOGIND, "KillExcludeUsers", STRING, "root"));
-  confOptList.append(confOption(LOGIND, "InhibitDelayMaxSec", TIME, 5, confOption::s, confOption::s, confOption::us, confOption::d));
-  QStringList HandlePowerEvents = QStringList() << "ignore" << "poweroff" << "reboot" << "halt" << "kexec" << "suspend" << "hibernate" << "hybrid-sleep" << "lock";
-  confOptList.append(confOption(LOGIND, "HandlePowerKey", LIST, "poweroff", HandlePowerEvents));
-  confOptList.append(confOption(LOGIND, "HandleSuspendKey", LIST, "suspend", HandlePowerEvents));
-  confOptList.append(confOption(LOGIND, "HandleHibernateKey", LIST, "hibernate", HandlePowerEvents));
-  confOptList.append(confOption(LOGIND, "HandleLidSwitch", LIST, "suspend", HandlePowerEvents));
+
+  map.clear();
+  map["name"] = "NAutoVTs";
+  map["file"] = LOGIND;
+  map["type"] = INTEGER;
+  map["defVal"] = 6;
+  map["minVal"] = 0;
+  map["maxVal"] = 12;
+  map["toolTip"] = "Number of virtual terminals (VTs) to allocate by default and which will autospawn. Set to 0 to disable.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "ReserveVT";
+  map["file"] = LOGIND;
+  map["type"] = INTEGER;
+  map["defVal"] = 6;
+  map["minVal"] = 0;
+  map["maxVal"] = 12;
+  map["toolTip"] = "Virtual terminal that shall unconditionally be reserved for autospawning. Set to 0 to disable.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "KillUserProcesses";
+  map["file"] = LOGIND;
+  map["type"] = BOOL;
+  map["defVal"] = false;
+  map["toolTip"] = "Kill the processes of a user when the user completely logs out.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "KillOnlyUsers";
+  map["file"] = LOGIND;
+  map["type"] = STRING;
+  map["toolTip"] = "Space-separated list of usernames for which only processes will be killed if KillUserProcesses is enabled.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "KillExcludeUsers";
+  map["file"] = LOGIND;
+  map["type"] = STRING;
+  map["defVal"] = "root";
+  map["toolTip"] = "Space-separated list of usernames for which processes will be excluded from being killed if KillUserProcesses is enabled.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "InhibitDelayMaxSec";
+  map["file"] = LOGIND;
+  map["type"] = TIME;
+  map["defVal"] = 5;
+  map["defUnit"] = confOption::s;
+  map["toolTip"] = "Specifies the maximum time a system shutdown or sleep request is delayed due to an inhibitor lock of type delay being active before the inhibitor is ignored and the operation executes anyway.";
+  confOptList.append(confOption(map));
+
+  QStringList listPowerActions = QStringList() << "ignore" << "poweroff" << "reboot" << "halt" << "kexec"
+                                               << "suspend" << "hibernate" << "hybrid-sleep" << "lock";
+  QStringList listPower = QStringList() << "HandlePowerKey" << "HandleSuspendKey"
+                                           << "HandleHibernateKey" << "HandleLidSwitch";
   if (systemdVersion >= 217)
-    confOptList.append(confOption(LOGIND, "HandleLidSwitchDocked", LIST, "ignore", HandlePowerEvents));
-  confOptList.append(confOption(LOGIND, "PowerKeyIgnoreInhibited", BOOL, false));
-  confOptList.append(confOption(LOGIND, "SuspendKeyIgnoreInhibited", BOOL, false));
-  confOptList.append(confOption(LOGIND, "HibernateKeyIgnoreInhibited", BOOL, false));
-  confOptList.append(confOption(LOGIND, "LidSwitchIgnoreInhibited", BOOL, true));
-  confOptList.append(confOption(LOGIND, "IdleAction", LIST, "ignore", HandlePowerEvents));
-  confOptList.append(confOption(LOGIND, "IdleActionSec", TIME, 0, confOption::s, confOption::s, confOption::us, confOption::d));
+    listPower << "HandleLidSwitchDocked";
+  foreach (QString s, listPower)
+  {
+    map.clear();
+    map["name"] = s;
+    map["file"] = LOGIND;
+    map["type"] = LIST;
+    if (s == "HandlePowerKey")
+      map["defVal"] = "poweroff";
+    else if (s == "HandleHibernateKey")
+      map["defVal"] = "hibernate";
+    else if (s == "HandleLidSwitchDocked")
+      map["defVal"] = "ignore";
+    else
+      map["defVal"] = "suspend";
+    map["possibleVals"] = listPowerActions;
+    map["toolTip"] = "Controls whether logind shall handle the system power and sleep keys and the lid switch to trigger power actions.";
+    confOptList.append(confOption(map));
+  }
+
+  map.clear();
+  map["name"] = "PowerKeyIgnoreInhibited";
+  map["file"] = LOGIND;
+  map["type"] = BOOL;
+  map["defVal"] = false;
+  map["toolTip"] = "Controls whether actions triggered by the power key are subject to inhibitor locks.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "SuspendKeyIgnoreInhibited";
+  map["file"] = LOGIND;
+  map["type"] = BOOL;
+  map["defVal"] = false;
+  map["toolTip"] = "Controls whether actions triggered by the suspend key are subject to inhibitor locks.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "HibernateKeyIgnoreInhibited";
+  map["file"] = LOGIND;
+  map["type"] = BOOL;
+  map["defVal"] = false;
+  map["toolTip"] = "Controls whether actions triggered by the hibernate key are subject to inhibitor locks.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "LidSwitchIgnoreInhibited";
+  map["file"] = LOGIND;
+  map["type"] = BOOL;
+  map["defVal"] = true;
+  map["toolTip"] = "Controls whether actions triggered by the lid switch are subject to inhibitor locks.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "IdleAction";
+  map["file"] = LOGIND;
+  map["type"] = LIST;
+  map["defVal"] = "ignore";
+  map["possibleVals"] = listPowerActions;
+  map["toolTip"] = "Configures the action to take when the system is idle.";
+  confOptList.append(confOption(map));
+
+  map.clear();
+  map["name"] = "IdleActionSec";
+  map["file"] = LOGIND;
+  map["type"] = TIME;
+  map["defVal"] = 0;
+  map["defUnit"] = confOption::s;
+  map["toolTip"] = "Configures the delay after which the action configured in IdleAction is taken after the system is idle.";
+  confOptList.append(confOption(map));
+
+  if (systemdVersion >= 212)
+  {
+    map.clear();
+    map["name"] = "RemoveIPC";
+    map["file"] = LOGIND;
+    map["type"] = BOOL;
+    map["defVal"] = true;
+    map["toolTip"] = "Controls whether System V and POSIX IPC objects belonging to the user shall be removed when the user fully logs out.";
+    confOptList.append(confOption(map));
+  }
+
+  // coredump.conf
+  if (systemdVersion >= 215)
+  {
+    map.clear();
+    map["name"] = "Storage";
+    map["file"] = COREDUMP;
+    map["type"] = LIST;
+    map["defVal"] = "external";
+    map["possibleVals"] = QStringList() << "none" << "external" << "journal" << "both";
+    map["toolTip"] = "Controls where to store cores. When none, the coredumps will be logged but not stored permanently. When external, cores will be stored in /var/lib/systemd/coredump. When journal, cores will be stored in the journal and rotated following normal journal rotation patterns.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "Compress";
+    map["file"] = COREDUMP;
+    map["type"] = BOOL;
+    map["defVal"] = true;
+    map["toolTip"] = "Controls compression for external storage.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "ProcessSizeMax";
+    map["file"] = COREDUMP;
+    map["type"] = SIZE;
+    map["defVal"] = 2*1024;
+    map["maxVal"] = partPersSizeMB;
+    map["toolTip"] = "The maximum size of a core which will be processed. Coredumps exceeding this size will be logged, but the backtrace will not be generated and the core will not be stored.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "ExternalSizeMax";
+    map["file"] = COREDUMP;
+    map["type"] = SIZE;
+    map["defVal"] = 2*1024;
+    map["maxVal"] = partPersSizeMB;
+    map["toolTip"] = "The maximum (uncompressed) size of a core to be saved.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "JournalSizeMax";
+    map["file"] = COREDUMP;
+    map["type"] = SIZE;
+    map["defVal"] = 767;
+    map["maxVal"] = partPersSizeMB;
+    map["toolTip"] = "The maximum (uncompressed) size of a core to be saved.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "MaxUse";
+    map["file"] = COREDUMP;
+    map["type"] = SIZE;
+    map["defVal"] = QVariant(0.1 * partPersSizeMB).toULongLong();
+    map["maxVal"] = partPersSizeMB;
+    map["toolTip"] = "Old coredumps are removed as soon as the total disk space taken up by coredumps grows beyond this limit. Defaults to 10% of the total disk size.";
+    confOptList.append(confOption(map));
+
+    map.clear();
+    map["name"] = "KeepFree";
+    map["file"] = COREDUMP;
+    map["type"] = SIZE;
+    map["defVal"] = QVariant(0.15 * partPersSizeMB).toULongLong();
+    map["maxVal"] = partPersSizeMB;
+    map["toolTip"] = "Minimum disk space to keep free. Defaults to 15% of the total disk size.";
+    confOptList.append(confOption(map));
+  }
+
+  /* We can dismiss these options now...
   if (systemdVersion < 207)
   {
     confOptList.append(confOption(LOGIND, "Controllers", STRING, ""));
     confOptList.append(confOption(LOGIND, "ResetControllers", STRING, "cpu"));
   }
-  if (systemdVersion >= 212)
-  {
-    confOptList.append(confOption(LOGIND, "RemoveIPC", BOOL, true));
-  }
-  
-  if (systemdVersion >= 215)
-  {  
-    // coredump.conf
-    QStringList CoreStorage = QStringList() << "none" << "external" << "journal" << "both";
-    confOptList.append(confOption(COREDUMP, "Storage", LIST, "external", CoreStorage));
-    confOptList.append(confOption(COREDUMP, "Compress", BOOL, true));
-    confOptList.append(confOption(COREDUMP, "ProcessSizeMax", SIZE, 2*1024, partPersSizeMB));
-    confOptList.append(confOption(COREDUMP, "ExternalSizeMax", SIZE, 2*1024, partPersSizeMB));
-    confOptList.append(confOption(COREDUMP, "JournalSizeMax", SIZE, 767, partPersSizeMB));
-    confOptList.append(confOption(COREDUMP, "MaxUse", SIZE, QVariant(0.1 * partPersSizeMB).toULongLong(), partPersSizeMB));
-    confOptList.append(confOption(COREDUMP, "KeepFree", SIZE, QVariant(0.15 * partPersSizeMB).toULongLong(), partPersSizeMB));
-  }
+  */
 }
 
 void kcmsystemd::readConfFile(int fileindex)

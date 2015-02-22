@@ -50,56 +50,15 @@ class confOption {
     
     confFile file;
     settingType type;
-    QString uniqueName, realName;
-    qlonglong minVal, maxVal;
-    QStringList possibleVals;
+    QString uniqueName, realName, toolTip;
+    qlonglong minVal = 0, maxVal = 999999999;
+    QStringList possibleVals = QStringList();
     static QStringList capabilities;
     
     confOption();
     // Used for comparing
     confOption(QString newName);
-    // RESLIMIT
-    confOption(confFile file,
-               QString newName,
-               settingType newType);
-    // BOOL and STRING
-    confOption(confFile file,
-               QString newName,
-               settingType newType,
-               QVariant newDefVal);
-    // SIZE
-    confOption(confFile file,
-               QString newName,
-               settingType newType,
-               QVariant newDefVal,
-               qulonglong newMaxVal);
-    // INTEGER
-    confOption(confFile file,
-               QString newName,
-               settingType newType,
-               QVariant newDefVal,
-               qlonglong newMinVal,
-               qlonglong newMaxVal);
-    // LIST
-    confOption(confFile file,
-               QString newName,
-               settingType newType,
-               QVariant newDefVal,
-               QStringList newPossibleVals);
-    // MULTILIST
-    confOption(confFile file,
-               QString newName,
-               settingType newType,
-               QStringList newPossibleVals);
-    // TIME
-    confOption(confFile file,
-               QString newName,
-               settingType newType,
-               QVariant newDefVal,
-               timeUnit newDefUnit, // the unit of newDefVal, used in ui and written to file
-               timeUnit newDefReadUnit, // used when reading unitless values
-               timeUnit newMinUnit,
-               timeUnit newMaxUnit);
+    confOption(QVariantMap);
     
     bool operator==(const confOption& other) const;
     int setValue(QVariant);
@@ -114,7 +73,7 @@ class confOption {
 
   private:
     QVariant value, defVal;
-    timeUnit defUnit, defReadUnit, minUnit, maxUnit;
+    timeUnit defUnit, defReadUnit, minUnit = timeUnit::ns, maxUnit = timeUnit::year;
     QVariant convertTimeUnit(double, timeUnit, timeUnit);
 };
 

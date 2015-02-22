@@ -51,14 +51,8 @@ QWidget *ConfDelegate::createEditor(QWidget *parent,
            index.data(Qt::UserRole) == SIZE)
   {
     QSpinBox *editor = new QSpinBox(parent);
-    if (index.data(Qt::UserRole) == RESLIMIT)
-      editor->setMinimum(-1);
-    else
-      editor->setMinimum(0);
-    if (index.data(Qt::UserRole) == SIZE)
-      editor->setMaximum(opt->maxVal);
-    else
-      editor->setMaximum(999999999);
+    editor->setMinimum(opt->minVal);
+    editor->setMaximum(opt->maxVal);
     return editor;
   }
   else if (index.data(Qt::UserRole) == LIST)

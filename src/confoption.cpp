@@ -48,99 +48,46 @@ confOption::confOption(QString newName)
   uniqueName = newName;
 }
 
-// RESLIMIT
-confOption::confOption(confFile newFile, QString newName, settingType newType)
+confOption::confOption(QVariantMap map)
 {
-  file = newFile;
-  realName = newName;
-  uniqueName = QString(newName + "_" + QString::number(file));
-  type = newType;
-  defVal = -1;
+  file = static_cast<confFile>(map["file"].toInt());
+  realName = map["name"].toString();
+  uniqueName = QString(map["name"].toString() + "_" + QString::number(file));
+  type = static_cast<settingType>(map["type"].toInt());
+  defVal = map["defVal"];
+  possibleVals = map["possibleVals"].toStringList();
+  defUnit = static_cast<timeUnit>(map["defUnit"].toInt());
+  if (map.contains("defReadUnit"))
+    defReadUnit = static_cast<timeUnit>(map["defReadUnit"].toInt());
+  else
+    defReadUnit = defUnit;
+  // These two are not used for anything currently
+  // minUnit = static_cast<timeUnit>(map["minUnit"].toInt());
+  // maxUnit = static_cast<timeUnit>(map["maxUnit"].toInt());
+  if (map.contains("minVal"))
+    minVal = map["minVal"].toLongLong();
+  if (map.contains("maxVal"))
+    maxVal = map["maxVal"].toLongLong();
+  toolTip = map["toolTip"].toString();
+
+  if (type == MULTILIST)
+  {
+    // Create a map where all possibleVals are set to false
+    QVariantMap defMap;
+    foreach (QString s, possibleVals)
+      defMap[s] = false;
+    defVal = defMap;
+  }
+  if (type == RESLIMIT)
+    defVal = -1;
+
   value = defVal;
 }
 
-// BOOL and STRING
-confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal)
+int confOption::setValue(QVariant newVal)
 {
-  file = newFile;
-  realName = newName;
-  uniqueName = QString(newName + "_" + QString::number(file));
-  type = newType;
-  defVal = newDefVal;
-  value = defVal;
-}
-
-// SIZE
-confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, qulonglong newMaxVal)
-{
-  file = newFile;
-  realName = newName;
-  uniqueName = QString(newName + "_" + QString::number(file));
-  type = newType;
-  defVal = newDefVal;
-  value = defVal; 
-  maxVal = newMaxVal;
-}
-
-// INTEGER
-confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, qlonglong newMinVal, qlonglong newMaxVal)
-{
-  file = newFile;
-  realName = newName;
-  uniqueName = QString(newName + "_" + QString::number(file));
-  type = newType;
-  defVal = newDefVal;
-  minVal = newMinVal;
-  maxVal = newMaxVal;
-  value = defVal;
-}
-
-// LIST
-confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, QStringList newPossibleVals)
-{
-  file = newFile;
-  realName = newName;
-  uniqueName = QString(newName + "_" + QString::number(file));
-  type = newType;
-  defVal = newDefVal;
-  possibleVals = newPossibleVals;
-  value = defVal;
-}
-
-// MULTILIST
-confOption::confOption(confFile newFile, QString newName, settingType newType, QStringList newPossibleVals)
-{
-  file = newFile;
-  realName = newName;
-  uniqueName = QString(newName + "_" + QString::number(file));
-  type = newType;
-  possibleVals = newPossibleVals;  
-  QVariantMap map;
-  foreach (QString s, possibleVals)
-    map[s] = false;
-  defVal = map;
-  value = defVal;
-}
-
-// TIME
-confOption::confOption(confFile newFile, QString newName, settingType newType, QVariant newDefVal, timeUnit newDefUnit, timeUnit newDefReadUnit, timeUnit newMinUnit, timeUnit newMaxUnit)
-{
-  file = newFile;
-  realName = newName;
-  uniqueName = QString(newName + "_" + QString::number(file));
-  type = newType;
-  defVal = newDefVal;
-  defReadUnit = newDefReadUnit;
-  defUnit = newDefUnit,
-  minUnit = newMinUnit;
-  maxUnit = newMaxUnit;
-  value = defVal;
-}
-
-int confOption::setValue(QVariant variant)
-{
-  qDebug() << "Setting " << realName << " to " << variant;
-  value = variant;
+  qDebug() << "Setting " << realName << " to " << newVal;
+  value = newVal;
   return 0;
 }
 
@@ -598,7 +545,7 @@ QString confOption::getFilename() const
 QString confOption::getTimeUnit() const
 {
   QStringList timeUnitAsString = QStringList() << "ns" << "us" << "ms" << "s" <<
-                                          "min" << "h" << "d" << "w" <<
+                                          "min" << "h" << "days" << "weeks" <<
                                           "month" << "year";
   return timeUnitAsString.at(defUnit);
 }
