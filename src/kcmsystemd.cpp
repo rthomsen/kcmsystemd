@@ -230,7 +230,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = LIST;
   map["defVal"] = "info";
   map["possibleVals"] = QStringList() << "emerg" << "alert" << "crit" << "err" << "warning" << "notice" << "info" << "debug";
-  map["toolTip"] = "Set the level of log entries in systemd.";
+  map["toolTip"] = "<p>Set the level of log entries in systemd.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -239,7 +239,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = LIST;
   map["defVal"] = "journal-or-kmsg";
   map["possibleVals"] = QStringList() <<  "console" << "journal" << "syslog" << "kmsg" << "journal-or-kmsg" << "syslog-or-kmsg" << "null";
-  map["toolTip"] = "Set target for logs.";
+  map["toolTip"] = "<p>Set target for logs.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -247,7 +247,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = SYSTEMD;
   map["type"] = BOOL;
   map["defVal"] = true;
-  map["toolTip"] = "Use color to highlight important log messages.";
+  map["toolTip"] = "<p>Use color to highlight important log messages.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -255,7 +255,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = SYSTEMD;
   map["type"] = BOOL;
   map["defVal"] = true;
-  map["toolTip"] = "Include code location in log messages.";
+  map["toolTip"] = "<p>Include code location in log messages.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -263,7 +263,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = SYSTEMD;
   map["type"] = BOOL;
   map["defVal"] = true;
-  map["toolTip"] = "Dump core on systemd crash.";
+  map["toolTip"] = "<p>Dump core on systemd crash.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -271,7 +271,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = SYSTEMD;
   map["type"] = BOOL;
   map["defVal"] = false;
-  map["toolTip"] = "Spawn a shell when systemd crashes. Note: The shell is not password-protected.";
+  map["toolTip"] = "<p>Spawn a shell when systemd crashes. Note: The shell is not password-protected.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -280,7 +280,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = LIST;
   map["defVal"] = "yes";
   map["possibleVals"] = QStringList() << "yes" << "no" << "auto";
-  map["toolTip"] = "Show terse service status information while booting.";
+  map["toolTip"] = "<p>Show terse service status information while booting.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -289,7 +289,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = LIST;
   map["defVal"] = "-1";
   map["possibleVals"] = QStringList() << "-1" << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8";
-  map["toolTip"] = "Activate the specified virtual terminal when systemd crashes (-1 to deactivate).";
+  map["toolTip"] = "<p>Activate the specified virtual terminal when systemd crashes (-1 to deactivate).</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -300,7 +300,7 @@ void kcmsystemd::setupConfigParms()
   for (int i = 1; i <= QThread::idealThreadCount(); ++i)
     CPUAffinityList << QString::number(i);
   map["possibleVals"] = CPUAffinityList;
-  map["toolTip"] = "The initial CPU affinity for the systemd init process.";
+  map["toolTip"] = "<p>The initial CPU affinity for the systemd init process.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -308,7 +308,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = SYSTEMD;
   map["type"] = STRING;
   map["defVal"] = "cpu,cpuacct net_cls,net_prio";
-  map["toolTip"] = "Controllers that shall be mounted in a single hierarchy. Takes a space-separated list of comma-separated controller names, in order to allow multiple joined hierarchies. Pass an empty string to ensure that systemd mounts all controllers in separate hierarchies.";
+  map["toolTip"] = "<p>Controllers that shall be mounted in a single hierarchy. Takes a space-separated list of comma-separated controller names, in order to allow multiple joined hierarchies. Pass an empty string to ensure that systemd mounts all controllers in separate hierarchies.</p>";
   confOptList.append(confOption(map));
 
   if (systemdVersion < 208)
@@ -318,7 +318,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = STRING;
     map["defVal"] = "cpu";
-    map["toolTip"] = "Configures in which control group hierarchies to create per-service cgroups automatically, in addition to the name=systemd named hierarchy. Takes a space-separated list of controller names. Pass the empty string to ensure that systemd does not touch any hierarchies but its own.";
+    map["toolTip"] = "<p>Configures in which control group hierarchies to create per-service cgroups automatically, in addition to the name=systemd named hierarchy. Takes a space-separated list of controller names. Pass the empty string to ensure that systemd does not touch any hierarchies but its own.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -328,7 +328,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 0;
   map["defUnit"] = confOption::s;
-  map["toolTip"] = "The watchdog hardware (/dev/watchdog) will be programmed to automatically reboot the system if it is not contacted within the specified timeout interval. The system manager will ensure to contact it at least once in half the specified timeout interval. This feature requires a hardware watchdog device.";
+  map["toolTip"] = "<p>The watchdog hardware (/dev/watchdog) will be programmed to automatically reboot the system if it is not contacted within the specified timeout interval. The system manager will ensure to contact it at least once in half the specified timeout interval. This feature requires a hardware watchdog device.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -338,7 +338,7 @@ void kcmsystemd::setupConfigParms()
   map["defVal"] = 10;
   map["defUnit"] = confOption::min;
   map["defReadUnit"] = confOption::s;
-  map["toolTip"] = "This setting may be used to configure the hardware watchdog when the system is asked to reboot. It works as a safety net to ensure that the reboot takes place even if a clean reboot attempt times out. This feature requires a hardware watchdog device.";
+  map["toolTip"] = "<p>This setting may be used to configure the hardware watchdog when the system is asked to reboot. It works as a safety net to ensure that the reboot takes place even if a clean reboot attempt times out. This feature requires a hardware watchdog device.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -346,7 +346,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = SYSTEMD;
   map["type"] = MULTILIST;
   map["possibleVals"] = confOption::capabilities;
-  map["toolTip"] = "Capabilities for the systemd daemon and its children.";
+  map["toolTip"] = "<p>Capabilities for the systemd daemon and its children.</p>";
   confOptList.append(confOption(map));
 
   if (systemdVersion >= 209)
@@ -356,7 +356,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = MULTILIST;
     map["possibleVals"] = QStringList() << "native" << "x86" << "x86-64" << "x32" << "arm";
-    map["toolTip"] = "Architectures of which system calls may be invoked on the system.";
+    map["toolTip"] = "<p>Architectures of which system calls may be invoked on the system.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -366,7 +366,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 0;
   map["defUnit"] = confOption::ns;
-  map["toolTip"] = "Sets the timer slack for PID 1 which is then inherited to all executed processes, unless overridden individually. The timer slack controls the accuracy of wake-ups triggered by timers.";
+  map["toolTip"] = "<p>Sets the timer slack for PID 1 which is then inherited to all executed processes, unless overridden individually. The timer slack controls the accuracy of wake-ups triggered by timers.</p>";
   confOptList.append(confOption(map));
 
   if (systemdVersion >= 212)
@@ -377,7 +377,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = TIME;
     map["defVal"] = 60;
     map["defUnit"] = confOption::s;
-    map["toolTip"] = "The default accuracy of timer units. Note that the accuracy of timer units is also affected by the configured timer slack for PID 1.";
+    map["toolTip"] = "<p>The default accuracy of timer units. Note that the accuracy of timer units is also affected by the configured timer slack for PID 1.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -389,7 +389,7 @@ void kcmsystemd::setupConfigParms()
   map["possibleVals"] = QStringList() << "inherit" << "null" << "tty" << "journal"
                                       << "journal+console" << "syslog" << "syslog+console"
                                       << "kmsg" << "kmsg+console";
-  map["toolTip"] = "Sets the default output for all services and sockets.";
+  map["toolTip"] = "<p>Sets the default output for all services and sockets.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -400,7 +400,7 @@ void kcmsystemd::setupConfigParms()
   map["possibleVals"] = QStringList() << "inherit" << "null" << "tty" << "journal"
                                       << "journal+console" << "syslog" << "syslog+console"
                                       << "kmsg" << "kmsg+console";
-  map["toolTip"] = "Sets the default error output for all services and sockets.";
+  map["toolTip"] = "<p>Sets the default error output for all services and sockets.</p>";
   confOptList.append(confOption(map));
 
   if (systemdVersion >= 209)
@@ -411,7 +411,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = TIME;
     map["defVal"] = 90;
     map["defUnit"] = confOption::s;
-    map["toolTip"] = "The default timeout for starting of units.";
+    map["toolTip"] = "<p>The default timeout for starting of units.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -420,7 +420,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = TIME;
     map["defVal"] = 90;
     map["defUnit"] = confOption::s;
-    map["toolTip"] = "The default timeout for stopping of units.";
+    map["toolTip"] = "<p>The default timeout for stopping of units.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -430,7 +430,7 @@ void kcmsystemd::setupConfigParms()
     map["defVal"] = 100;
     map["defUnit"] = confOption::ms;
     map["defReadUnit"] = confOption::s;
-    map["toolTip"] = "The default time to sleep between automatic restart of units.";
+    map["toolTip"] = "<p>The default time to sleep between automatic restart of units.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -439,7 +439,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = TIME;
     map["defVal"] = 10;
     map["defUnit"] = confOption::s;
-    map["toolTip"] = "Time interval used in start rate limit for services.";
+    map["toolTip"] = "<p>Time interval used in start rate limit for services.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -449,7 +449,7 @@ void kcmsystemd::setupConfigParms()
     map["defVal"] = 5;
     map["minVal"] = 0;
     map["maxVal"] = 99999;
-    map["toolTip"] = "Services are not allowed to start more than this number of times within the time interval defined in DefaultStartLimitInterval";
+    map["toolTip"] = "<p>Services are not allowed to start more than this number of times within the time interval defined in DefaultStartLimitInterval";
     confOptList.append(confOption(map));
   }
 
@@ -460,7 +460,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = STRING;
     map["defVal"] = QString("");
-    map["toolTip"] = "Manager environment variables passed to all executed processes. Takes a space-separated list of variable assignments.";
+    map["toolTip"] = "<p>Manager environment variables passed to all executed processes. Takes a space-separated list of variable assignments.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -471,7 +471,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = BOOL;
     map["defVal"] = false;
-    map["toolTip"] = "Default CPU usage accounting.";
+    map["toolTip"] = "<p>Default CPU usage accounting.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -479,7 +479,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = BOOL;
     map["defVal"] = false;
-    map["toolTip"] = "Default block IO accounting.";
+    map["toolTip"] = "<p>Default block IO accounting.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -487,7 +487,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = BOOL;
     map["defVal"] = false;
-    map["toolTip"] = "Default process and kernel memory accounting.";
+    map["toolTip"] = "<p>Default process and kernel memory accounting.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -505,7 +505,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = RESLIMIT;
     map["minVal"] = -1;
-    map["toolTip"] = "Default resource limit for units. Set to -1 for no limit.";
+    map["toolTip"] = "<p>Default resource limit for units. Set to -1 for no limit.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -517,7 +517,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = LIST;
   map["defVal"] = "auto";
   map["possibleVals"] = QStringList() << "volatile" << "persistent" << "auto" << "none";
-  map["toolTip"] = "Where to store log files.";
+  map["toolTip"] = "<p>Where to store log files.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -525,7 +525,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = JOURNALD;
   map["type"] = BOOL;
   map["defVal"] = true;
-  map["toolTip"] = "Compress log files.";
+  map["toolTip"] = "<p>Compress log files.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -533,7 +533,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = JOURNALD;
   map["type"] = BOOL;
   map["defVal"] = true;
-  map["toolTip"] = "Enable Forward Secure Sealing (FSS) for all persistent journal files.";
+  map["toolTip"] = "<p>Enable Forward Secure Sealing (FSS) for all persistent journal files.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -545,7 +545,7 @@ void kcmsystemd::setupConfigParms()
   else
     map["defVal"] = "login";
   map["possibleVals"] = QStringList() << "login" << "uid" << "none";
-  map["toolTip"] = "Whether and how to split log files. If uid, all users will get each their own journal files regardless of whether they possess a login session or not, however system users will log into the system journal. If login, actually logged-in users will get each their own journal files, but users without login session and system users will log into the system journal. If none, journal files are not split up by user and all messages are instead stored in the single system journal.";
+  map["toolTip"] = "<p>Whether and how to split log files. If <i>uid</i>, all users will get each their own journal files regardless of whether they possess a login session or not, however system users will log into the system journal. If <i>login</i>, actually logged-in users will get each their own journal files, but users without login session and system users will log into the system journal. If <i>none</i>, journal files are not split up by user and all messages are instead stored in the single system journal.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -555,7 +555,7 @@ void kcmsystemd::setupConfigParms()
   map["defVal"] = 5;
   map["defUnit"] = confOption::min;
   map["defReadUnit"] = confOption::s;
-  map["toolTip"] = "The timeout before synchronizing journal files to disk.";
+  map["toolTip"] = "<p>The timeout before synchronizing journal files to disk.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -564,7 +564,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 30;
   map["defUnit"] = confOption::s;
-  map["toolTip"] = "Time interval for rate limiting of log messages. Set to 0 to turn off rate-limiting.";
+  map["toolTip"] = "<p>Time interval for rate limiting of log messages. Set to 0 to turn off rate-limiting.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -573,7 +573,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = INTEGER;
   map["defVal"] = 1000;
   map["minVal"] = 0;
-  map["toolTip"] = "Maximum number of messages logged for a unit in the interval specified in RateLimitInterval. Set to 0 to turn off rate-limiting.";
+  map["toolTip"] = "<p>Maximum number of messages logged for a unit in the interval specified in RateLimitInterval. Set to 0 to turn off rate-limiting.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -582,7 +582,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = SIZE;
   map["defVal"] = QVariant(0.1 * partPersSizeMB).toULongLong();
   map["maxVal"] = partPersSizeMB;
-  map["toolTip"] = "Maximum disk space the persistent journal may take up. Defaults to 10% of file system size.";
+  map["toolTip"] = "<p>Maximum disk space the persistent journal may take up. Defaults to 10% of file system size.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -591,7 +591,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = SIZE;
   map["defVal"] = QVariant(0.15 * partPersSizeMB).toULongLong();
   map["maxVal"] = partPersSizeMB;
-  map["toolTip"] = "Minimum disk space the persistent journal should keep free for other uses. Defaults to 15% of file system size.";
+  map["toolTip"] = "<p>Minimum disk space the persistent journal should keep free for other uses. Defaults to 15% of file system size.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -600,7 +600,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = SIZE;
   map["defVal"] = QVariant(0.125 * 0.1 * partPersSizeMB).toULongLong();
   map["maxVal"] = partPersSizeMB;
-  map["toolTip"] = "Maximum size of individual journal files on persistent storage. Defaults to 1/8 of SystemMaxUse.";
+  map["toolTip"] = "<p>Maximum size of individual journal files on persistent storage. Defaults to 1/8 of SystemMaxUse.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -609,7 +609,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = SIZE;
   map["defVal"] = QVariant(0.1 * partVolaSizeMB).toULongLong();
   map["maxVal"] = partVolaSizeMB;
-  map["toolTip"] = "Maximum disk space the volatile journal may take up. Defaults to 10% of file system size.";
+  map["toolTip"] = "<p>Maximum disk space the volatile journal may take up. Defaults to 10% of file system size.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -618,7 +618,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = SIZE;
   map["defVal"] = QVariant(0.15 * partVolaSizeMB).toULongLong();
   map["maxVal"] = partVolaSizeMB;
-  map["toolTip"] = "Minimum disk space the volatile journal should keep free for other uses. Defaults to 15% of file system size.";
+  map["toolTip"] = "<p>Minimum disk space the volatile journal should keep free for other uses. Defaults to 15% of file system size.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -627,7 +627,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = SIZE;
   map["defVal"] = QVariant(0.125 * 0.1 * partVolaSizeMB).toULongLong();
   map["maxVal"] = partVolaSizeMB;
-  map["toolTip"] = "Maximum size of individual journal files on volatile storage. Defaults to 1/8 of RuntimeMaxUse.";
+  map["toolTip"] = "<p>Maximum size of individual journal files on volatile storage. Defaults to 1/8 of RuntimeMaxUse.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -637,7 +637,7 @@ void kcmsystemd::setupConfigParms()
   map["defVal"] = 0;
   map["defUnit"] = confOption::d;
   map["defReadUnit"] = confOption::s;
-  map["toolTip"] = "Maximum time to store journal entries. Set to 0 to disable.";
+  map["toolTip"] = "<p>Maximum time to store journal entries. Set to 0 to disable.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -647,7 +647,7 @@ void kcmsystemd::setupConfigParms()
   map["defVal"] = 30;
   map["defUnit"] = confOption::d;
   map["defReadUnit"] = confOption::s;
-  map["toolTip"] = "Maximum time to store entries in a single journal file before rotating to the next one. Set to 0 to disable.";
+  map["toolTip"] = "<p>Maximum time to store entries in a single journal file before rotating to the next one. Set to 0 to disable.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -655,7 +655,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = JOURNALD;
   map["type"] = BOOL;
   map["defVal"] = true;
-  map["toolTip"] = "Forward journal messages to syslog.";
+  map["toolTip"] = "<p>Forward journal messages to syslog.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -663,7 +663,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = JOURNALD;
   map["type"] = BOOL;
   map["defVal"] = false;
-  map["toolTip"] = "Forward journal messages to kernel log buffer";
+  map["toolTip"] = "<p>Forward journal messages to kernel log buffer";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -671,7 +671,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = JOURNALD;
   map["type"] = BOOL;
   map["defVal"] = false;
-  map["toolTip"] = "Forward journal messages to the system console. The console can be changed with TTYPath.";
+  map["toolTip"] = "<p>Forward journal messages to the system console. The console can be changed with TTYPath.</p>";
   confOptList.append(confOption(map));
 
   if (systemdVersion >= 212)
@@ -681,7 +681,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = JOURNALD;
     map["type"] = BOOL;
     map["defVal"] = true;
-    map["toolTip"] = "Forward journal messages as wall messages to all logged-in users.";
+    map["toolTip"] = "<p>Forward journal messages as wall messages to all logged-in users.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -690,7 +690,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = JOURNALD;
   map["type"] = STRING;
   map["defVal"] = "/dev/console";
-  map["toolTip"] = "Forward journal messages to this TTY if ForwardToConsole is set.";
+  map["toolTip"] = "<p>Forward journal messages to this TTY if ForwardToConsole is set.</p>";
   confOptList.append(confOption(map));
 
   QStringList listLogLevel = QStringList() << "MaxLevelStore" << "MaxLevelSyslog"
@@ -714,7 +714,7 @@ void kcmsystemd::setupConfigParms()
       map["defVal"] = "debug";
     map["possibleVals"] = QStringList() << "emerg" << "alert" << "crit" << "err"
                                         << "warning" << "notice" << "info" << "debug";
-    map["toolTip"] = "Max log level to forward/store to the specified target.";
+    map["toolTip"] = "<p>Max log level to forward/store to the specified target.</p>";
     confOptList.append(confOption(map));
   }
   
@@ -727,7 +727,7 @@ void kcmsystemd::setupConfigParms()
   map["defVal"] = 6;
   map["minVal"] = 0;
   map["maxVal"] = 12;
-  map["toolTip"] = "Number of virtual terminals (VTs) to allocate by default and which will autospawn. Set to 0 to disable.";
+  map["toolTip"] = "<p>Number of virtual terminals (VTs) to allocate by default and which will autospawn. Set to 0 to disable.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -737,7 +737,7 @@ void kcmsystemd::setupConfigParms()
   map["defVal"] = 6;
   map["minVal"] = 0;
   map["maxVal"] = 12;
-  map["toolTip"] = "Virtual terminal that shall unconditionally be reserved for autospawning. Set to 0 to disable.";
+  map["toolTip"] = "<p>Virtual terminal that shall unconditionally be reserved for autospawning. Set to 0 to disable.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -745,14 +745,14 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = BOOL;
   map["defVal"] = false;
-  map["toolTip"] = "Kill the processes of a user when the user completely logs out.";
+  map["toolTip"] = "<p>Kill the processes of a user when the user completely logs out.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
   map["name"] = "KillOnlyUsers";
   map["file"] = LOGIND;
   map["type"] = STRING;
-  map["toolTip"] = "Space-separated list of usernames for which only processes will be killed if KillUserProcesses is enabled.";
+  map["toolTip"] = "<p>Space-separated list of usernames for which only processes will be killed if KillUserProcesses is enabled.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -760,7 +760,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = STRING;
   map["defVal"] = "root";
-  map["toolTip"] = "Space-separated list of usernames for which processes will be excluded from being killed if KillUserProcesses is enabled.";
+  map["toolTip"] = "<p>Space-separated list of usernames for which processes will be excluded from being killed if KillUserProcesses is enabled.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -769,7 +769,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 5;
   map["defUnit"] = confOption::s;
-  map["toolTip"] = "Specifies the maximum time a system shutdown or sleep request is delayed due to an inhibitor lock of type delay being active before the inhibitor is ignored and the operation executes anyway.";
+  map["toolTip"] = "<p>Specifies the maximum time a system shutdown or sleep request is delayed due to an inhibitor lock of type delay being active before the inhibitor is ignored and the operation executes anyway.</p>";
   confOptList.append(confOption(map));
 
   QStringList listPowerActions = QStringList() << "ignore" << "poweroff" << "reboot" << "halt" << "kexec"
@@ -793,7 +793,7 @@ void kcmsystemd::setupConfigParms()
     else
       map["defVal"] = "suspend";
     map["possibleVals"] = listPowerActions;
-    map["toolTip"] = "Controls whether logind shall handle the system power and sleep keys and the lid switch to trigger power actions.";
+    map["toolTip"] = "<p>Controls whether logind shall handle the system power and sleep keys and the lid switch to trigger power actions.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -802,7 +802,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = BOOL;
   map["defVal"] = false;
-  map["toolTip"] = "Controls whether actions triggered by the power key are subject to inhibitor locks.";
+  map["toolTip"] = "<p>Controls whether actions triggered by the power key are subject to inhibitor locks.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -810,7 +810,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = BOOL;
   map["defVal"] = false;
-  map["toolTip"] = "Controls whether actions triggered by the suspend key are subject to inhibitor locks.";
+  map["toolTip"] = "<p>Controls whether actions triggered by the suspend key are subject to inhibitor locks.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -818,7 +818,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = BOOL;
   map["defVal"] = false;
-  map["toolTip"] = "Controls whether actions triggered by the hibernate key are subject to inhibitor locks.";
+  map["toolTip"] = "<p>Controls whether actions triggered by the hibernate key are subject to inhibitor locks.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -826,7 +826,7 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = BOOL;
   map["defVal"] = true;
-  map["toolTip"] = "Controls whether actions triggered by the lid switch are subject to inhibitor locks.";
+  map["toolTip"] = "<p>Controls whether actions triggered by the lid switch are subject to inhibitor locks.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -835,7 +835,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = LIST;
   map["defVal"] = "ignore";
   map["possibleVals"] = listPowerActions;
-  map["toolTip"] = "Configures the action to take when the system is idle.";
+  map["toolTip"] = "<p>Configures the action to take when the system is idle.</p>";
   confOptList.append(confOption(map));
 
   map.clear();
@@ -844,7 +844,7 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 0;
   map["defUnit"] = confOption::s;
-  map["toolTip"] = "Configures the delay after which the action configured in IdleAction is taken after the system is idle.";
+  map["toolTip"] = "<p>Configures the delay after which the action configured in IdleAction is taken after the system is idle.</p>";
   confOptList.append(confOption(map));
 
   if (systemdVersion >= 212)
@@ -854,7 +854,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = LOGIND;
     map["type"] = BOOL;
     map["defVal"] = true;
-    map["toolTip"] = "Controls whether System V and POSIX IPC objects belonging to the user shall be removed when the user fully logs out.";
+    map["toolTip"] = "<p>Controls whether System V and POSIX IPC objects belonging to the user shall be removed when the user fully logs out.</p>";
     confOptList.append(confOption(map));
   }
 
@@ -867,7 +867,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = LIST;
     map["defVal"] = "external";
     map["possibleVals"] = QStringList() << "none" << "external" << "journal" << "both";
-    map["toolTip"] = "Controls where to store cores. When none, the coredumps will be logged but not stored permanently. When external, cores will be stored in /var/lib/systemd/coredump. When journal, cores will be stored in the journal and rotated following normal journal rotation patterns.";
+    map["toolTip"] = "<p>Controls where to store cores. When <i>none</i>, the coredumps will be logged but not stored permanently. When <i>external</i>, cores will be stored in /var/lib/systemd/coredump. When <i>journal</i>, cores will be stored in the journal and rotated following normal journal rotation patterns.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -875,7 +875,7 @@ void kcmsystemd::setupConfigParms()
     map["file"] = COREDUMP;
     map["type"] = BOOL;
     map["defVal"] = true;
-    map["toolTip"] = "Controls compression for external storage.";
+    map["toolTip"] = "<p>Controls compression for external storage.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -884,7 +884,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = SIZE;
     map["defVal"] = 2*1024;
     map["maxVal"] = partPersSizeMB;
-    map["toolTip"] = "The maximum size of a core which will be processed. Coredumps exceeding this size will be logged, but the backtrace will not be generated and the core will not be stored.";
+    map["toolTip"] = "<p>The maximum size of a core which will be processed. Coredumps exceeding this size will be logged, but the backtrace will not be generated and the core will not be stored.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -893,7 +893,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = SIZE;
     map["defVal"] = 2*1024;
     map["maxVal"] = partPersSizeMB;
-    map["toolTip"] = "The maximum (uncompressed) size of a core to be saved.";
+    map["toolTip"] = "<p>The maximum (uncompressed) size of a core to be saved.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -902,7 +902,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = SIZE;
     map["defVal"] = 767;
     map["maxVal"] = partPersSizeMB;
-    map["toolTip"] = "The maximum (uncompressed) size of a core to be saved.";
+    map["toolTip"] = "<p>The maximum (uncompressed) size of a core to be saved.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -911,7 +911,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = SIZE;
     map["defVal"] = QVariant(0.1 * partPersSizeMB).toULongLong();
     map["maxVal"] = partPersSizeMB;
-    map["toolTip"] = "Old coredumps are removed as soon as the total disk space taken up by coredumps grows beyond this limit. Defaults to 10% of the total disk size.";
+    map["toolTip"] = "<p>Old coredumps are removed as soon as the total disk space taken up by coredumps grows beyond this limit. Defaults to 10% of the total disk size.</p>";
     confOptList.append(confOption(map));
 
     map.clear();
@@ -920,7 +920,7 @@ void kcmsystemd::setupConfigParms()
     map["type"] = SIZE;
     map["defVal"] = QVariant(0.15 * partPersSizeMB).toULongLong();
     map["maxVal"] = partPersSizeMB;
-    map["toolTip"] = "Minimum disk space to keep free. Defaults to 15% of the total disk size.";
+    map["toolTip"] = "<p>Minimum disk space to keep free. Defaults to 15% of the total disk size.</p>";
     confOptList.append(confOption(map));
   }
 
