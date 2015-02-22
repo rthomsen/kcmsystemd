@@ -992,7 +992,9 @@ void kcmsystemd::setupUnitslist()
   // Setup models for unitslist
   unitsModel = new QStandardItemModel(this);
   proxyModelAct = new QSortFilterProxyModel (this);
+  proxyModelAct->setDynamicSortFilter(false);
   proxyModelUnitId = new QSortFilterProxyModel (this);
+  proxyModelUnitId->setDynamicSortFilter(false);
   proxyModelAct->setSourceModel(unitsModel);
   proxyModelUnitId->setSourceModel(proxyModelAct);
 
@@ -1139,7 +1141,7 @@ void kcmsystemd::slotChkShowUnits()
   } else {
     ui.chkShowUnloadedUnits->setEnabled(false);
     proxyModelAct->setFilterRegExp(QRegExp("^(active)"));
-  }    
+  }
   proxyModelAct->setFilterKeyColumn(1);
   ui.tblServices->sortByColumn(ui.tblServices->horizontalHeader()->sortIndicatorSection(), ui.tblServices->horizontalHeader()->sortIndicatorOrder());
   updateUnitCount();
@@ -1254,6 +1256,7 @@ void kcmsystemd::slotRefreshUnitsList()
   }
   delete iface;
 
+  // Add unloaded units to the list
   for (int i = 0;  i < unitfileslist.size(); ++i)
   { 
     if (!unitpaths.contains(unitfileslist.at(i).name.section('/',-1)))
@@ -1261,12 +1264,12 @@ void kcmsystemd::slotRefreshUnitsList()
       QFile unitfile(unitfileslist.at(i).name);
       if (unitfile.symLinkTarget().isEmpty())
       {
-	SystemdUnit unit;
-	unit.id = unitfileslist.at(i).name.section('/',-1);
-	unit.load_state = "unloaded";
-	unit.active_state = "-";
-	unit.sub_state = "-";
-	unitslist.append(unit);
+        SystemdUnit unit;
+        unit.id = unitfileslist.at(i).name.section('/',-1);
+        unit.load_state = "unloaded";
+        unit.active_state = "-";
+        unit.sub_state = "-";
+        unitslist.append(unit);
       }
     }
   }
@@ -1413,16 +1416,32 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   QAction *reloaddaemon = menu.addAction("Rel&oad all unit files");
   QAction *reexecdaemon = menu.addAction("Ree&xecute systemd");
   
-  // Get UnitFileState (have to use Manager interface for this)
+  // Get UnitFileState (have to use Manager object for this)
   QList<QVariant> args;
   args << unit;
   QString UnitFileState = dbusIfaceManager->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString();
-  
+
   // Check if unit can be isolated
-  isolate->setEnabled(dbusIfaceUnit->property("CanIsolate").toBool());
-  QString LoadState = dbusIfaceUnit->property("LoadState").toString();
-  QString ActiveState = dbusIfaceUnit->property("ActiveState").toString();
-  bool CanStart = dbusIfaceUnit->property("CanStart").toBool();
+  QString LoadState, ActiveState;
+  bool CanStart, CanStop, CanReload;
+  if (dbusIfaceUnit->isValid())
+  {
+    // Unit has a Unit DBus object, fetch properties
+    isolate->setEnabled(dbusIfaceUnit->property("CanIsolate").toBool());
+    LoadState = dbusIfaceUnit->property("LoadState").toString();
+    ActiveState = dbusIfaceUnit->property("ActiveState").toString();
+    CanStart = dbusIfaceUnit->property("CanStart").toBool();
+    CanStop = dbusIfaceUnit->property("CanStop").toBool();
+    CanReload = dbusIfaceUnit->property("CanReload").toBool();
+  }
+  else
+  {
+    // No Unit DBus object, only enable Start
+    isolate->setEnabled(false);
+    CanStart = true;
+    CanStop = false;
+    CanReload = false;
+  }
 
   if (CanStart &&
       ActiveState != "active")
@@ -1430,7 +1449,7 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   else
     start->setEnabled(false);
 
-  if (dbusIfaceUnit->property("CanStop").toBool() &&
+  if (CanStop &&
       ActiveState != "inactive" &&
       ActiveState != "failed")
     stop->setEnabled(true);
@@ -1439,12 +1458,13 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
 
   if (CanStart &&
       ActiveState != "inactive" &&
-      ActiveState != "failed")
+      ActiveState != "failed" &&
+      !LoadState.isEmpty())
     restart->setEnabled(true);
   else
     restart->setEnabled(false);
 
-  if (dbusIfaceUnit->property("CanReload").toBool() &&
+  if (CanReload &&
       ActiveState != "inactive" &&
       ActiveState != "failed")
     reload->setEnabled(true);
@@ -1464,7 +1484,7 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   if (LoadState == "masked")
   {
     mask->setEnabled(false);
-  } else if (LoadState == "loaded" || LoadState == "error") {
+  } else if (LoadState != "masked") {
     unmask->setEnabled(false);
   }
   
@@ -1477,7 +1497,7 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
     frpath = unitfileslist.at(index).name;
   if (frpath.isEmpty())
     edit->setEnabled(false);
-  
+
   QAction *a = menu.exec(ui.tblServices->viewport()->mapToGlobal(pos));
    
   if (a == edit)
@@ -1595,7 +1615,7 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
 
     if (unitsModel->itemFromIndex(inUnitsModel)->row() != lastRowChecked)
     {
-      // Cursor moved to a different row. Only build tooptips when moving
+      // Cursor moved to a different row. Only build tooltips when moving
       // cursor to a new row to avoid excessive DBus calls.
 
       QString selUnit = ui.tblServices->model()->index(ui.tblServices->indexAt(me->pos()).row(),3).data().toString();
@@ -1605,52 +1625,46 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
       toolTipText.append("<FONT COLOR=white>");
       toolTipText.append("<span style=\"font-weight:bold;\">" + selUnit + "</span><hr>");
 
+      // Create a DBus interface
       QDBusConnection systembus = QDBusConnection::systemBus();
       QDBusInterface *iface;
+      iface = new QDBusInterface ("org.freedesktop.systemd1",
+                                  unitpaths[selUnit].toString(),
+                                  "org.freedesktop.systemd1.Unit",
+                                  systembus,
+                                  this);
 
-      if (unitpaths.contains(selUnit))
+      // Use the DBus interface to get unit properties
+      if (iface->isValid())
       {
         // Unit has a valid unit DBus object
+        toolTipText.append("<span style=\"font-weight:bold;\">Description: </span>");
+        toolTipText.append(iface->property("Description").toString());
+        toolTipText.append("<br><span style=\"font-weight:bold;\">Fragment path: </span>");
+        toolTipText.append(iface->property("FragmentPath").toString());
+        toolTipText.append("<br><span style=\"font-weight:bold;\">Unit file state: </span>");
+        toolTipText.append(iface->property("UnitFileState").toString());
 
-        // Create a DBus interface
-        iface = new QDBusInterface (
-              "org.freedesktop.systemd1",
-              unitpaths[selUnit].toString(),
-              "org.freedesktop.systemd1.Unit",
-              systembus,
-              this);
-
-        // Use the DBus interface to get unit properties
-        if (iface->isValid())
+        toolTipText.append("<br><span style=\"font-weight:bold;\">Activated: </span>");
+        if (iface->property("ActiveEnterTimestamp").toULongLong() == 0)
+          toolTipText.append("n/a");
+        else
         {
-          toolTipText.append("<span style=\"font-weight:bold;\">Description: </span>");
-          toolTipText.append(iface->property("Description").toString());
-          toolTipText.append("<br><span style=\"font-weight:bold;\">Fragment path: </span>");
-          toolTipText.append(iface->property("FragmentPath").toString());
-          toolTipText.append("<br><span style=\"font-weight:bold;\">Unit file state: </span>");
-          toolTipText.append(iface->property("UnitFileState").toString());
-
-          toolTipText.append("<br><span style=\"font-weight:bold;\">Activated: </span>");
-          if (iface->property("ActiveEnterTimestamp").toULongLong() == 0)
-            toolTipText.append("n/a");
-          else
-          {
-            QDateTime timeActivated;
-            timeActivated.setMSecsSinceEpoch(iface->property("ActiveEnterTimestamp").toULongLong()/1000);
-            toolTipText.append(timeActivated.toString());
-          }
-
-          toolTipText.append("<br><span style=\"font-weight:bold;\">Deactivated: </span>");
-          if (iface->property("InactiveEnterTimestamp").toULongLong() == 0)
-            toolTipText.append("n/a");
-          else
-          {
-            QDateTime timeDeactivated;
-            timeDeactivated.setMSecsSinceEpoch(iface->property("InactiveEnterTimestamp").toULongLong()/1000);
-            toolTipText.append(timeDeactivated.toString());
-          }
-          delete iface;
+          QDateTime timeActivated;
+          timeActivated.setMSecsSinceEpoch(iface->property("ActiveEnterTimestamp").toULongLong()/1000);
+          toolTipText.append(timeActivated.toString());
         }
+
+        toolTipText.append("<br><span style=\"font-weight:bold;\">Deactivated: </span>");
+        if (iface->property("InactiveEnterTimestamp").toULongLong() == 0)
+          toolTipText.append("n/a");
+        else
+        {
+          QDateTime timeDeactivated;
+          timeDeactivated.setMSecsSinceEpoch(iface->property("InactiveEnterTimestamp").toULongLong()/1000);
+          toolTipText.append(timeDeactivated.toString());
+        }
+        delete iface;
       }
       else
       {
@@ -1684,9 +1698,10 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
       lastRowChecked = unitsModel->itemFromIndex(inUnitsModel)->row();
       return true;
 
-    } // Row was iff
+    } // Row was different
   } // Cursor was moved
   return false;
+  // return true;
 }
 
 void kcmsystemd::slotSystemdReloading(bool status)
