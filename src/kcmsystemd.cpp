@@ -1607,7 +1607,7 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
 
       QString toolTipText;
       toolTipText.append("<FONT COLOR=white>");
-      toolTipText.append("<span style=\"font-weight:bold;\">" + selUnit + "</span><hr>");
+      toolTipText.append("<b>" + selUnit + "</b><hr>");
 
       // Create a DBus interface
       QDBusConnection systembus = QDBusConnection::systemBus();
@@ -1622,14 +1622,14 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
       if (iface->isValid())
       {
         // Unit has a valid unit DBus object
-        toolTipText.append(i18n("<span style=\"font-weight:bold;\">Description: </span>"));
+        toolTipText.append(i18n("<b>Description: </b>"));
         toolTipText.append(iface->property("Description").toString());
-        toolTipText.append(i18n("<br><span style=\"font-weight:bold;\">Fragment path: </span>"));
+        toolTipText.append(i18n("<br><b>Fragment path: </b>"));
         toolTipText.append(iface->property("FragmentPath").toString());
-        toolTipText.append(i18n("<br><span style=\"font-weight:bold;\">Unit file state: </span>"));
+        toolTipText.append(i18n("<br><b>Unit file state: </b>"));
         toolTipText.append(iface->property("UnitFileState").toString());
 
-        toolTipText.append(i18n("<br><span style=\"font-weight:bold;\">Activated: </span>"));
+        toolTipText.append(i18n("<br><b>Activated: </b>"));
         if (iface->property("ActiveEnterTimestamp").toULongLong() == 0)
           toolTipText.append("n/a");
         else
@@ -1639,7 +1639,7 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
           toolTipText.append(timeActivated.toString());
         }
 
-        toolTipText.append(i18n("<br><span style=\"font-weight:bold;\">Deactivated: </span>"));
+        toolTipText.append(i18n("<br><b>Deactivated: </b>"));
         if (iface->property("InactiveEnterTimestamp").toULongLong() == 0)
           toolTipText.append("n/a");
         else
@@ -1665,11 +1665,11 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
         unitfile a;
         a.name = selUnit;
 
-        toolTipText.append(i18n("<span style=\"font-weight:bold;\">Fragment path: </span>"));
+        toolTipText.append(i18n("<b>Fragment path: </b>"));
         if (!a.name.isEmpty())
           toolTipText.append(unitfileslist.at(unitfileslist.indexOf(a)).name);
 
-        toolTipText.append(i18n("<br><span style=\"font-weight:bold;\">Unit file state: </span>"));
+        toolTipText.append(i18n("<br><b>Unit file state: </b>"));
         if (!a.name.isEmpty())
           toolTipText.append(iface->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString());
 
