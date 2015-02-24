@@ -59,7 +59,7 @@ msgstr "Montrer non-chargées"
 msgid ""
 "<html><head/><body><p>Reload the list of units from systemd.</p></body></"
 "html>"
-msgstr "<html><head/><body><p>Recharcher la list des unités à partir de systemd.</p></body></"
+msgstr "<html><head/><body><p>Recharcher la liste des unités à partir de systemd.</p></body></"
 "html>"
 
 #. i18n: file: ui/kcmsystemd.ui:133
@@ -162,7 +162,7 @@ msgstr "<p>Utiliser la coulleur pour indiquer les messages importants.</p>"
 
 #: src/kcmsystemd.cpp:256
 msgid "<p>Include code location in log messages.</p>"
-msgstr "Afficher l'emplacement du code dans le journal"
+msgstr "<p>Afficher l'emplacement du code dans le journal</p>"
 
 #: src/kcmsystemd.cpp:264
 msgid "<p>Dump core on systemd crash.</p>"
@@ -172,11 +172,12 @@ msgstr ""
 msgid ""
 "<p>Spawn a shell when systemd crashes. Note: The shell is not password-"
 "protected.</p>"
-msgstr ""
+msgstr "<p>Exécuter un shell en cas de crash de systemd."
+" Attention: ce shell ne demande pas de mot de passe</p>"
 
 #: src/kcmsystemd.cpp:281
 msgid "<p>Show terse service status information while booting.</p>"
-msgstr ""
+msgstr "<p>Afficher des informations concises sur les services lors du démarrage</p>"
 
 #: src/kcmsystemd.cpp:290
 msgid ""
@@ -638,30 +639,30 @@ msgid "kdesu executable not found. Unable to start kwrite!"
 msgstr "Le programe kdesu n'a pas été trouvé. Impossible d'executer kwrite!"
 
 #: src/kcmsystemd.cpp:1625
-msgid "<span style=\"font-weight:bold;\">Description: </span>"
+msgid "<b>Description: </b>"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1627
-msgid "<br><span style=\"font-weight:bold;\">Fragment path: </span>"
+msgid "<br><b>Fragment path: </b>"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1629 src/kcmsystemd.cpp:1672
-msgid "<br><span style=\"font-weight:bold;\">Unit file state: </span>"
+msgid "<br><b>Unit file state: </b>"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1632
-msgid "<br><span style=\"font-weight:bold;\">Activated: </span>"
+msgid "<br><b>Activated: </b>"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1642
-msgid "<br><span style=\"font-weight:bold;\">Deactivated: </span>"
+msgid "<br><b>Deactivated: </b>"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1668
-msgid "<span style=\"font-weight:bold;\">Fragment path: </span>"
+msgid "<b>Fragment path: </b>"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1740
 #, kde-format
 msgid "File to be written: %1/%2"
-msgstr "Ce fichier serra écrit: %1/%2"
+msgstr "Ce fichier sera écrit: %1/%2"
