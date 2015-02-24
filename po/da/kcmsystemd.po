@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/rthomsen/kcmsystemd/issues\n"
-"POT-Creation-Date: 2015-02-24 10:24+0100\n"
-"PO-Revision-Date: 2015-02-24 11:29+0100\n"
+"POT-Creation-Date: 2015-02-24 13:08+0100\n"
+"PO-Revision-Date: 2015-02-24 13:18+0100\n"
 "Last-Translator: Ragnar Thomsen <rthomsen6@gmail.com>\n"
 "Language-Team: Danish <rthomsen6@gmail.com>\n"
 "Language: da\n"
@@ -59,7 +59,8 @@ msgstr "Vis ikke-loadede"
 msgid ""
 "<html><head/><body><p>Reload the list of units from systemd.</p></body></"
 "html>"
-msgstr "<html><head/><body><p>Genindlæs listen af enheder fra systemd.</p></body></"
+msgstr ""
+"<html><head/><body><p>Genindlæs listen af enheder fra systemd.</p></body></"
 "html>"
 
 #. i18n: file: ui/kcmsystemd.ui:133
@@ -638,27 +639,27 @@ msgid "kdesu executable not found. Unable to start kwrite!"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1625
-msgid "<span style=\"font-weight:bold;\">Description: </span>"
-msgstr "<span style=\"font-weight:bold;\">Beskrivelse: </span>"
+msgid "<b>Description: </b>"
+msgstr "<b>Beskrivelse: </b>"
 
 #: src/kcmsystemd.cpp:1627
-msgid "<br><span style=\"font-weight:bold;\">Fragment path: </span>"
+msgid "<br><b>Fragment path: </b>"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1629 src/kcmsystemd.cpp:1672
-msgid "<br><span style=\"font-weight:bold;\">Unit file state: </span>"
-msgstr ""
+msgid "<br><b>Unit file state: </b>"
+msgstr "<br><b>Enhedsfil status: </b>"
 
 #: src/kcmsystemd.cpp:1632
-msgid "<br><span style=\"font-weight:bold;\">Activated: </span>"
-msgstr ""
+msgid "<br><b>Activated: </b>"
+msgstr "<br><b>Aktiveret: </b>"
 
 #: src/kcmsystemd.cpp:1642
-msgid "<br><span style=\"font-weight:bold;\">Deactivated: </span>"
-msgstr ""
+msgid "<br><b>Deactivated: </b>"
+msgstr "<br><b>Deaktiveret: </b>"
 
 #: src/kcmsystemd.cpp:1668
-msgid "<span style=\"font-weight:bold;\">Fragment path: </span>"
+msgid "<b>Fragment path: </b>"
 msgstr ""
 
 #: src/kcmsystemd.cpp:1740
