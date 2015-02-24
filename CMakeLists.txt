@@ -35,5 +35,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
 
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
 
+add_definitions(-DTRANSLATION_DOMAIN=\"kcmsystemd\")
+
 add_subdirectory(other)
 add_subdirectory(src)
+
+find_package(KF5I18n CONFIG REQUIRED)
+ki18n_install(po)

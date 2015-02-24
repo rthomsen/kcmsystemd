@@ -24,7 +24,7 @@
 #include <QDialog>
 
 #include <KCModule>
-// #include <klocalizedstring.h>
+#include <KLocalizedString>
 
 #include "ui_kcmsystemd.h"
 #include "confoption.h"
