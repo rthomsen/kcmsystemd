@@ -80,6 +80,7 @@ class kcmsystemd : public KCModule
     Ui::kcmsystemd ui;
     void setupSignalSlots();
     void setupUnitslist();
+    void setupConf();
     void readConfFile(int);
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
     bool eventFilter(QObject *, QEvent*);
@@ -98,8 +99,6 @@ class kcmsystemd : public KCModule
     int systemdVersion, timesLoad, lastRowChecked, selectedRow, noActUnits;
     qulonglong partPersSizeMB, partVolaSizeMB;
     bool isPersistent, varLogDirExists;
-    
-    void setupConf();
 
   private slots:
     void slotKdeConfig();

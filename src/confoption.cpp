@@ -56,11 +56,10 @@ confOption::confOption(QVariantMap map)
   type = static_cast<settingType>(map["type"].toInt());
   defVal = map["defVal"];
   possibleVals = map["possibleVals"].toStringList();
-  defUnit = static_cast<timeUnit>(map["defUnit"].toInt());
+  if (map.contains("defUnit"))
+    defUnit = static_cast<timeUnit>(map["defUnit"].toInt());
   if (map.contains("defReadUnit"))
     defReadUnit = static_cast<timeUnit>(map["defReadUnit"].toInt());
-  else
-    defReadUnit = defUnit;
   // These two are not used for anything currently
   // minUnit = static_cast<timeUnit>(map["minUnit"].toInt());
   // maxUnit = static_cast<timeUnit>(map["maxUnit"].toInt());
@@ -69,6 +68,8 @@ confOption::confOption(QVariantMap map)
   if (map.contains("maxVal"))
     maxVal = map["maxVal"].toLongLong();
   toolTip = map["toolTip"].toString();
+
+  hasNsec = map["hasNsec"].toBool();
 
   if (type == MULTILIST)
   {
@@ -136,14 +137,14 @@ int confOption::setValueFromFile(QString line)
   
   else if (type == LIST)
   {
-    if (realName == "ShowStatus")
+    if (realName == "ShowStatus") // ShowStatus needs special treatment
     {
       if (rval.toLower() == "true" || rval.toLower() == "on")
         rval = "yes";
       else if (rval.toLower() == "false" || rval.toLower() == "off")
         rval = "no";
     }
-    if (possibleVals.contains(rval.toLower()))
+    if (possibleVals.contains(rval))
     {
       value = rval.toLower();
       return 0;
@@ -170,15 +171,9 @@ int confOption::setValueFromFile(QString line)
     for (int i = 0; i < possibleVals.size(); ++i)
     {
       if (readList.contains(possibleVals.at(i)))
-      {
         map[possibleVals.at(i)] = true;
-        // mapMultiList[possibleVals.at(i)] = true;
-      }
       else
-      {
         map[possibleVals.at(i)] = false;
-        // mapMultiList[possibleVals.at(i)] = false;
-      }
     }
 
     value = map;
@@ -189,125 +184,107 @@ int confOption::setValueFromFile(QString line)
   else if (type == TIME)
   {
     int pos = 0;
-    bool found = false;
-    
-    QRegExp rxNanoseconds = QRegExp("\\b\\d*\\.?\\d+ns\\b");
-    QRegExp rxMicroseconds = QRegExp("\\b\\d*\\.?\\d+us\\b");
-    QRegExp rxMilliseconds = QRegExp("\\b\\d*\\.?\\d+ms\\b");
-    QRegExp rxSeconds = QRegExp("\\b\\d*\\.?\\d+s\\b");
-    QRegExp rxMinutes = QRegExp("(\\b\\d*\\.?\\d+min\\b)|(\\b\\d*\\.*\\d+m\\b)");
-    QRegExp rxHours = QRegExp("\\b\\d*\\.?\\d+h\\b");
-    QRegExp rxDays = QRegExp("(\\b\\d*\\.?\\d+day\\b)|(\\b\\d*\\.?\\d+d\\b)");
-    QRegExp rxWeeks = QRegExp("(\\b\\d*\\.?\\d+week\\b)|(\\b\\d*\\.*\\d+w\\b)");
-    QRegExp rxMonths = QRegExp("\\b\\d*\\.?\\d+month\\b");
-    QRegExp rxYears = QRegExp("\\b\\d*\\.?\\d+year\\b");
-    
-    seconds secs(0);
-    
-    if (rval.contains(rxNanoseconds))
-    {
-      pos = rxNanoseconds.indexIn(rval);
-      if (pos > -1)
-      {
-        nanoseconds ns(rxNanoseconds.cap(0).remove("ns").toDouble());
-        secs += ns;
-      }       
-    }
+    QRegExp rxValid;
 
-    if (rval.contains(rxMicroseconds))
-    {
-      pos = rxMicroseconds.indexIn(rval);
-      if (pos > -1)
-      {
-        microseconds us(rxMicroseconds.cap(0).remove("us").toDouble());
-        secs += us;
-      }
-    }    
+    // These regex check whether rval is a valid time interval
+    if (hasNsec)
+      rxValid = QRegExp("^(?:\\d*\\.?\\d *(ns|nsec|us|usec|ms|msec|s|sec|second|seconds|m|min|minute|minutes|h|hr|hour|hours|d|day|days|w|week|weeks|month|months|y|year|years)? *)+$");
+    else
+      rxValid = QRegExp("^(?:\\d*\\.?\\d *(us|usec|ms|msec|s|sec|second|seconds|m|min|minute|minutes|h|hr|hour|hours|d|day|days|w|week|weeks|month|months|y|year|years)? *)+$");
 
-    if (rval.contains(rxMilliseconds))
-    {
-      pos = rxMilliseconds.indexIn(rval);
-      if (pos > -1)
-      {
-        milliseconds ms(rxMilliseconds.cap(0).remove("ms").toDouble());
-        secs += ms;
-      }
-    }
-    
-    if (rval.contains(rxSeconds))
-    {
-      pos = rxSeconds.indexIn(rval);
-      if (pos > -1)
-      {
-        seconds s(rxSeconds.cap(0).remove("s").toDouble());
-        secs += s;
-      }
-    }
+    pos = rxValid.indexIn(rval);
 
-    if (rval.contains(rxMinutes))
+    if (pos > -1)
     {
-      pos = rxMinutes.indexIn(rval);
-      if (pos > -1)
-      {
-        minutes min(rxMinutes.cap(0).remove("min").remove("m").toDouble());
-        secs += min;
-      }
-    }
+      pos = 0;
+      seconds secs(0);
 
-    if (rval.contains(rxHours))
-    {
-      pos = rxHours.indexIn(rval);
-      if (pos > -1)
+      // This regex parses individual elements of the time interval
+      QRegExp rxTimeParse = QRegExp("(\\d*\\.?\\d+) *([a-z]*)");
+
+      while ((pos = rxTimeParse.indexIn(rval, pos)) != -1)
       {
-        hours hr(rxHours.cap(0).remove("h").toDouble());
-        secs += hr;
+        if (rxTimeParse.cap(2) == "ns" ||
+            rxTimeParse.cap(2) == "nsec" )
+        {
+          nanoseconds ns(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += ns;
+        }
+        else if (rxTimeParse.cap(2) == "us" ||
+            rxTimeParse.cap(2) == "usec" )
+        {
+          microseconds us(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += us;
+        }
+        else if (rxTimeParse.cap(2) == "ms" ||
+            rxTimeParse.cap(2) == "msec" )
+        {
+          milliseconds ms(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += ms;
+        }
+        else if (rxTimeParse.cap(2) == "s" ||
+                 rxTimeParse.cap(2) == "sec" ||
+                 rxTimeParse.cap(2) == "second" ||
+                 rxTimeParse.cap(2) == "seconds" )
+        {
+          seconds s(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += s;
+        }
+        else if (rxTimeParse.cap(2) == "m" ||
+                 rxTimeParse.cap(2) == "min" ||
+                 rxTimeParse.cap(2) == "minute" ||
+                 rxTimeParse.cap(2) == "minutes" )
+        {
+          minutes min(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += min;
+        }
+        else if (rxTimeParse.cap(2) == "h" ||
+                 rxTimeParse.cap(2) == "hr" ||
+                 rxTimeParse.cap(2) == "hour" ||
+                 rxTimeParse.cap(2) == "hours" )
+        {
+          hours hr(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += hr;
+        }
+        else if (rxTimeParse.cap(2) == "d" ||
+                 rxTimeParse.cap(2) == "day" ||
+                 rxTimeParse.cap(2) == "days")
+        {
+          days dy(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += dy;
+        }
+        else if (rxTimeParse.cap(2) == "w" ||
+                 rxTimeParse.cap(2) == "week" ||
+                 rxTimeParse.cap(2) == "weeks")
+        {
+          weeks w(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += w;
+        }
+        else if (rxTimeParse.cap(2) == "month" ||
+                 rxTimeParse.cap(2) == "months")
+        {
+          months m(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += m;
+        }
+        else if (rxTimeParse.cap(2) == "y" ||
+                 rxTimeParse.cap(2) == "year" ||
+                 rxTimeParse.cap(2) == "years")
+        {
+          years y(rxTimeParse.cap(1).trimmed().toDouble());
+          secs += y;
+        }
+
+        else if (rxTimeParse.cap(2).isEmpty())
+        {
+          // unitless number, convert it from defReadUnit to seconds
+          seconds tmpSeconds(convertTimeUnit(rxTimeParse.cap(1).trimmed().toDouble(), defReadUnit, timeUnit::s).toDouble());
+          secs += tmpSeconds;
+        }
+
+        pos += rxTimeParse.matchedLength();
       }
-    }
-    
-    if (rval.contains(rxDays))
-    {
-      pos = rxDays.indexIn(rval);
-      if (pos > -1)
-      {
-        days dy(rxDays.cap(0).remove("d").toDouble());
-        secs += dy;
-      }
-    }
-    
-    if (rval.contains(rxWeeks))
-    {
-      pos = rxWeeks.indexIn(rval);
-      if (pos > -1)
-      {
-        weeks wk(rxWeeks.cap(0).remove("week").remove("w").toDouble());
-        secs += wk;
-      }
-    }
-    
-    if (rval.contains(rxMonths))
-    {
-      pos = rxMonths.indexIn(rval);
-      if (pos > -1)
-      {
-        months mnth(rxMonths.cap(0).remove("month").toDouble());
-        secs += mnth;
-      }
-    }
-    
-    if (rval.contains(rxYears))
-    {
-      pos = rxYears.indexIn(rval);
-      if (pos > -1)
-      {
-        years yr(rxYears.cap(0).remove("year").toDouble());
-        secs += yr;
-      }
-    }    
-    
-    if (secs != seconds(0))
-    {
-      // Some values with units were found
-      // Convert secs to defUnit and set "value"
+
+      // Convert the read value in seconds to defUnit
       if (defUnit == ns)
         value = nanoseconds(secs).count();
       else if (defUnit == us)
@@ -328,27 +305,16 @@ int confOption::setValueFromFile(QString line)
         value = months(secs).count();
       else if (defUnit == year)
         value = years(secs).count();
-      found = true;
+
+      value = value.toULongLong(); // Convert to ulonglong (we don't support float in ui)
+      return 0;
+
     }
     else
     {
-      // See if a unitless number was found
-      // If yes, convert the value from defReadUnit to defUnit
-      bool ok;
-      double rvalDbl = rval.trimmed().toDouble(&ok);
-      if (ok)
-      {
-        value = convertTimeUnit(rvalDbl, defReadUnit, defUnit);
-        found = true;
-      }
+      qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
+      return -1;
     }
-    
-    if (found)
-      return 0;
-    
-    qDebug() << rval << "is not a valid value for setting" << realName << ". Ignoring...";
-    return -1;
-    
   }
   
   else if (type == RESLIMIT)
@@ -395,8 +361,9 @@ int confOption::setValueFromFile(QString line)
       else
         value = rxSize.cap(0).toDouble() / 1024 / 1024;
       
-      // Convert from double to ulonglong
+      // Convert from double to ulonglong (we don't support float in ui)
       value = value.toULongLong();
+      return 0;
     }
     else
     {
@@ -428,10 +395,10 @@ QVariant confOption::getValue() const
 
 QString confOption::getValueAsString() const
 {
+  // Used when fetching data for the QTableView
   if (type == MULTILIST)
   {
     QVariantMap map = value.toMap();
-    // qDebug() << map;
     QString mapAsString;
     for(QVariantMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
     {
@@ -448,22 +415,24 @@ QString confOption::getValueAsString() const
 QString confOption::getLineForFile() const
 {
   // Used for saving to conf files
-  if (type == BOOL)
+
+  if (value == defVal)
   {
-    if (getValue() != defVal)
+    // value is set to default
+    return QString("#" + realName + "=\n");
+  }
+  else
+  {
+    // value is not default
+    if (type == BOOL)
     {
-      if (getValue().toBool())
+      if (value.toBool())
         return QString(realName + "=" + "yes\n");
       else
         return QString(realName + "=" + "no\n");
     }
-    else
-      return QString("#" + realName + "=\n");
-  }  
-  
-  else if (type == MULTILIST)
-  {
-    if (getValue() != defVal)
+
+    else if (type == MULTILIST)
     {
       if (!value.toMap().isEmpty())
       {
@@ -477,13 +446,8 @@ QString confOption::getLineForFile() const
         return QString(realName + "=" + ret.trimmed() + "\n");
       }
     }
-    else
-      return QString("#" + realName + "=\n");
-  }
-  
-  else if (type == TIME)
-  {
-    if (getValue() != defVal)
+
+    else if (type == TIME)
     {
       if (value.toULongLong() == 0)
         return QString(realName + "=" + value.toString() + "\n");
@@ -511,22 +475,14 @@ QString confOption::getLineForFile() const
           return QString(realName + "=" + value.toString() + "year\n");
        }
     }
-    else
-      return QString("#" + realName + "=\n");
-  }
-  
-  else if (type == SIZE)
-  {
-    if (getValue() != defVal)
+
+    else if (type == SIZE)
+    {
       return QString(realName + "=" + value.toString() + "M\n");
-    else
-      return QString("#" + realName + "=\n");
-  }
-  
-  if (getValue() != defVal)
+    }
+
     return QString(realName + "=" + value.toString() + "\n");
-  
-  return QString("#" + realName + "=\n");
+  } // not default
 }
 
 QString confOption::getFilename() const
@@ -605,7 +561,6 @@ QVariant confOption::convertTimeUnit(double value, timeUnit oldTime, timeUnit ne
     years val(value);
     tmpSecs = boost::chrono::duration_cast<seconds>(val);
   }
-
     
   if (newTime == ns)
     convertedVal = boost::chrono::duration_cast<nanoseconds>(tmpSecs).count();

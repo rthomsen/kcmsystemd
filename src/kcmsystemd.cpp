@@ -325,7 +325,6 @@ void kcmsystemd::setupConfigParms()
   map["file"] = SYSTEMD;
   map["type"] = TIME;
   map["defVal"] = 0;
-  map["defUnit"] = confOption::s;
   map["toolTip"] = i18n("<p>The watchdog hardware (/dev/watchdog) will be programmed to automatically reboot the system if it is not contacted within the specified timeout interval. The system manager will ensure to contact it at least once in half the specified timeout interval. This feature requires a hardware watchdog device.</p>");
   confOptList.append(confOption(map));
 
@@ -335,7 +334,6 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 10;
   map["defUnit"] = confOption::min;
-  map["defReadUnit"] = confOption::s;
   map["toolTip"] = i18n("<p>This setting may be used to configure the hardware watchdog when the system is asked to reboot. It works as a safety net to ensure that the reboot takes place even if a clean reboot attempt times out. This feature requires a hardware watchdog device.</p>");
   confOptList.append(confOption(map));
 
@@ -364,6 +362,8 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 0;
   map["defUnit"] = confOption::ns;
+  map["defReadUnit"] = confOption::ns;
+  map["hasNsec"] = true;
   map["toolTip"] = i18n("<p>Sets the timer slack for PID 1 which is then inherited to all executed processes, unless overridden individually. The timer slack controls the accuracy of wake-ups triggered by timers.</p>");
   confOptList.append(confOption(map));
 
@@ -374,7 +374,6 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = TIME;
     map["defVal"] = 60;
-    map["defUnit"] = confOption::s;
     map["toolTip"] = i18n("<p>The default accuracy of timer units. Note that the accuracy of timer units is also affected by the configured timer slack for PID 1.</p>");
     confOptList.append(confOption(map));
   }
@@ -408,7 +407,6 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = TIME;
     map["defVal"] = 90;
-    map["defUnit"] = confOption::s;
     map["toolTip"] = i18n("<p>The default timeout for starting of units.</p>");
     confOptList.append(confOption(map));
 
@@ -417,7 +415,6 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = TIME;
     map["defVal"] = 90;
-    map["defUnit"] = confOption::s;
     map["toolTip"] = i18n("<p>The default timeout for stopping of units.</p>");
     confOptList.append(confOption(map));
 
@@ -427,7 +424,6 @@ void kcmsystemd::setupConfigParms()
     map["type"] = TIME;
     map["defVal"] = 100;
     map["defUnit"] = confOption::ms;
-    map["defReadUnit"] = confOption::s;
     map["toolTip"] = i18n("<p>The default time to sleep between automatic restart of units.</p>");
     confOptList.append(confOption(map));
 
@@ -436,7 +432,6 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = TIME;
     map["defVal"] = 10;
-    map["defUnit"] = confOption::s;
     map["toolTip"] = i18n("<p>Time interval used in start rate limit for services.</p>");
     confOptList.append(confOption(map));
 
@@ -445,8 +440,6 @@ void kcmsystemd::setupConfigParms()
     map["file"] = SYSTEMD;
     map["type"] = INTEGER;
     map["defVal"] = 5;
-    map["minVal"] = 0;
-    map["maxVal"] = 99999;
     map["toolTip"] = i18n("<p>Services are not allowed to start more than this number of times within the time interval defined in DefaultStartLimitInterval");
     confOptList.append(confOption(map));
   }
@@ -552,7 +545,6 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 5;
   map["defUnit"] = confOption::min;
-  map["defReadUnit"] = confOption::s;
   map["toolTip"] = i18n("<p>The timeout before synchronizing journal files to disk.</p>");
   confOptList.append(confOption(map));
 
@@ -561,7 +553,6 @@ void kcmsystemd::setupConfigParms()
   map["file"] = JOURNALD;
   map["type"] = TIME;
   map["defVal"] = 30;
-  map["defUnit"] = confOption::s;
   map["toolTip"] = i18n("<p>Time interval for rate limiting of log messages. Set to 0 to turn off rate-limiting.</p>");
   confOptList.append(confOption(map));
 
@@ -570,7 +561,6 @@ void kcmsystemd::setupConfigParms()
   map["file"] = JOURNALD;
   map["type"] = INTEGER;
   map["defVal"] = 1000;
-  map["minVal"] = 0;
   map["toolTip"] = i18n("<p>Maximum number of messages logged for a unit in the interval specified in RateLimitInterval. Set to 0 to turn off rate-limiting.</p>");
   confOptList.append(confOption(map));
 
@@ -634,7 +624,6 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 0;
   map["defUnit"] = confOption::d;
-  map["defReadUnit"] = confOption::s;
   map["toolTip"] = i18n("<p>Maximum time to store journal entries. Set to 0 to disable.</p>");
   confOptList.append(confOption(map));
 
@@ -644,7 +633,6 @@ void kcmsystemd::setupConfigParms()
   map["type"] = TIME;
   map["defVal"] = 30;
   map["defUnit"] = confOption::d;
-  map["defReadUnit"] = confOption::s;
   map["toolTip"] = i18n("<p>Maximum time to store entries in a single journal file before rotating to the next one. Set to 0 to disable.</p>");
   confOptList.append(confOption(map));
 
@@ -723,7 +711,6 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = INTEGER;
   map["defVal"] = 6;
-  map["minVal"] = 0;
   map["maxVal"] = 12;
   map["toolTip"] = i18n("<p>Number of virtual terminals (VTs) to allocate by default and which will autospawn. Set to 0 to disable.</p>");
   confOptList.append(confOption(map));
@@ -733,7 +720,6 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = INTEGER;
   map["defVal"] = 6;
-  map["minVal"] = 0;
   map["maxVal"] = 12;
   map["toolTip"] = i18n("<p>Virtual terminal that shall unconditionally be reserved for autospawning. Set to 0 to disable.</p>");
   confOptList.append(confOption(map));
@@ -766,7 +752,6 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = TIME;
   map["defVal"] = 5;
-  map["defUnit"] = confOption::s;
   map["toolTip"] = i18n("<p>Specifies the maximum time a system shutdown or sleep request is delayed due to an inhibitor lock of type delay being active before the inhibitor is ignored and the operation executes anyway.</p>");
   confOptList.append(confOption(map));
 
@@ -841,7 +826,6 @@ void kcmsystemd::setupConfigParms()
   map["file"] = LOGIND;
   map["type"] = TIME;
   map["defVal"] = 0;
-  map["defUnit"] = confOption::s;
   map["toolTip"] = i18n("<p>Configures the delay after which the action configured in IdleAction is taken after the system is idle.</p>");
   confOptList.append(confOption(map));
 
@@ -944,11 +928,11 @@ void kcmsystemd::readConfFile(int fileindex)
       if (!line.startsWith('#') && !line.startsWith('[') && !line.isEmpty())
       {
         // qDebug() << "line: " << line;
-        int index = confOptList.indexOf(confOption(QString(line.section("=",0,0).trimmed()) + "_" + QString::number(fileindex)));
-        if (index > 0)
+        int index = confOptList.indexOf(confOption(QString(line.section("=",0,0).trimmed() + "_" + QString::number(fileindex))));
+        if (index >= 0)
         {
-          // qDebug() << "found " << confOptList.at(index).uniqueName << " at index " << index;
-          confOptList[index].setValueFromFile(line);
+          if (confOptList[index].setValueFromFile(line) == -1)
+            KMessageBox::error(this, i18n("\"%1\" is not a valid value for %2. Using default value for this parameter.", line.section("=",1).trimmed(), confOptList.at(index).realName));
         }
       }
       line = in.readLine();
