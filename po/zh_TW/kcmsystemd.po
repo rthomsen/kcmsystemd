@@ -7,10 +7,10 @@ msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/rthomsen/kcmsystemd/issues\n"
 "POT-Creation-Date: 2015-02-24 11:47+0100\n"
-"PO-Revision-Date: 2015-02-26 22:12+0800\n"
+"PO-Revision-Date: 2015-02-27 22:04+0800\n"
 "Last-Translator: Jeff Huang <s8321414@gmail.com>\n"
-"Language-Team: French <rthomsen6@gmail.com>\n"
-"Language: fr\n"
+"Language-Team: Chinese Traditional <kde-i18n-doc@kde.org>\n"
+"Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -179,18 +179,19 @@ msgstr ""
 
 #: src/kcmsystemd.cpp:281
 msgid "<p>Show terse service status information while booting.</p>"
-msgstr ""
-"<p>Afficher des informations concises sur les services lors du démarrage</p>"
+msgstr "<p>開機時顯示簡短的服務資訊。</p>"
 
 #: src/kcmsystemd.cpp:290
 msgid ""
 "<p>Activate the specified virtual terminal when systemd crashes (-1 to "
 "deactivate).</p>"
 msgstr ""
+"<p>當 systmed 當掉時啟動指定的虛擬終端機 "
+"（-1 為停用）。</p>"
 
 #: src/kcmsystemd.cpp:301
 msgid "<p>The initial CPU affinity for the systemd init process.</p>"
-msgstr ""
+msgstr "<p>systemd 初始行程的初始 CPU 親和性。</p>"
 
 #: src/kcmsystemd.cpp:309
 msgid ""
@@ -199,6 +200,10 @@ msgid ""
 "multiple joined hierarchies. Pass an empty string to ensure that systemd "
 "mounts all controllers in separate hierarchies.</p>"
 msgstr ""
+"<p>控制器應該被掛載在單一的層次結構中。"
+"使用以逗點分隔的裝置名稱，並以空白分隔的列表， "
+"以允許多個已加入的層次結構。傳送空字串給 systemd "
+"以確保其掛載所有控制器到獨立的層次結構中。</p>"
 
 #: src/kcmsystemd.cpp:319
 msgid ""
@@ -669,4 +674,5 @@ msgstr ""
 #, kde-format
 msgid "File to be written: %1/%2"
 msgstr "Ce fichier sera écrit: %1/%2"
+
 
