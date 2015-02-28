@@ -153,7 +153,7 @@
             </layout>
            </item>
            <item row="7" column="0">
-            <widget class="QTableView" name="tblServices">
+            <widget class="QTableView" name="tblUnits">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -350,7 +350,7 @@
  <tabstops>
   <tabstop>leSearchUnit</tabstop>
   <tabstop>btnRefreshUnits</tabstop>
-  <tabstop>tblServices</tabstop>
+  <tabstop>tblUnits</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>cmbUnitTypes</tabstop>
   <tabstop>chkInactiveUnits</tabstop>

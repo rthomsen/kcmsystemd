@@ -212,7 +212,7 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.chkInactiveUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits()));
   connect(ui.chkShowUnloadedUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits()));
   connect(ui.cmbUnitTypes, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbUnitTypes()));
-  connect(ui.tblServices, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotUnitContextMenu(QPoint)));
+  connect(ui.tblUnits, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotUnitContextMenu(QPoint)));
   connect(ui.tblSessions, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotSessionContextMenu(QPoint)));
   connect(ui.leSearchUnit, SIGNAL(textChanged(QString)), this, SLOT(slotLeSearchUnitChanged(QString)));
 
@@ -1018,7 +1018,7 @@ void kcmsystemd::setupUnitslist()
   proxyModelUnitId->setSourceModel(proxyModelAct);
 
   // Install eventfilter to capture mouse move events
-  ui.tblServices->viewport()->installEventFilter(this);
+  ui.tblUnits->viewport()->installEventFilter(this);
   
   // Set header row
   unitsModel->setHorizontalHeaderItem(0, new QStandardItem(i18n("Load state")));
@@ -1027,10 +1027,10 @@ void kcmsystemd::setupUnitslist()
   unitsModel->setHorizontalHeaderItem(3, new QStandardItem(i18n("Unit")));
 
   // Set model for QTableView (should be called after headers are set)
-  ui.tblServices->setModel(proxyModelUnitId);
+  ui.tblUnits->setModel(proxyModelUnitId);
   
   // Setup initial filters and sorting
-  ui.tblServices->sortByColumn(3, Qt::AscendingOrder);
+  ui.tblUnits->sortByColumn(3, Qt::AscendingOrder);
   proxyModelUnitId->setSortCaseSensitivity(Qt::CaseInsensitive);
   slotChkShowUnits();
   
@@ -1177,7 +1177,7 @@ void kcmsystemd::slotChkShowUnits()
     proxyModelAct->setFilterRegExp(QRegExp("^(active)"));
   }
   proxyModelAct->setFilterKeyColumn(1);
-  ui.tblServices->sortByColumn(ui.tblServices->horizontalHeader()->sortIndicatorSection(), ui.tblServices->horizontalHeader()->sortIndicatorOrder());
+  ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(), ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
   updateUnitCount();
 }
 
@@ -1229,7 +1229,7 @@ void kcmsystemd::slotCmbUnitTypes()
                                             Qt::CaseInsensitive,
                                             QRegExp::RegExp));
   proxyModelUnitId->setFilterKeyColumn(3);
-  ui.tblServices->sortByColumn(ui.tblServices->horizontalHeader()->sortIndicatorSection(), ui.tblServices->horizontalHeader()->sortIndicatorOrder());
+  ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(), ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
   updateUnitCount();
 }
 
@@ -1325,7 +1325,7 @@ void kcmsystemd::slotRefreshUnitsList()
       new QStandardItem(unitslist.at(i).sub_state) <<
       new QStandardItem(unitslist.at(i).id);
       unitsModel->appendRow(row);
-      ui.tblServices->sortByColumn(ui.tblServices->horizontalHeader()->sortIndicatorSection(), ui.tblServices->horizontalHeader()->sortIndicatorOrder());
+      ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(), ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
     } else {
       // Update stats for previously known units
       unitsModel->item(items.at(0)->row(), 0)->setData(unitslist.at(i).load_state, Qt::DisplayRole);
@@ -1521,7 +1521,7 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
   // Slot for creating the right-click menu in the units list
 
   // Find name of unit
-  QString unit = ui.tblServices->model()->index(ui.tblServices->indexAt(pos).row(),3).data().toString();
+  QString unit = ui.tblUnits->model()->index(ui.tblUnits->indexAt(pos).row(),3).data().toString();
 
   // Setup DBus interfaces
   QString service = "org.freedesktop.systemd1";
@@ -1634,7 +1634,7 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
   if (frpath.isEmpty())
     edit->setEnabled(false);
 
-  QAction *a = menu.exec(ui.tblServices->viewport()->mapToGlobal(pos));
+  QAction *a = menu.exec(ui.tblUnits->viewport()->mapToGlobal(pos));
    
   if (a == edit)
   {
@@ -1781,11 +1781,11 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
 {
   // Eventfilter for catching mouse move events over unit and session lists
   // Used for dynamically generating tooltips
-  if (event->type() == QEvent::MouseMove && obj->parent()->objectName() == "tblServices")
+  if (event->type() == QEvent::MouseMove && obj->parent()->objectName() == "tblUnits")
   {
     QMouseEvent *me = static_cast<QMouseEvent*>(event);
     QModelIndex inUnitsModel, inProxyModelAct, inProxyModelUnitId;
-    inProxyModelUnitId = ui.tblServices->indexAt(me->pos());
+    inProxyModelUnitId = ui.tblUnits->indexAt(me->pos());
     inProxyModelAct = proxyModelUnitId->mapToSource(inProxyModelUnitId);
     inUnitsModel = proxyModelAct->mapToSource(inProxyModelAct);
     if (!inUnitsModel.isValid())
@@ -1796,7 +1796,7 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
       // Cursor moved to a different row. Only build tooltips when moving
       // cursor to a new row to avoid excessive DBus calls.
 
-      QString selUnit = ui.tblServices->model()->index(ui.tblServices->indexAt(me->pos()).row(),3).data().toString();
+      QString selUnit = ui.tblUnits->model()->index(ui.tblUnits->indexAt(me->pos()).row(),3).data().toString();
       // qDebug() << "selUnit: " << selUnit;
 
       QString toolTipText;
@@ -2005,9 +2005,9 @@ void kcmsystemd::slotLeSearchUnitChanged(QString term)
   searchTerm = term;
   proxyModelUnitId->setFilterRegExp(QRegExp("(?=.*" + searchTerm + ")(?=.*" + filterUnitType + "$)", Qt::CaseInsensitive, QRegExp::RegExp));
   proxyModelUnitId->setFilterKeyColumn(3);
-  int section = ui.tblServices->horizontalHeader()->sortIndicatorSection();
-  Qt::SortOrder order = ui.tblServices->horizontalHeader()->sortIndicatorOrder();
-  ui.tblServices->sortByColumn(section, order);
+  int section = ui.tblUnits->horizontalHeader()->sortIndicatorSection();
+  Qt::SortOrder order = ui.tblUnits->horizontalHeader()->sortIndicatorOrder();
+  ui.tblUnits->sortByColumn(section, order);
   updateUnitCount();
 }
 
