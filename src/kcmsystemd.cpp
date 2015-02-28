@@ -48,6 +48,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   about->addAuthor("Ragnar Thomsen", "Main Developer", "rthomsen6@gmail.com");
   setAboutData(about);
   ui.setupUi(this);
+  setButtons(kcmsystemd::Default | kcmsystemd::Apply);
   setNeedsAuthorization(true);
 
   // See if systemd is reachable via dbus
