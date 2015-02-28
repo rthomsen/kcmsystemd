@@ -50,6 +50,25 @@ struct SystemdUnit
 };
 Q_DECLARE_METATYPE(SystemdUnit)
 
+// struct for storing sessions retrieved from logind via DBus
+struct SystemdSession
+{
+  QString session_id, user_name, seat_id, session_state;
+  QDBusObjectPath session_path;
+  unsigned int user_id;
+
+  // The == operator must be provided to use contains() and indexOf()
+  // on QLists of this struct
+  bool operator==(const SystemdSession& right) const
+  {
+    if (session_id == right.session_id)
+      return true;
+    else
+      return false;
+  }
+};
+Q_DECLARE_METATYPE(SystemdSession)
+
 struct unitfile
 {
   QString name, status;
@@ -81,6 +100,7 @@ class kcmsystemd : public KCModule
     void setupSignalSlots();
     void setupUnitslist();
     void setupConf();
+    void setupSessionlist();
     void readConfFile(int);
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
     bool eventFilter(QObject *, QEvent*);
@@ -89,14 +109,15 @@ class kcmsystemd : public KCModule
     QProcess *kdeConfig;
     QVariantMap unitpaths;
     QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct, *proxyModelConf;
-    QStandardItemModel *unitsModel;
+    QStandardItemModel *unitsModel, *sessionModel;
     QList<SystemdUnit> unitslist;
+    QList<SystemdSession> sessionlist;
     QList<unitfile> unitfileslist;
     QStringList listConfFiles;
     QString kdePrefix, selectedUnit, etcDir, filterUnitType, searchTerm;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
-    int systemdVersion, timesLoad, lastRowChecked, selectedRow, noActUnits;
+    int systemdVersion, timesLoad = 0, lastUnitRowChecked = -1, lastSessionRowChecked = -1, noActUnits;
     qulonglong partPersSizeMB, partVolaSizeMB;
     bool isPersistent, varLogDirExists;
 
@@ -104,13 +125,16 @@ class kcmsystemd : public KCModule
     void slotKdeConfig();
     void slotChkShowUnits();
     void slotCmbUnitTypes();
-    void slotDisplayMenu(const QPoint &);
+    void slotUnitContextMenu(const QPoint &);
+    void slotSessionContextMenu(const QPoint &);
     void slotRefreshUnitsList();
+    void slotRefreshSessionList();
     void slotSystemdReloading(bool);
     // void slotUnitLoaded(QString, QDBusObjectPath);
     // void slotUnitUnloaded(QString, QDBusObjectPath);
     void slotUnitFilesChanged();
-    void slotPropertiesChanged(QString, QVariantMap, QStringList);
+    void slotSystemdPropertiesChanged(QString, QVariantMap, QStringList);
+    void slotLogindPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLeSearchUnitChanged(QString);
     void slotConfChanged(const QModelIndex &, const QModelIndex &);
     void slotCmbConfFileChanged(int);

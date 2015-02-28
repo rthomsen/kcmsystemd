@@ -122,12 +122,23 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   // QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitNew",this,SLOT(slotUnitLoaded(QString, QDBusObjectPath)));
   // QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitRemoved",this,SLOT(slotUnitUnloaded(QString, QDBusObjectPath)));
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitFilesChanged",this,SLOT(slotUnitFilesChanged()));
-  QDBusConnection::systemBus().connect("org.freedesktop.systemd1","","org.freedesktop.DBus.Properties","PropertiesChanged",this,SLOT(slotPropertiesChanged(QString, QVariantMap, QStringList)));
+  QDBusConnection::systemBus().connect("org.freedesktop.systemd1","","org.freedesktop.DBus.Properties","PropertiesChanged",this,SLOT(slotSystemdPropertiesChanged(QString, QVariantMap, QStringList)));
+
+  // Subscribe to dbus signals from logind daemon and connect them to slots
+  iface = new QDBusInterface ("org.freedesktop.login1",
+                              "/org/freedesktop/login1",
+                              "org.freedesktop.login1.Manager",
+                              systembus,
+                              this);
+  if (iface->isValid())
+    iface->call(QDBus::AutoDetect, "Subscribe");
+  delete iface;
+  QDBusConnection::systemBus().connect("org.freedesktop.login1","","org.freedesktop.DBus.Properties","PropertiesChanged",this,SLOT(slotLogindPropertiesChanged(QString, QVariantMap, QStringList)));
   
-  // Setup the unitslist
+  // Setup widgets
   setupUnitslist();
-  
   setupConf();
+  setupSessionlist();
 }
 
 kcmsystemd::~kcmsystemd()
@@ -151,6 +162,18 @@ QDBusArgument &operator<<(QDBusArgument &argument, const SystemdUnit &service)
   return argument;
 }
 
+QDBusArgument &operator<<(QDBusArgument &argument, const SystemdSession &session)
+{
+  argument.beginStructure();
+  argument << session.session_id
+     << session.user_id
+     << session.user_name
+     << session.seat_id
+     << session.session_path;
+  argument.endStructure();
+  return argument;
+}
+
 const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdUnit &service)
 {
      argument.beginStructure();
@@ -168,6 +191,18 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdUnit &serv
      return argument;
 }
 
+const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdSession &session)
+{
+     argument.beginStructure();
+     argument >> session.session_id
+        >> session.user_id
+        >> session.user_name
+        >> session.seat_id
+        >> session.session_path;
+     argument.endStructure();
+     return argument;
+}
+
 void kcmsystemd::setupSignalSlots()
 {
   // Connect signals for units tab
@@ -175,7 +210,8 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.chkInactiveUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits()));
   connect(ui.chkShowUnloadedUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits()));
   connect(ui.cmbUnitTypes, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbUnitTypes()));
-  connect(ui.tblServices, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotDisplayMenu(QPoint)));
+  connect(ui.tblServices, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotUnitContextMenu(QPoint)));
+  connect(ui.tblSessions, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotSessionContextMenu(QPoint)));
   connect(ui.leSearchUnit, SIGNAL(textChanged(QString)), this, SLOT(slotLeSearchUnitChanged(QString)));
 
   // Connect signals for conf tab
@@ -965,11 +1001,10 @@ void kcmsystemd::setupConf()
 
 void kcmsystemd::setupUnitslist()
 {
+  // Sets up the units list initially
+
   // Register the meta type for storing units
   qDBusRegisterMetaType<SystemdUnit>();
-  
-  // Initialize some variables
-  timesLoad = 0, lastRowChecked = 0;
   
   // Setup models for unitslist
   unitsModel = new QStandardItemModel(this);
@@ -999,6 +1034,35 @@ void kcmsystemd::setupUnitslist()
   
   // Add all the units
   slotRefreshUnitsList();
+}
+
+void kcmsystemd::setupSessionlist()
+{
+  // Sets up the session list initially
+
+  // Register the meta type for storing units
+  qDBusRegisterMetaType<SystemdSession>();
+
+  // Setup model for session list
+  sessionModel = new QStandardItemModel(this);
+
+  // Install eventfilter to capture mouse move events
+  ui.tblSessions->viewport()->installEventFilter(this);
+
+  // Set header row
+  sessionModel->setHorizontalHeaderItem(0, new QStandardItem(i18n("Session ID")));
+  sessionModel->setHorizontalHeaderItem(1, new QStandardItem(i18n("Session Object Path"))); // This column is hidden
+  sessionModel->setHorizontalHeaderItem(2, new QStandardItem(i18n("State")));
+  sessionModel->setHorizontalHeaderItem(3, new QStandardItem(i18n("User ID")));
+  sessionModel->setHorizontalHeaderItem(4, new QStandardItem(i18n("User Name")));
+  sessionModel->setHorizontalHeaderItem(5, new QStandardItem(i18n("Seat ID")));
+
+  // Set model for QTableView (should be called after headers are set)
+  ui.tblSessions->setModel(sessionModel);
+  ui.tblSessions->setColumnHidden(1, true);
+
+  // Add all the sessions
+  slotRefreshSessionList();
 }
 
 void kcmsystemd::defaults()
@@ -1169,6 +1233,8 @@ void kcmsystemd::slotCmbUnitTypes()
 
 void kcmsystemd::slotRefreshUnitsList()
 {
+  // Updates the units list
+
   // qDebug() << "Refreshing units...";
   // clear lists
   unitslist.clear();
@@ -1187,18 +1253,18 @@ void kcmsystemd::slotRefreshUnitsList()
   if (iface->isValid())
     dbusreply = iface->call(QDBus::AutoDetect, "ListUnits");
   delete iface;
-  const QDBusArgument myArg = dbusreply.arguments().at(0).value<QDBusArgument>();
-  if (myArg.currentType() == QDBusArgument::ArrayType)
+  const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
+  if (arg.currentType() == QDBusArgument::ArrayType)
   {
-    myArg.beginArray();
-    while (!myArg.atEnd())
+    arg.beginArray();
+    while (!arg.atEnd())
     {
       SystemdUnit unit;
-      myArg >> unit;
+      arg >> unit;
       unitslist.append(unit);
       unitpaths[unit.id] = unit.unit_path.path();
     }
-    myArg.endArray();
+    arg.endArray();
   }
   
   // Find unit files
@@ -1303,11 +1369,110 @@ void kcmsystemd::slotRefreshUnitsList()
       newcolor = Qt::darkGray;
     else
       newcolor = Qt::black;
-    for (int col = 0; col < 4; ++col)
+    for (int col = 0; col < unitsModel->columnCount(); ++col)
       unitsModel->setData(unitsModel->index(row,col), QVariant(newcolor), Qt::ForegroundRole);
   }
   
   slotChkShowUnits();
+}
+
+void kcmsystemd::slotRefreshSessionList()
+{
+  // Updates the session list
+
+  // clear list
+  sessionlist.clear();
+
+  // get an updated list of sessions via dbus
+  QDBusMessage dbusreply;
+  QDBusConnection systembus = QDBusConnection::systemBus();
+  QDBusInterface *iface = new QDBusInterface ("org.freedesktop.login1",
+                                              "/org/freedesktop/login1",
+                                              "org.freedesktop.login1.Manager",
+                                              systembus,
+                                              this);
+  if (iface->isValid())
+    dbusreply = iface->call(QDBus::AutoDetect, "ListSessions");
+  delete iface;
+
+  // extract the list of sessions from the reply
+  const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
+  if (arg.currentType() == QDBusArgument::ArrayType)
+  {
+    arg.beginArray();
+    while (!arg.atEnd())
+    {
+      SystemdSession session;
+      arg >> session;
+      sessionlist.append(session);
+    }
+    arg.endArray();
+  }
+
+  // Iterate through the new list and compare to model
+  for (int i = 0;  i < sessionlist.size(); ++i)
+  {
+    // This is needed to get the "State" property
+    iface = new QDBusInterface ("org.freedesktop.login1",
+                                sessionlist.at(i).session_path.path(),
+                                "org.freedesktop.login1.Session",
+                                systembus,
+                                this);
+
+    QList<QStandardItem *> items = sessionModel->findItems(sessionlist.at(i).session_id, Qt::MatchExactly, 0);
+
+    if (items.isEmpty())
+    {
+      // New session discovered so add it to the model
+      QList<QStandardItem *> row;
+      row <<
+      new QStandardItem(sessionlist.at(i).session_id) <<
+      new QStandardItem(sessionlist.at(i).session_path.path()) <<
+      new QStandardItem(iface->property("State").toString()) <<
+      new QStandardItem(QString::number(sessionlist.at(i).user_id)) <<
+      new QStandardItem(sessionlist.at(i).user_name) <<
+      new QStandardItem(sessionlist.at(i).seat_id);
+      sessionModel->appendRow(row);
+    } else {
+      sessionModel->item(items.at(0)->row(), 2)->setData(iface->property("State").toString(), Qt::DisplayRole);
+    }
+    delete iface;
+  }
+
+  // Check to see if any sessions were removed
+  if (sessionModel->rowCount() != sessionlist.size())
+  {
+    QList<QPersistentModelIndex> indexes;
+    // Loop through model and compare to retrieved sessionlist
+    for (int row = 0; row < sessionModel->rowCount(); ++row)
+    {
+      SystemdSession session;
+      session.session_id = sessionModel->index(row,0).data().toString();
+      if (!sessionlist.contains(session))
+      {
+        // Add removed units to list for deletion
+        // qDebug() << "Unit removed: " << unitsModel->index(row,3).data().toString();
+        indexes << sessionModel->index(row,0);
+      }
+    }
+    // Delete the identified units from model
+    foreach (QPersistentModelIndex i, indexes)
+      sessionModel->removeRow(i.row());
+  }
+
+  // Update the text color in model
+  QColor newcolor;
+  for (int row = 0; row < sessionModel->rowCount(); ++row)
+  {
+    if (sessionModel->data(sessionModel->index(row,2), Qt::DisplayRole) == "active")
+      newcolor = Qt::darkGreen;
+    else if (sessionModel->data(sessionModel->index(row,2), Qt::DisplayRole) == "closing")
+      newcolor = Qt::darkGray;
+    else
+      newcolor = Qt::black;
+    for (int col = 0; col < sessionModel->columnCount(); ++col)
+      sessionModel->setData(sessionModel->index(row,col), QVariant(newcolor), Qt::ForegroundRole);
+  }
 }
 
 void kcmsystemd::updateUnitCount()
@@ -1349,7 +1514,7 @@ void kcmsystemd::authServiceAction(QString service, QString path, QString interf
   }
 }
 
-void kcmsystemd::slotDisplayMenu(const QPoint &pos)
+void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
 {
   // Slot for creating the right-click menu in the units list
 
@@ -1567,11 +1732,54 @@ void kcmsystemd::slotDisplayMenu(const QPoint &pos)
   delete dbusIfaceUnit;
 }
 
-bool kcmsystemd::eventFilter(QObject *, QEvent* event)
+void kcmsystemd::slotSessionContextMenu(const QPoint &pos)
 {
-  // Eventfilter for catching mouse move events over the unit list
-  // Used for dynamically generating tooltips for units
-  if (event->type() == QEvent::MouseMove)
+  // Slot for creating the right-click menu in the session list
+
+  // Setup DBus interfaces
+  QString serviceLogind = "org.freedesktop.login1";
+  QString pathSession = ui.tblSessions->model()->index(ui.tblSessions->indexAt(pos).row(),1).data().toString();
+  QString ifaceSession = "org.freedesktop.login1.Session";
+  QDBusConnection systembus = QDBusConnection::systemBus();
+  QDBusInterface *dbusIfaceSession = new QDBusInterface (serviceLogind, pathSession, ifaceSession, systembus, this);
+
+  // Create rightclick menu items
+  QMenu menu(this);
+  QAction *activate = menu.addAction(i18n("&Activate session"));
+  QAction *terminate = menu.addAction(i18n("&Terminate session"));
+  QAction *lock = menu.addAction(i18n("&Lock session"));
+
+  QAction *a = menu.exec(ui.tblSessions->viewport()->mapToGlobal(pos));
+
+  QString method;
+  if (a == activate)
+  {
+    method = "Activate";
+    QList<QVariant> argsForCall;
+    authServiceAction(serviceLogind, pathSession, ifaceSession, method, argsForCall);
+  }
+  if (a == terminate)
+  {
+    method = "Terminate";
+    QList<QVariant> argsForCall;
+    authServiceAction(serviceLogind, pathSession, ifaceSession, method, argsForCall);
+  }
+  if (a == lock)
+  {
+    method = "Lock";
+    QList<QVariant> argsForCall;
+    authServiceAction(serviceLogind, pathSession, ifaceSession, method, argsForCall);
+  }
+
+  delete dbusIfaceSession;
+}
+
+
+bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
+{
+  // Eventfilter for catching mouse move events over unit and session lists
+  // Used for dynamically generating tooltips
+  if (event->type() == QEvent::MouseMove && obj->parent()->objectName() == "tblServices")
   {
     QMouseEvent *me = static_cast<QMouseEvent*>(event);
     QModelIndex inUnitsModel, inProxyModelAct, inProxyModelUnitId;
@@ -1581,7 +1789,7 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
     if (!inUnitsModel.isValid())
       return false;
 
-    if (unitsModel->itemFromIndex(inUnitsModel)->row() != lastRowChecked)
+    if (unitsModel->itemFromIndex(inUnitsModel)->row() != lastUnitRowChecked)
     {
       // Cursor moved to a different row. Only build tooltips when moving
       // cursor to a new row to avoid excessive DBus calls.
@@ -1663,11 +1871,85 @@ bool kcmsystemd::eventFilter(QObject *, QEvent* event)
       toolTipText.append("</FONT");
       unitsModel->itemFromIndex(inUnitsModel)->setToolTip(toolTipText);
 
-      lastRowChecked = unitsModel->itemFromIndex(inUnitsModel)->row();
+      lastUnitRowChecked = unitsModel->itemFromIndex(inUnitsModel)->row();
       return true;
 
     } // Row was different
   } // Cursor was moved
+
+  else if (event->type() == QEvent::MouseMove && obj->parent()->objectName() == "tblSessions")
+  {
+    // Session list
+    QMouseEvent *me = static_cast<QMouseEvent*>(event);
+    QModelIndex inSessionModel = ui.tblSessions->indexAt(me->pos());
+    if (!inSessionModel.isValid())
+      return false;
+
+    if (sessionModel->itemFromIndex(inSessionModel)->row() != lastSessionRowChecked)
+    {
+      // Cursor moved to a different row. Only build tooltips when moving
+      // cursor to a new row to avoid excessive DBus calls.
+
+      QString selSession = ui.tblSessions->model()->index(ui.tblSessions->indexAt(me->pos()).row(),0).data().toString();
+      QString sessionPath = ui.tblSessions->model()->index(ui.tblSessions->indexAt(me->pos()).row(),1).data().toString();
+
+      QString toolTipText;
+      toolTipText.append("<FONT COLOR=white>");
+      toolTipText.append("<b>" + selSession + "</b><hr>");
+
+      // Create a DBus interface
+      QDBusConnection systembus = QDBusConnection::systemBus();
+      QDBusInterface *iface;
+      iface = new QDBusInterface ("org.freedesktop.login1",
+                                  sessionPath,
+                                  "org.freedesktop.login1.Session",
+                                  systembus,
+                                  this);
+
+      // Use the DBus interface to get session properties
+      if (iface->isValid())
+      {
+        // Session has a valid session DBus object
+        toolTipText.append(i18n("<b>VT:</b> %1", iface->property("VTNr").toString()));
+        if (iface->property("Remote").toBool())
+        {
+          toolTipText.append(i18n("<br><b>Remote host:</b> %1", iface->property("RemoteHost").toString()));
+          toolTipText.append(i18n("<br><b>Remote user:</b> %1", iface->property("RemoteUser").toString()));
+        }
+        toolTipText.append(i18n("<br><b>Service:</b> %1", iface->property("Service").toString()));
+
+        toolTipText.append(i18n("<br><b>Type: </b>"));
+        QString type = iface->property("Type").toString();
+        toolTipText.append(type);
+        if (type == "x11")
+          toolTipText.append(i18n(" (display %1)", iface->property("Display").toString()));
+        else if (type == "tty")
+          toolTipText.append(i18n(" (%1)", iface->property("TTY").toString()));
+        toolTipText.append(i18n("<br><b>Class:</b> %1", iface->property("Class").toString()));
+        toolTipText.append(i18n("<br><b>State:</b> %1", iface->property("State").toString()));
+        toolTipText.append(i18n("<br><b>Scope:</b> %1", iface->property("Scope").toString()));
+
+
+        toolTipText.append(i18n("<br><b>Created: </b>"));
+        if (iface->property("Timestamp").toULongLong() == 0)
+          toolTipText.append("n/a");
+        else
+        {
+          QDateTime time;
+          time.setMSecsSinceEpoch(iface->property("Timestamp").toULongLong()/1000);
+          toolTipText.append(time.toString());
+        }
+        delete iface;
+      }
+
+      toolTipText.append("</FONT");
+      sessionModel->itemFromIndex(inSessionModel)->setToolTip(toolTipText);
+
+      lastSessionRowChecked = sessionModel->itemFromIndex(inSessionModel)->row();
+      return true;
+
+    } // Row was different
+  }
   return false;
   // return true;
 }
@@ -1698,14 +1980,22 @@ void kcmsystemd::slotUnitFilesChanged()
   // slotRefreshUnitsList();
 }
 
-void kcmsystemd::slotPropertiesChanged(QString iface_name, __attribute__((unused)) QVariantMap changed_props, __attribute__((unused)) QStringList invalid_props)
+void kcmsystemd::slotSystemdPropertiesChanged(QString iface_name, QVariantMap, QStringList)
 {
-  // qDebug() << "Properties changed.";
+  // qDebug() << "Systemd properties changed.";
   // This signal gets emitted on two different interfaces,
   // but no reason to call slotRefreshUnitsList() twice
   if (iface_name == "org.freedesktop.systemd1.Unit")
     slotRefreshUnitsList();
   updateUnitCount();
+}
+
+void kcmsystemd::slotLogindPropertiesChanged(QString iface_name, QVariantMap, QStringList)
+{
+  // This signal gets emitted on multiple interfaces,
+  // but only call slotRefreshSessionList() once
+  if (iface_name == "org.freedesktop.login1.Seat")
+    slotRefreshSessionList();
 }
 
 void kcmsystemd::slotLeSearchUnitChanged(QString term)
