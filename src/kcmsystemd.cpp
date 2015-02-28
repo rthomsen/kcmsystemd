@@ -1361,9 +1361,7 @@ void kcmsystemd::slotRefreshUnitsList()
   QColor newcolor;
   for (int row = 0; row < unitsModel->rowCount(); ++row)
   {
-    if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "inactive")
-      newcolor = Qt::red;
-    else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "active")
+    if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "active")
       newcolor = Qt::darkGreen;
     else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "failed")
       newcolor = Qt::darkRed;
