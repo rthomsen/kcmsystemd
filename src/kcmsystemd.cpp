@@ -50,6 +50,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   ui.setupUi(this);
   setButtons(kcmsystemd::Default | kcmsystemd::Apply);
   setNeedsAuthorization(true);
+  ui.leSearchUnit->setFocus();
 
   // See if systemd is reachable via dbus
   QDBusConnection systembus = QDBusConnection::systemBus();
