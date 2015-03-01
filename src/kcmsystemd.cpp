@@ -147,19 +147,19 @@ kcmsystemd::~kcmsystemd()
 {
 }
 
-QDBusArgument &operator<<(QDBusArgument &argument, const SystemdUnit &service)
+QDBusArgument &operator<<(QDBusArgument &argument, const SystemdUnit &unit)
 {
   argument.beginStructure();
-  argument << service.id
-	   << service.description
- 	   << service.load_state
- 	   << service.active_state
- 	   << service.sub_state
-	   << service.following
-	   << service.unit_path
-	   << service.job_id
-	   << service.job_type
-	   << service.job_path;
+  argument << unit.id
+     << unit.description
+     << unit.load_state
+     << unit.active_state
+     << unit.sub_state
+     << unit.following
+     << unit.unit_path
+     << unit.job_id
+     << unit.job_type
+     << unit.job_path;
   argument.endStructure();
   return argument;
 }
@@ -176,19 +176,19 @@ QDBusArgument &operator<<(QDBusArgument &argument, const SystemdSession &session
   return argument;
 }
 
-const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdUnit &service)
+const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdUnit &unit)
 {
      argument.beginStructure();
-     argument >> service.id
-	      >> service.description
-	      >> service.load_state
-	      >> service.active_state
-	      >> service.sub_state
-	      >> service.following
-	      >> service.unit_path
-	      >> service.job_id
-	      >> service.job_type
-	      >> service.job_path;
+     argument >> unit.id
+        >> unit.description
+        >> unit.load_state
+        >> unit.active_state
+        >> unit.sub_state
+        >> unit.following
+        >> unit.unit_path
+        >> unit.job_id
+        >> unit.job_type
+        >> unit.job_path;
      argument.endStructure();
      return argument;
 }
