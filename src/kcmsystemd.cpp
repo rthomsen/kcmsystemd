@@ -1843,23 +1843,6 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
         }
         delete iface;
 
-        // Journal entries for service and scope units
-        if (selUnit.contains(QRegExp("(.service|.scope)$")))
-        {
-          toolTipText.append(i18n("<hr><b>Last log entries:</b>"));
-          QStringList log = getLastJrnlEntries(selUnit);
-          if (log.isEmpty())
-            toolTipText.append(i18n("<br><i>No log entries found for this unit.</i>"));
-          else
-          {
-            QStringList log = getLastJrnlEntries(selUnit);
-            for(int i = log.count()-1; i >= 0; --i)
-            {
-              if (!log.at(i).isEmpty())
-                toolTipText.append(QString("<br>" + log.at(i)));
-            }
-          }
-        }
       }
       else
       {
@@ -1885,22 +1868,24 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
           toolTipText.append(iface->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString());
 
         delete iface;
+      }
 
-        if (true || selUnit.contains(".service"))
+      // Journal entries for service and scope units
+      if (selUnit.contains(QRegExp("(.service|.scope)$")))
+      {
+        toolTipText.append(i18n("<hr><b>Last log entries:</b>"));
+        QStringList log = getLastJrnlEntries(selUnit);
+        if (log.isEmpty())
+          toolTipText.append(i18n("<br><i>No log entries found for this unit.</i>"));
+        else
         {
-          toolTipText.append("<hr><b>Last log entries:</b><br>");
           QStringList log = getLastJrnlEntries(selUnit);
           for(int i = log.count()-1; i >= 0; --i)
           {
             if (!log.at(i).isEmpty())
-            {
-              toolTipText.append(log.at(i));
-              if (i != 0)
-                toolTipText.append("<br>");
-            }
+              toolTipText.append(QString("<br>" + log.at(i)));
           }
         }
-
       }
 
       toolTipText.append("</FONT");
