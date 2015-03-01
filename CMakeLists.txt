@@ -25,6 +25,14 @@ find_package(KF5 REQUIRED COMPONENTS
              I18n
              Auth)
 
+message(STATUS "Searching for libsystemd...")
+find_library(SYSTEMD_FOUND NAMES systemd)
+if(SYSTEMD_FOUND)
+    message(STATUS "Found at: " ${SYSTEMD_FOUND})
+else(SYSTEMD_FOUND)
+    message(FATAL_ERROR "Unable to find libsystemd. Configuration failed!")
+endif(SYSTEMD_FOUND)
+
 include(KDEInstallDirs)
 include(KDECompilerSettings)
 include(KDECMakeSettings)

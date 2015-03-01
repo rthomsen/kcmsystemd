@@ -29,6 +29,7 @@
 using namespace KAuth;
 
 #include <boost/filesystem.hpp>
+#include <systemd/sd-journal.h>
 
 ConfModel *kcmsystemd::confModel = new ConfModel();
 QList<confOption> kcmsystemd::confOptList;
@@ -1841,6 +1842,24 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
           toolTipText.append(timeDeactivated.toString());
         }
         delete iface;
+
+        // Journal entries for service and scope units
+        if (selUnit.contains(QRegExp("(.service|.scope)$")))
+        {
+          toolTipText.append(i18n("<hr><b>Last log entries:</b>"));
+          QStringList log = getLastJrnlEntries(selUnit);
+          if (log.isEmpty())
+            toolTipText.append(i18n("<br><i>No log entries found for this unit.</i>"));
+          else
+          {
+            QStringList log = getLastJrnlEntries(selUnit);
+            for(int i = log.count()-1; i >= 0; --i)
+            {
+              if (!log.at(i).isEmpty())
+                toolTipText.append(QString("<br>" + log.at(i)));
+            }
+          }
+        }
       }
       else
       {
@@ -1866,6 +1885,22 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
           toolTipText.append(iface->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString());
 
         delete iface;
+
+        if (true || selUnit.contains(".service"))
+        {
+          toolTipText.append("<hr><b>Last log entries:</b><br>");
+          QStringList log = getLastJrnlEntries(selUnit);
+          for(int i = log.count()-1; i >= 0; --i)
+          {
+            if (!log.at(i).isEmpty())
+            {
+              toolTipText.append(log.at(i));
+              if (i != 0)
+                toolTipText.append("<br>");
+            }
+          }
+        }
+
       }
 
       toolTipText.append("</FONT");
@@ -2015,6 +2050,66 @@ void kcmsystemd::slotCmbConfFileChanged(int index)
 
   proxyModelConf->setFilterRegExp(ui.cmbConfFile->itemText(index));
   proxyModelConf->setFilterKeyColumn(2);
+}
+
+QStringList kcmsystemd::getLastJrnlEntries(QString unit)
+{
+  QString match = QString("_SYSTEMD_UNIT=" + unit);
+  QStringList reply;
+  int r, jflags = SD_JOURNAL_LOCAL_ONLY;
+  const void *data;
+  size_t length;
+  uint64_t time;
+  sd_journal *journal;
+
+  r = sd_journal_open(&journal, jflags);
+  if (r != 0)
+  {
+    qDebug() << "Failed to open journal";
+    return reply;
+  }
+
+  sd_journal_flush_matches(journal);
+
+  r = sd_journal_add_match(journal, match.toLatin1(), 0);
+  if (r != 0)
+    return reply;
+
+  r = sd_journal_seek_tail(journal);
+  if (r != 0)
+    return reply;
+
+  // Fetch the last 5 entries
+  for (int i = 0; i < 5; ++i)
+  {
+    r = sd_journal_previous(journal);
+    if (r == 1)
+    {
+      QString line = "<span style='color:#55ff7f;'>";
+      r = sd_journal_get_realtime_usec(journal, &time);
+      if (r == 0)
+      {
+        QDateTime date;
+        date.setMSecsSinceEpoch(time/1000);
+        line.append(date.toString("yyyy.MM.dd hh:mm") + "</span>");
+      }
+      r = sd_journal_get_data(journal, "MESSAGE", &data, &length);
+      if (r == 0)
+      {
+        line.append(": " + QString::fromLatin1((const char *)data, length).section("=",1));
+        if (line.length() < 200)
+          reply << line;
+        else
+          reply << QString(line.left(200) + "...");
+      }
+    }
+    else // previous failed, no more entries
+      return reply;
+  }
+
+  sd_journal_close(journal);
+
+  return reply;
 }
 
 #include "kcmsystemd.moc"

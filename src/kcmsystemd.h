@@ -106,6 +106,7 @@ class kcmsystemd : public KCModule
     bool eventFilter(QObject *, QEvent*);
     void updateUnitCount();
     void setupConfigParms();
+    QStringList getLastJrnlEntries(QString);
     QProcess *kdeConfig;
     QVariantMap unitpaths;
     QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct, *proxyModelConf;
