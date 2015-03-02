@@ -1931,20 +1931,28 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
       {
         // Session has a valid session DBus object
         toolTipText.append(i18n("<b>VT:</b> %1", iface->property("VTNr").toString()));
+
+        QString remoteHost = iface->property("RemoteHost").toString();
         if (iface->property("Remote").toBool())
         {
-          toolTipText.append(i18n("<br><b>Remote host:</b> %1", iface->property("RemoteHost").toString()));
+          toolTipText.append(i18n("<br><b>Remote host:</b> %1", remoteHost));
           toolTipText.append(i18n("<br><b>Remote user:</b> %1", iface->property("RemoteUser").toString()));
         }
         toolTipText.append(i18n("<br><b>Service:</b> %1", iface->property("Service").toString()));
 
-        toolTipText.append(i18n("<br><b>Type: </b>"));
         QString type = iface->property("Type").toString();
-        toolTipText.append(type);
+        toolTipText.append(i18n("<br><b>Type:</b> %1", type));
         if (type == "x11")
           toolTipText.append(i18n(" (display %1)", iface->property("Display").toString()));
         else if (type == "tty")
-          toolTipText.append(i18n(" (%1)", iface->property("TTY").toString()));
+        {
+          QString path, tty = iface->property("TTY").toString();
+          if (!tty.isEmpty())
+            path = tty;
+          else if (!remoteHost.isEmpty())
+            path = iface->property("Name").toString() + "@" + remoteHost;
+          toolTipText.append(" (" + path + ")");
+        }
         toolTipText.append(i18n("<br><b>Class:</b> %1", iface->property("Class").toString()));
         toolTipText.append(i18n("<br><b>State:</b> %1", iface->property("State").toString()));
         toolTipText.append(i18n("<br><b>Scope:</b> %1", iface->property("Scope").toString()));
@@ -2010,12 +2018,10 @@ void kcmsystemd::slotSystemdPropertiesChanged(QString iface_name, QVariantMap, Q
   updateUnitCount();
 }
 
-void kcmsystemd::slotLogindPropertiesChanged(QString iface_name, QVariantMap, QStringList)
+void kcmsystemd::slotLogindPropertiesChanged(QString, QVariantMap, QStringList)
 {
-  // This signal gets emitted on multiple interfaces,
-  // but only call slotRefreshSessionList() once
-  if (iface_name == "org.freedesktop.login1.Seat")
-    slotRefreshSessionList();
+  // qDebug() << "Logind properties changed, iface: " << iface_name;
+  slotRefreshSessionList();
 }
 
 void kcmsystemd::slotLeSearchUnitChanged(QString term)
