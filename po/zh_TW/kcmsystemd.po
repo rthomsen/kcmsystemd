@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/rthomsen/kcmsystemd/issues\n"
 "POT-Creation-Date: 2015-02-24 11:47+0100\n"
-"PO-Revision-Date: 2015-03-02 08:46+0800\n"
+"PO-Revision-Date: 2015-03-02 20:51+0800\n"
 "Last-Translator: Jeff Huang <s8321414@gmail.com>\n"
 "Language-Team: Chinese Traditional <kde-i18n-doc@kde.org>\n"
 "Language: zh_TW\n"
@@ -95,7 +95,7 @@ msgstr "嘗試透過 D-Bus 系統接觸 systemd 守護行程失敗！"
 
 #: src/kcmsystemd.cpp:85
 msgid "Unable to find directory with systemd configuration files."
-msgstr "找不到 systemd 設定檔的所在資料夾。"
+msgstr "找不到 systemd 設定檔的所在目錄。"
 
 #: src/kcmsystemd.cpp:190
 msgid "All"
@@ -483,22 +483,28 @@ msgid ""
 "<p>Virtual terminal that shall unconditionally be reserved for autospawning. "
 "Set to 0 to disable.</p>"
 msgstr ""
+"<p>應無條件保留給自動衍生的虛擬終端機。 "
+"設定為 0 以停用。</p>"
 
 #: src/kcmsystemd.cpp:746
 msgid "<p>Kill the processes of a user when the user completely logs out.</p>"
-msgstr ""
+msgstr "<p>當使用者完整登出時，砍除該使用者的行程。</p>"
 
 #: src/kcmsystemd.cpp:753
 msgid ""
 "<p>Space-separated list of usernames for which only processes will be killed "
 "if KillUserProcesses is enabled.</p>"
 msgstr ""
+"<p>以空格分隔的使用者名稱列表，其中的行程將只會在 "
+"KillUserProcesses 啟用時被砍除。</p>"
 
 #: src/kcmsystemd.cpp:761
 msgid ""
 "<p>Space-separated list of usernames for which processes will be excluded "
 "from being killed if KillUserProcesses is enabled.</p>"
 msgstr ""
+"<p>以空格分隔的使用者名稱列表，其中的行程將會在 "
+"KillUserProcesses 啟用時被排除在砍除的名單外。</p>"
 
 #: src/kcmsystemd.cpp:770
 msgid ""
@@ -506,52 +512,69 @@ msgid ""
 "due to an inhibitor lock of type delay being active before the inhibitor is "
 "ignored and the operation executes anyway.</p>"
 msgstr ""
+"<p>指定系統關機或睡眠請求因抑制鎖活躍 "
+"而延遲的在抑制器被忽略且動作無論如何"
+"都會執行前的最大時間。</p>"
 
 #: src/kcmsystemd.cpp:794
 msgid ""
 "<p>Controls whether logind shall handle the system power and sleep keys and "
 "the lid switch to trigger power actions.</p>"
 msgstr ""
+"<p>控制 logind 應該處理系統電源及睡眠鍵及 "
+"lid 切換以觸發電源動作。</p>"
 
 #: src/kcmsystemd.cpp:803
 msgid ""
 "<p>Controls whether actions triggered by the power key are subject to "
 "inhibitor locks.</p>"
 msgstr ""
+"<p>控制是否由受到抑制鎖的電源鍵 "
+"觸發動作。</p>"
 
 #: src/kcmsystemd.cpp:811
 msgid ""
 "<p>Controls whether actions triggered by the suspend key are subject to "
 "inhibitor locks.</p>"
 msgstr ""
+"<p>控制是否由受到抑制鎖的暫停鍵 "
+"觸發動作。</p>"
 
 #: src/kcmsystemd.cpp:819
 msgid ""
 "<p>Controls whether actions triggered by the hibernate key are subject to "
 "inhibitor locks.</p>"
 msgstr ""
+"<p>控制是否由受到抑制鎖的冬眠鍵 "
+"觸發動作。</p>"
 
 #: src/kcmsystemd.cpp:827
 msgid ""
 "<p>Controls whether actions triggered by the lid switch are subject to "
 "inhibitor locks.</p>"
 msgstr ""
+"<p>控制是否由受到抑制鎖的 lid 切換 "
+"觸發動作。</p>"
 
 #: src/kcmsystemd.cpp:836
 msgid "<p>Configures the action to take when the system is idle.</p>"
-msgstr ""
+msgstr "<p>設定在系統閒置時要做的動作。</p>"
 
 #: src/kcmsystemd.cpp:845
 msgid ""
 "<p>Configures the delay after which the action configured in IdleAction is "
 "taken after the system is idle.</p>"
 msgstr ""
+"<p>設定在 IdleAction 中被定義的動作後 "
+"系統閒置的延遲。</p>"
 
 #: src/kcmsystemd.cpp:855
 msgid ""
 "<p>Controls whether System V and POSIX IPC objects belonging to the user "
 "shall be removed when the user fully logs out.</p>"
 msgstr ""
+"<p>控制屬於使用者的 System V 及 POSIX IPC 目標 "
+"是否應該在使用者完全登出時被移除。</p>"
 
 #: src/kcmsystemd.cpp:868
 msgid ""
@@ -561,10 +584,15 @@ msgid ""
 "stored in the journal and rotated following normal journal rotation patterns."
 "</p>"
 msgstr ""
+"<p>控制要在何處儲存核心。若為 <i>none</i>，核心傾印將會 "
+"被記錄但不會被永久儲存。若為 <i>external</i>，核心將會 "
+"被儲存在 /var/lib/systemd/coredump。若為 <i>journal</i>，核心將會 "
+"被儲存在日誌中並以一般的日誌壓縮方式壓縮。"
+"</p>"
 
 #: src/kcmsystemd.cpp:876
 msgid "<p>Controls compression for external storage.</p>"
-msgstr ""
+msgstr "<p>控制外部儲存的壓縮。</p>"
 
 #: src/kcmsystemd.cpp:885
 msgid ""
@@ -572,10 +600,13 @@ msgid ""
 "this size will be logged, but the backtrace will not be generated and the "
 "core will not be stored.</p>"
 msgstr ""
+"<p>一個核心將會被處理的最大大小。超過 "
+"該大小的核心傾印將會被記錄，但回溯記錄"
+"將不會產生， 且核心也將不會被儲存。</p>"
 
 #: src/kcmsystemd.cpp:894 src/kcmsystemd.cpp:903
 msgid "<p>The maximum (uncompressed) size of a core to be saved.</p>"
-msgstr ""
+msgstr "<p>要被儲存的最大（未壓縮）的核心大小。</p>"
 
 #: src/kcmsystemd.cpp:912
 #, c-format
@@ -584,6 +615,9 @@ msgid ""
 "coredumps grows beyond this limit. Defaults to 10% of the total disk size.</"
 "p>"
 msgstr ""
+"<p>只要核心傾印所佔據的總磁碟容量超過這個限制，"
+"舊的核心傾印會盡快被移除。預設為總磁碟大小的 10%。</"
+"p>"
 
 #: src/kcmsystemd.cpp:921
 #, c-format
@@ -591,50 +625,52 @@ msgid ""
 "<p>Minimum disk space to keep free. Defaults to 15% of the total disk size.</"
 "p>"
 msgstr ""
+"<p>要維持空閒的最小磁碟空間。預設為總磁碟大小的 15%。</"
+"p>"
 
 #: src/kcmsystemd.cpp:960
 #, kde-format
 msgid "Failed to read %1/%2. Using default values."
-msgstr ""
+msgstr "讀取 %1/%2 失敗。正在使用預設值。"
 
 #: src/kcmsystemd.cpp:1003
 msgid "Load state"
-msgstr "Status de chargement"
+msgstr "負載狀態"
 
 #: src/kcmsystemd.cpp:1004
 msgid "Active state"
-msgstr "Status d'activation"
+msgstr "活躍狀態"
 
 #: src/kcmsystemd.cpp:1005
 msgid "Unit state"
-msgstr "Status de l'Unité"
+msgstr "單位狀態"
 
 #: src/kcmsystemd.cpp:1006
 msgid "Unit"
-msgstr "Unité"
+msgstr "單位"
 
 #: src/kcmsystemd.cpp:1022
 msgid "Load default settings for all files?"
-msgstr "Charger les paramètres par défaut pour tous les fichiers ?"
+msgstr "為所有檔案載入預設的設定？"
 
 #: src/kcmsystemd.cpp:1077
 msgid "Unable to find directory for configuration files."
-msgstr "Impossible de trouver le répertoire pour les fichiers de configuration"
+msgstr "找不到設定檔的所在目錄。"
 
 #: src/kcmsystemd.cpp:1098
 #, kde-format
 msgid "Unable to authenticate/execute the action: %1, %2"
-msgstr "Impossible de s'authentifier/executer l'action: %1, %2"
+msgstr "無法驗證/執行動作： %1, %2"
 
 #: src/kcmsystemd.cpp:1101
 #, kde-format
 msgid "Configuration files succesfully written to: %1"
-msgstr "Les fichiers de configuration on bien été écrits dans: %1"
+msgstr "設定檔成功寫入至： %1"
 
 #: src/kcmsystemd.cpp:1331
 #, kde-format
 msgid "Total: %1 units, %2 active, %3 displayed"
-msgstr "Total: %1 unités, %2 actives, %3 affichées"
+msgstr "總計： %1 個單位， %2 個活躍， %3 個已顯示"
 
 #: src/kcmsystemd.cpp:1359
 #, kde-format
@@ -644,86 +680,90 @@ msgid ""
 "Error string: %2\n"
 "Error text: %3"
 msgstr ""
+"無法驗證/執行動作。\n"
+"錯誤代碼： %1\n"
+"錯誤字串： %2\n"
+"錯誤文字： %3"
 
 #: src/kcmsystemd.cpp:1387
 msgid "&Start unit"
-msgstr "&Démarrer l'unité"
+msgstr "啟動單位(&S)"
 
 #: src/kcmsystemd.cpp:1388
 msgid "S&top unit"
-msgstr "&Arrêter l'unité"
+msgstr "停止單位(&T)"
 
 #: src/kcmsystemd.cpp:1389
 msgid "&Restart unit"
-msgstr "&Redémarrer l'unité"
+msgstr "重新啟動單位(&R)"
 
 #: src/kcmsystemd.cpp:1390
 msgid "Re&load unit"
-msgstr "Re&charger l'unité"
+msgstr "重新載入單位(&L)"
 
 #: src/kcmsystemd.cpp:1392
 msgid "&Edit unit file"
-msgstr "&Editer le fichier d'unité"
+msgstr "編輯單位檔案(&E)"
 
 #: src/kcmsystemd.cpp:1393
 msgid "&Isolate unit"
-msgstr "&Isoler l'unité"
+msgstr "隔離單位(&I)"
 
 #: src/kcmsystemd.cpp:1395
 msgid "En&able unit"
-msgstr "A&ctiver l'unité"
+msgstr "啟用單位(&A)"
 
 #: src/kcmsystemd.cpp:1396
 msgid "&Disable unit"
-msgstr "&Désactiver l'unité"
+msgstr "停用單位(&D)"
 
 #: src/kcmsystemd.cpp:1398
 msgid "&Mask unit"
-msgstr "&Masquer l'unité"
+msgstr "遮蔽單位(&M)"
 
 #: src/kcmsystemd.cpp:1399
 msgid "&Unmask unit"
-msgstr "&Dé-masquer l'unité"
+msgstr "解除遮蔽單位(&U)"
 
 #: src/kcmsystemd.cpp:1401
 msgid "Rel&oad all unit files"
-msgstr "R&echarger toutes les unités"
+msgstr "重新載入所有單位的檔案(&O)"
 
 #: src/kcmsystemd.cpp:1402
 msgid "Ree&xecute systemd"
-msgstr "Ré-e&xectuer systemd"
+msgstr "重新執行 systemd(&X)"
 
 #: src/kcmsystemd.cpp:1498
 msgid "kdesu executable not found. Unable to start kwrite!"
-msgstr "Le programe kdesu n'a pas été trouvé. Impossible d'executer kwrite!"
+msgstr "找不到 kdesu 可執行檔。無法啟動 kwrite！"
 
 #: src/kcmsystemd.cpp:1625
 msgid "<b>Description: </b>"
-msgstr ""
+msgstr "<b>描述： </b>"
 
 #: src/kcmsystemd.cpp:1627
 msgid "<br><b>Fragment path: </b>"
-msgstr ""
+msgstr "<br><b>碎片路徑： </b>"
 
 #: src/kcmsystemd.cpp:1629 src/kcmsystemd.cpp:1672
 msgid "<br><b>Unit file state: </b>"
-msgstr ""
+msgstr "<br><b>單位的檔案狀態： </b>"
 
 #: src/kcmsystemd.cpp:1632
 msgid "<br><b>Activated: </b>"
-msgstr ""
+msgstr "<br><b>已啟用： </b>"
 
 #: src/kcmsystemd.cpp:1642
 msgid "<br><b>Deactivated: </b>"
-msgstr ""
+msgstr "<br><b>已停用： </b>"
 
 #: src/kcmsystemd.cpp:1668
 msgid "<b>Fragment path: </b>"
-msgstr ""
+msgstr "<b>碎片路徑： </b>"
 
 #: src/kcmsystemd.cpp:1740
 #, kde-format
 msgid "File to be written: %1/%2"
-msgstr "Ce fichier sera écrit: %1/%2"
+msgstr "要被寫入的檔案： %1/%2"
 
 
