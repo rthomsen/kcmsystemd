@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/rthomsen/kcmsystemd/issues\n"
 "POT-Creation-Date: 2015-02-24 11:47+0100\n"
-"PO-Revision-Date: 2015-02-27 22:04+0800\n"
+"PO-Revision-Date: 2015-03-02 08:46+0800\n"
 "Last-Translator: Jeff Huang <s8321414@gmail.com>\n"
 "Language-Team: Chinese Traditional <kde-i18n-doc@kde.org>\n"
 "Language: zh_TW\n"
@@ -127,7 +127,7 @@ msgstr "交換區"
 
 #: src/kcmsystemd.cpp:192
 msgid "Sockets"
-msgstr "插座"
+msgstr "通訊端"
 
 #: src/kcmsystemd.cpp:192
 msgid "Paths"
@@ -212,6 +212,10 @@ msgid ""
 "Takes a space-separated list of controller names. Pass the empty string to "
 "ensure that systemd does not touch any hierarchies but its own.</p>"
 msgstr ""
+"<p>在控制組的層次結構設定中，會自動建立每個服務的 "
+"cgroups，並額外加入 name=systemd 來命名層次結構。 "
+"需要以空白分隔的控制器名稱列表。傳遞空字串給 "
+"systemd 以確保其不會觸碰任何除了它本身以外的層次結構。</p>"
 
 #: src/kcmsystemd.cpp:329
 msgid ""
@@ -221,6 +225,11 @@ msgid ""
 "the specified timeout interval. This feature requires a hardware watchdog "
 "device.</p>"
 msgstr ""
+"<p>Watchdog 硬體 (/dev/watchdog) 將會被設定為當 "
+"未在指定的延遲時間間隔內聯繫時自動重新啟動系統。 "
+"系統管理員將會確保至少在指定的逾時時間間隔的一半內 "
+"連繫至少一次。這個功能需要硬體 watchdog "
+"裝置。</p>"
 
 #: src/kcmsystemd.cpp:339
 msgid ""
@@ -229,15 +238,19 @@ msgid ""
 "reboot takes place even if a clean reboot attempt times out. This feature "
 "requires a hardware watchdog device.</p>"
 msgstr ""
+"<p>這個設定將會用於設定硬體 watchdog 當 "
+"系統被要求重新啟動時。它是做為安全網以確保 "
+"即便乾淨的重新啟動超時的時候也能正確的重新啟動。 "
+"這個功能需要硬體 watchdog 裝置。</p>"
 
 #: src/kcmsystemd.cpp:347
 msgid "<p>Capabilities for the systemd daemon and its children.</p>"
-msgstr ""
+msgstr "<p>為 systemd 守護行程及其子行程之功能。</p>"
 
 #: src/kcmsystemd.cpp:357
 msgid ""
 "<p>Architectures of which system calls may be invoked on the system.</p>"
-msgstr ""
+msgstr "<p>某些系統呼叫的架構也許會在系統上被調用。</p>"
 
 #: src/kcmsystemd.cpp:367
 msgid ""
@@ -245,77 +258,86 @@ msgid ""
 "processes, unless overridden individually. The timer slack controls the "
 "accuracy of wake-ups triggered by timers.</p>"
 msgstr ""
+"<p>設定計時器釋放為 PID 1 ，並除非有單獨覆蓋， "
+"否則繼承所有已執行的行程。計時器釋放控制著 "
+"由計時器所觸發的喚醒的準確度。</p>"
 
 #: src/kcmsystemd.cpp:378
 msgid ""
 "<p>The default accuracy of timer units. Note that the accuracy of timer "
 "units is also affected by the configured timer slack for PID 1.</p>"
 msgstr ""
+"<p>計時器單位的預設準確度。注意：計時器單位的準確度 "
+"也會被設定好的 PID 1 計時器釋放所影響。</p>"
 
 #: src/kcmsystemd.cpp:390
 msgid "<p>Sets the default output for all services and sockets.</p>"
-msgstr ""
+msgstr "<p>為所有服務及通訊端設定預設的輸出。</p>"
 
 #: src/kcmsystemd.cpp:401
 msgid "<p>Sets the default error output for all services and sockets.</p>"
-msgstr ""
+msgstr "<p>為所有服務及通訊端設定預設的錯誤輸出。</p>"
 
 #: src/kcmsystemd.cpp:412
 msgid "<p>The default timeout for starting of units.</p>"
-msgstr ""
+msgstr "<p>單位啟動的預設延遲時間。</p>"
 
 #: src/kcmsystemd.cpp:421
 msgid "<p>The default timeout for stopping of units.</p>"
-msgstr ""
+msgstr "<p>單位停止的預設延遲時間。</p>"
 
 #: src/kcmsystemd.cpp:431
 msgid "<p>The default time to sleep between automatic restart of units.</p>"
-msgstr ""
+msgstr "<p>在每次重新啟動單位間的預設睡眠時間。</p>"
 
 #: src/kcmsystemd.cpp:440
 msgid "<p>Time interval used in start rate limit for services.</p>"
-msgstr ""
+msgstr "<p>用以限制服務的啟動速度的時間間隔。</p>"
 
 #: src/kcmsystemd.cpp:450
 msgid ""
 "<p>Services are not allowed to start more than this number of times within "
 "the time interval defined in DefaultStartLimitInterval"
 msgstr ""
+"<p>服務在 DefaultStartLimitInterval 中定義的時間範圍內"
+"不被允許啟動多於這個次數"
 
 #: src/kcmsystemd.cpp:461
 msgid ""
 "<p>Manager environment variables passed to all executed processes. Takes a "
 "space-separated list of variable assignments.</p>"
 msgstr ""
+"<p>管理員的環境變數會傳遞給所有已執行的行程。 "
+"需要以空格分隔的變量賦值列表。</p>"
 
 #: src/kcmsystemd.cpp:472
 msgid "<p>Default CPU usage accounting.</p>"
-msgstr ""
+msgstr "<p>預設的 CPU 使用量計算。</p>"
 
 #: src/kcmsystemd.cpp:480
 msgid "<p>Default block IO accounting.</p>"
-msgstr ""
+msgstr "<p>預設的區塊 IO 計算。</p>"
 
 #: src/kcmsystemd.cpp:488
 msgid "<p>Default process and kernel memory accounting.</p>"
-msgstr ""
+msgstr "<p>預設的行程及核心記憶體計算。</p>"
 
 #: src/kcmsystemd.cpp:506
 msgid "<p>Default resource limit for units. Set to -1 for no limit.</p>"
-msgstr ""
+msgstr "<p>預設的單位資源限制。設定為 -1 以取消限制。</p>"
 
 #: src/kcmsystemd.cpp:518
 msgid "<p>Where to store log files.</p>"
-msgstr ""
+msgstr "<p>存放記錄檔的地方。</p>"
 
 #: src/kcmsystemd.cpp:526
 msgid "<p>Compress log files.</p>"
-msgstr ""
+msgstr "<p>壓縮記錄檔。</p>"
 
 #: src/kcmsystemd.cpp:534
 msgid ""
 "<p>Enable Forward Secure Sealing (FSS) for all persistent journal files.</p>"
-msgstr ""
+msgstr "<p>為所有持續存在的日誌檔啟用轉發安全加密 (Forward Secure Sealing,FSS)。</p>"
 
 #: src/kcmsystemd.cpp:546
 msgid ""
@@ -327,22 +349,33 @@ msgid ""
 "system journal. If <i>none</i>, journal files are not split up by user and "
 "all messages are instead stored in the single system journal.</p>"
 msgstr ""
+"<p>是否以及如何拆解記錄檔。如果是 <i>uid</i>，所有使用者， "
+"不管他們是否擁有一個登入的工作階段，都會取得他們自己所有 "
+"的日誌檔，但是系統使用者將會記錄至系統日誌中。 "
+"若為 <i>login</i>，實際登入的每個使用者將會取得她們自己所有 "
+"的記錄檔，但沒有登入工作階段或是系統的使用者將會記錄至 "
+"系統日誌中。若為 <i>none</i>，日誌檔將不會為使用者拆解， "
+"且所有的訊息都會儲存在單一個系統日誌中。</p>"
 
 #: src/kcmsystemd.cpp:556
 msgid "<p>The timeout before synchronizing journal files to disk.</p>"
-msgstr ""
+msgstr "<p>在同步日誌檔到磁碟前的延遲時間。</p>"
 
 #: src/kcmsystemd.cpp:565
 msgid ""
 "<p>Time interval for rate limiting of log messages. Set to 0 to turn off "
 "rate-limiting.</p>"
 msgstr ""
+"<p>限制記錄訊息的時間間隔。設定為 0 以關閉 "
+"速率限制。</p>"
 
 #: src/kcmsystemd.cpp:574
 msgid ""
 "<p>Maximum number of messages logged for a unit in the interval specified in "
 "RateLimitInterval. Set to 0 to turn off rate-limiting.</p>"
 msgstr ""
+"<p>在 RateLimitInterval 中所指定的一個單位的間隔的訊息最大數量。"
+"設定為 0 以關閉速率限制。</p>"
 
 #: src/kcmsystemd.cpp:583
 #, c-format
@@ -350,6 +383,8 @@ msgid ""
 "<p>Maximum disk space the persistent journal may take up. Defaults to 10% of "
 "file system size.</p>"
 msgstr ""
+"<p>持續性日誌的最大可能需要磁碟空間。"
+"預設為檔案系統大小的 10%。</p>"
 
 #: src/kcmsystemd.cpp:592
 #, c-format
@@ -357,12 +392,16 @@ msgid ""
 "<p>Minimum disk space the persistent journal should keep free for other "
 "uses. Defaults to 15% of file system size.</p>"
 msgstr ""
+"<p>持續性日誌的最小需要維持給其他用途的磁碟空間。"
+"預設為檔案系統大小的 15%。</p>"
 
 #: src/kcmsystemd.cpp:601
 msgid ""
 "<p>Maximum size of individual journal files on persistent storage. Defaults "
 "to 1/8 of SystemMaxUse.</p>"
 msgstr ""
+"<p>單一日誌持續性儲存的最大大小。"
+"預設為 SystemMaxUse 的 1/8。</p>"
 
 #: src/kcmsystemd.cpp:610
 #, c-format
@@ -370,6 +409,8 @@ msgid ""
 "<p>Maximum disk space the volatile journal may take up. Defaults to 10% of "
 "file system size.</p>"
 msgstr ""
+"<p>易變型日誌的最大可能需要磁碟空間。"
+"預設為檔案系統大小的 10%。</p>"
 
 #: src/kcmsystemd.cpp:619
 #, c-format
@@ -377,55 +418,65 @@ msgid ""
 "<p>Minimum disk space the volatile journal should keep free for other uses. "
 "Defaults to 15% of file system size.</p>"
 msgstr ""
+"<p>易變型日誌的最小需要維持給其他用途的磁碟空間。"
+"預設為檔案系統大小的 15%。</p>"
 
 #: src/kcmsystemd.cpp:628
 msgid ""
 "<p>Maximum size of individual journal files on volatile storage. Defaults to "
 "1/8 of RuntimeMaxUse.</p>"
 msgstr ""
+"<p>單一日誌易變型儲存的最大大小。"
+"預設為 RuntimeMaxUse 的 1/8。</p>"
 
 #: src/kcmsystemd.cpp:638
 msgid "<p>Maximum time to store journal entries. Set to 0 to disable.</p>"
-msgstr ""
+msgstr "<p>儲存日誌項目的最大次數。設定為 0 以停用。</p>"
 
 #: src/kcmsystemd.cpp:648
 msgid ""
 "<p>Maximum time to store entries in a single journal file before rotating to "
 "the next one. Set to 0 to disable.</p>"
 msgstr ""
+"<p>在單一日誌檔案儲存日誌項目在下一次壓縮前的最大次數。"
+"設定為 0 以停用。</p>"
 
 #: src/kcmsystemd.cpp:656
 msgid "<p>Forward journal messages to syslog.</p>"
-msgstr ""
+msgstr "<p>轉發日誌訊息到 syslog。</p>"
 
 #: src/kcmsystemd.cpp:664
 msgid "<p>Forward journal messages to kernel log buffer</p>"
-msgstr ""
+msgstr "<p>轉發日誌訊息到核心日誌緩衝。</p>"
 
 #: src/kcmsystemd.cpp:672
 msgid ""
 "<p>Forward journal messages to the system console. The console can be "
 "changed with TTYPath.</p>"
 msgstr ""
+"<p>轉發日誌訊息到系統終端機中。"
+"終端機可使用 TTYPath 來變更。</p>"
 
 #: src/kcmsystemd.cpp:682
 msgid ""
 "<p>Forward journal messages as wall messages to all logged-in users.</p>"
-msgstr ""
+msgstr "<p>以 wall 訊息轉發日誌訊息給所有已登入的使用者。</p>"
 
 #: src/kcmsystemd.cpp:691
 msgid "<p>Forward journal messages to this TTY if ForwardToConsole is set.</p>"
-msgstr ""
+msgstr "<p>若 ForwardToConsole 已設定，轉發日誌訊息到該 TTY。</p>"
 
 #: src/kcmsystemd.cpp:715
 msgid "<p>Max log level to forward/store to the specified target.</p>"
-msgstr ""
+msgstr "<p>轉發/儲存到指定目標的最大記錄等級。</p>"
 
 #: src/kcmsystemd.cpp:728
 msgid ""
 "<p>Number of virtual terminals (VTs) to allocate by default and which will "
 "autospawn. Set to 0 to disable.</p>"
 msgstr ""
+"<p>預設分配及自動衍生的虛擬終端機 (VT) 數量。 "
+"設定為 0 以停用。</p>"
 
 #: src/kcmsystemd.cpp:738
 msgid ""
