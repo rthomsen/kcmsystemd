@@ -1,4 +1,4 @@
-# Copyright (C) YEAR Ragnar Thomsen
+# Copyright (C) 2015 Ragnar Thomsen
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Jeff Huang <s8321414@gmail.com>, 2015.
