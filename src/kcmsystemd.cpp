@@ -1885,7 +1885,6 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
           toolTipText.append(i18n("<br><i>No log entries found for this unit.</i>"));
         else
         {
-          QStringList log = getLastJrnlEntries(selUnit);
           for(int i = log.count()-1; i >= 0; --i)
           {
             if (!log.at(i).isEmpty())
@@ -2082,22 +2081,33 @@ QStringList kcmsystemd::getLastJrnlEntries(QString unit)
     r = sd_journal_previous(journal);
     if (r == 1)
     {
-      QString line = "<span style='color:#55ff7f;'>";
+      QString line;
       r = sd_journal_get_realtime_usec(journal, &time);
       if (r == 0)
       {
         QDateTime date;
         date.setMSecsSinceEpoch(time/1000);
-        line.append(date.toString("yyyy.MM.dd hh:mm") + "</span>");
+        line.append(date.toString("yyyy.MM.dd hh:mm"));
+      }
+      r = sd_journal_get_data(journal, "PRIORITY", &data, &length);
+      if (r == 0)
+      {
+        qDebug() << unit << ": " << QString::fromLatin1((const char *)data, length).section("=",1);
+        int prio = QString::fromLatin1((const char *)data, length).section("=",1).toInt();
+        if (prio <= 3)
+          line.append("<span style='color:tomato;'>");
+        else if (prio == 4)
+          line.append("<span style='color:khaki;'>");
+        else
+          line.append("<span style='color:palegreen;'>");
       }
       r = sd_journal_get_data(journal, "MESSAGE", &data, &length);
       if (r == 0)
       {
-        line.append(": " + QString::fromLatin1((const char *)data, length).section("=",1));
-        if (line.length() < 200)
-          reply << line;
-        else
-          reply << QString(line.left(200) + "...");
+        line.append(": " + QString::fromLatin1((const char *)data, length).section("=",1) + "</span>");
+        if (line.length() > 195)
+          line = QString(line.left(195) + "..." + "</span>");
+        reply << line;
       }
     }
     else // previous failed, no more entries
