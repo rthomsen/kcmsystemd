@@ -102,7 +102,7 @@ class kcmsystemd : public KCModule
     void setupConf();
     void setupSessionlist();
     void readConfFile(int);
-    void authServiceAction(QString, QString, QString, QString, QList<QVariant>);    
+    void authServiceAction(QString, QString, QString, QString, QList<QVariant>);
     bool eventFilter(QObject *, QEvent*);
     void updateUnitCount();
     void setupConfigParms();
