@@ -1,61 +1,67 @@
-# Copyright (C) 2015 Ragnar Thomsen
+# Copyright (C) YEAR Ragnar Thomsen
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Jeff Huang <s8321414@gmail.com>, 2015.
 msgid ""
 msgstr ""
-"Project-Id-Version: 1.0.0\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://github.com/rthomsen/kcmsystemd/issues\n"
-"POT-Creation-Date: 2015-02-24 11:47+0100\n"
-"PO-Revision-Date: 2015-03-02 20:51+0800\n"
+"POT-Creation-Date: 2015-03-02 19:38+0100\n"
+"PO-Revision-Date: 2015-03-03 07:25+0800\n"
 "Last-Translator: Jeff Huang <s8321414@gmail.com>\n"
 "Language-Team: Chinese Traditional <rthomsen6@gmail.com>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Lokalize 1.5\n"
 
-#. i18n: file: ui/kcmsystemd.ui:23
+#. i18n: file: ui/kcmsystemd.ui:29
 #. i18n: ectx: property (windowTitle), widget (QWidget, kcmsystemd)
 #: rc.cpp:3
 msgid "kcmsystemd"
 msgstr "kcmsystemd"
 
-#. i18n: file: ui/kcmsystemd.ui:73
+#. i18n: file: ui/kcmsystemd.ui:79
 #. i18n: ectx: attribute (title), widget (QWidget, tabServices)
 #: rc.cpp:6
 msgid "Units"
 msgstr "單元 "
 
-#. i18n: file: ui/kcmsystemd.ui:87
-#. i18n: ectx: property (toolTip), widget (QComboBox, cmbUnitTypes)
+#. i18n: file: ui/kcmsystemd.ui:85
+#. i18n: ectx: property (text), widget (QLabel, lblStatus)
 #: rc.cpp:9
+msgid "Overall stats:"
+msgstr "總計："
+
+#. i18n: file: ui/kcmsystemd.ui:100
+#. i18n: ectx: property (toolTip), widget (QComboBox, cmbUnitTypes)
+#: rc.cpp:12
 msgid "<html><head/><body><p>Filter unit types.</p></body></html>"
 msgstr "<html><head/><body><p>過濾單元類型。</p></body></html>"
 
-#. i18n: file: ui/kcmsystemd.ui:97
+#. i18n: file: ui/kcmsystemd.ui:110
 #. i18n: ectx: property (toolTip), widget (QCheckBox, chkInactiveUnits)
-#: rc.cpp:12
+#: rc.cpp:15
 msgid "<html><head/><body><p>Toggle show inactive units.</p></body></html>"
 msgstr "<html><head/><body><p>切換顯示不活躍的單元。</p></body></html>"
 
-#. i18n: file: ui/kcmsystemd.ui:100
+#. i18n: file: ui/kcmsystemd.ui:113
 #. i18n: ectx: property (text), widget (QCheckBox, chkInactiveUnits)
-#: rc.cpp:15
+#: rc.cpp:18
 msgid "Show inactive"
 msgstr "顯示不活躍的"
 
-#. i18n: file: ui/kcmsystemd.ui:110
+#. i18n: file: ui/kcmsystemd.ui:123
 #. i18n: ectx: property (text), widget (QCheckBox, chkShowUnloadedUnits)
-#: rc.cpp:18
+#: rc.cpp:21
 msgid "Show unloaded"
 msgstr "顯示未載入的"
 
-#. i18n: file: ui/kcmsystemd.ui:130
+#. i18n: file: ui/kcmsystemd.ui:143
 #. i18n: ectx: property (toolTip), widget (QPushButton, btnRefreshUnits)
-#: rc.cpp:21
+#: rc.cpp:24
 msgid ""
 "<html><head/><body><p>Reload the list of units from systemd.</p></body></"
 "html>"
@@ -63,113 +69,113 @@ msgstr ""
 "<html><head/><body><p>從 systemd 重新載入單元列表。</p></body></"
 "html>"
 
-#. i18n: file: ui/kcmsystemd.ui:133
+#. i18n: file: ui/kcmsystemd.ui:146
 #. i18n: ectx: property (text), widget (QPushButton, btnRefreshUnits)
-#: rc.cpp:24
+#: rc.cpp:27
 msgid "Refresh"
 msgstr "重新整理"
 
-#. i18n: file: ui/kcmsystemd.ui:145
-#. i18n: ectx: property (text), widget (QLabel, lblStatus)
-#: rc.cpp:27
-msgid "Overall stats:"
-msgstr "總計："
-
-#. i18n: file: ui/kcmsystemd.ui:193
+#. i18n: file: ui/kcmsystemd.ui:208
 #. i18n: ectx: attribute (title), widget (QWidget, tabConf)
 #: rc.cpp:30
 msgid "Conf"
 msgstr "設定"
 
-#. i18n: file: ui/kcmsystemd.ui:204
+#. i18n: file: ui/kcmsystemd.ui:219
 #. i18n: ectx: property (text), widget (QLabel, label_9)
 #: rc.cpp:33
 msgid "Configuration file:"
 msgstr "設定檔："
 
-#. i18n: file: ui/kcmsystemd.ui:275
-#. i18n: ectx: property (text), widget (QLabel, lblFailMessage)
+#. i18n: file: ui/kcmsystemd.ui:258
+#. i18n: ectx: attribute (title), widget (QWidget, tabSessions)
 #: rc.cpp:36
+msgid "Sessions"
+msgstr "工作階段"
+
+#. i18n: file: ui/kcmsystemd.ui:341
+#. i18n: ectx: property (text), widget (QLabel, lblFailMessage)
+#: rc.cpp:39
 msgid "Attempt to contact the systemd daemon through D-Bus system bus failed!"
 msgstr "嘗試透過 D-Bus 系統接觸 systemd 守護行程失敗！"
 
-#: src/kcmsystemd.cpp:85
+#: src/kcmsystemd.cpp:88
 msgid "Unable to find directory with systemd configuration files."
 msgstr "找不到 systemd 設定檔的所在目錄。"
 
-#: src/kcmsystemd.cpp:190
+#: src/kcmsystemd.cpp:229
 msgid "All"
 msgstr "所有"
 
-#: src/kcmsystemd.cpp:190
+#: src/kcmsystemd.cpp:229
 msgid "Targets"
 msgstr "目標"
 
-#: src/kcmsystemd.cpp:190
+#: src/kcmsystemd.cpp:229
 msgid "Services"
 msgstr "服務"
 
-#: src/kcmsystemd.cpp:191
+#: src/kcmsystemd.cpp:230
 msgid "Devices"
 msgstr "裝置"
 
-#: src/kcmsystemd.cpp:191
+#: src/kcmsystemd.cpp:230
 msgid "Mounts"
 msgstr "掛載"
 
-#: src/kcmsystemd.cpp:191
+#: src/kcmsystemd.cpp:230
 msgid "Automounts"
 msgstr "自動掛載"
 
-#: src/kcmsystemd.cpp:191
+#: src/kcmsystemd.cpp:230
 msgid "Swaps"
 msgstr "交換區"
 
-#: src/kcmsystemd.cpp:192
+#: src/kcmsystemd.cpp:231
 msgid "Sockets"
 msgstr "通訊端"
 
-#: src/kcmsystemd.cpp:192
+#: src/kcmsystemd.cpp:231
 msgid "Paths"
 msgstr "路徑"
 
-#: src/kcmsystemd.cpp:192
+#: src/kcmsystemd.cpp:231
 msgid "Timers"
 msgstr "時計"
 
-#: src/kcmsystemd.cpp:192
+#: src/kcmsystemd.cpp:231
 msgid "Snapshots"
 msgstr "快照"
 
-#: src/kcmsystemd.cpp:193
+#: src/kcmsystemd.cpp:232
 msgid "Slices"
 msgstr "分片"
 
-#: src/kcmsystemd.cpp:193
+#: src/kcmsystemd.cpp:232
 msgid "Scopes"
 msgstr "觀測器"
 
-#: src/kcmsystemd.cpp:231
+#: src/kcmsystemd.cpp:270
 msgid "<p>Set the level of log entries in systemd.</p>"
 msgstr "<p>設定在 systemd 中的日誌記錄等級。</p>"
 
-#: src/kcmsystemd.cpp:240
+#: src/kcmsystemd.cpp:279
 msgid "<p>Set target for logs.</p>"
 msgstr "<p>設定記錄目標。</p>"
 
-#: src/kcmsystemd.cpp:248
+#: src/kcmsystemd.cpp:287
 msgid "<p>Use color to highlight important log messages.</p>"
 msgstr "<p>使用顏色突顯重要的訊息記錄。</p>"
 
-#: src/kcmsystemd.cpp:256
+#: src/kcmsystemd.cpp:295
 msgid "<p>Include code location in log messages.</p>"
 msgstr "<p>包含在訊息記錄中的代碼位置。</p>"
 
-#: src/kcmsystemd.cpp:264
+#: src/kcmsystemd.cpp:303
 msgid "<p>Dump core on systemd crash.</p>"
 msgstr "<p>在 systemd 當掉時核心傾印。</p>"
 
-#: src/kcmsystemd.cpp:272
+#: src/kcmsystemd.cpp:311
 msgid ""
 "<p>Spawn a shell when systemd crashes. Note: The shell is not password-"
 "protected.</p>"
@@ -177,11 +183,11 @@ msgstr ""
 "<p>當 systemd 當掉時產生殼層。"
 "注意：這個殼層沒有密碼保護。</p>"
 
-#: src/kcmsystemd.cpp:281
+#: src/kcmsystemd.cpp:320
 msgid "<p>Show terse service status information while booting.</p>"
 msgstr "<p>開機時顯示簡短的服務資訊。</p>"
 
-#: src/kcmsystemd.cpp:290
+#: src/kcmsystemd.cpp:329
 msgid ""
 "<p>Activate the specified virtual terminal when systemd crashes (-1 to "
 "deactivate).</p>"
@@ -189,11 +195,11 @@ msgstr ""
 "<p>當 systmed 當掉時啟動指定的虛擬終端機 "
 "（-1 為停用）。</p>"
 
-#: src/kcmsystemd.cpp:301
+#: src/kcmsystemd.cpp:340
 msgid "<p>The initial CPU affinity for the systemd init process.</p>"
 msgstr "<p>systemd 初始行程的初始 CPU 親和性。</p>"
 
-#: src/kcmsystemd.cpp:309
+#: src/kcmsystemd.cpp:348
 msgid ""
 "<p>Controllers that shall be mounted in a single hierarchy. Takes a space-"
 "separated list of comma-separated controller names, in order to allow "
@@ -205,7 +211,7 @@ msgstr ""
 "以允許多個已加入的層次結構。傳送空字串給 systemd "
 "以確保其掛載所有控制器到獨立的層次結構中。</p>"
 
-#: src/kcmsystemd.cpp:319
+#: src/kcmsystemd.cpp:358
 msgid ""
 "<p>Configures in which control group hierarchies to create per-service "
 "cgroups automatically, in addition to the name=systemd named hierarchy. "
@@ -217,7 +223,7 @@ msgstr ""
 "需要以空白分隔的控制器名稱列表。傳遞空字串給 "
 "systemd 以確保其不會觸碰任何除了它本身以外的層次結構。</p>"
 
-#: src/kcmsystemd.cpp:329
+#: src/kcmsystemd.cpp:367
 msgid ""
 "<p>The watchdog hardware (/dev/watchdog) will be programmed to automatically "
 "reboot the system if it is not contacted within the specified timeout "
@@ -231,7 +237,7 @@ msgstr ""
 "連繫至少一次。這個功能需要硬體 watchdog "
 "裝置。</p>"
 
-#: src/kcmsystemd.cpp:339
+#: src/kcmsystemd.cpp:376
 msgid ""
 "<p>This setting may be used to configure the hardware watchdog when the "
 "system is asked to reboot. It works as a safety net to ensure that the "
@@ -243,16 +249,16 @@ msgstr ""
 "即便乾淨的重新啟動超時的時候也能正確的重新啟動。 "
 "這個功能需要硬體 watchdog 裝置。</p>"
 
-#: src/kcmsystemd.cpp:347
+#: src/kcmsystemd.cpp:384
 msgid "<p>Capabilities for the systemd daemon and its children.</p>"
 msgstr "<p>為 systemd 守護行程及其子行程之功能。</p>"
 
-#: src/kcmsystemd.cpp:357
+#: src/kcmsystemd.cpp:394
 msgid ""
 "<p>Architectures of which system calls may be invoked on the system.</p>"
 msgstr "<p>某些系統呼叫的架構也許會在系統上被調用。</p>"
 
-#: src/kcmsystemd.cpp:367
+#: src/kcmsystemd.cpp:406
 msgid ""
 "<p>Sets the timer slack for PID 1 which is then inherited to all executed "
 "processes, unless overridden individually. The timer slack controls the "
@@ -262,7 +268,7 @@ msgstr ""
 "否則繼承所有已執行的行程。計時器釋放控制著 "
 "由計時器所觸發的喚醒的準確度。</p>"
 
-#: src/kcmsystemd.cpp:378
+#: src/kcmsystemd.cpp:416
 msgid ""
 "<p>The default accuracy of timer units. Note that the accuracy of timer "
 "units is also affected by the configured timer slack for PID 1.</p>"
@@ -270,31 +276,31 @@ msgstr ""
 "<p>計時器單位的預設準確度。注意：計時器單位的準確度 "
 "也會被設定好的 PID 1 計時器釋放所影響。</p>"
 
-#: src/kcmsystemd.cpp:390
+#: src/kcmsystemd.cpp:428
 msgid "<p>Sets the default output for all services and sockets.</p>"
 msgstr "<p>為所有服務及通訊端設定預設的輸出。</p>"
 
-#: src/kcmsystemd.cpp:401
+#: src/kcmsystemd.cpp:439
 msgid "<p>Sets the default error output for all services and sockets.</p>"
 msgstr "<p>為所有服務及通訊端設定預設的錯誤輸出。</p>"
 
-#: src/kcmsystemd.cpp:412
+#: src/kcmsystemd.cpp:449
 msgid "<p>The default timeout for starting of units.</p>"
 msgstr "<p>單位啟動的預設延遲時間。</p>"
 
-#: src/kcmsystemd.cpp:421
+#: src/kcmsystemd.cpp:457
 msgid "<p>The default timeout for stopping of units.</p>"
 msgstr "<p>單位停止的預設延遲時間。</p>"
 
-#: src/kcmsystemd.cpp:431
+#: src/kcmsystemd.cpp:466
 msgid "<p>The default time to sleep between automatic restart of units.</p>"
 msgstr "<p>在每次重新啟動單位間的預設睡眠時間。</p>"
 
-#: src/kcmsystemd.cpp:440
+#: src/kcmsystemd.cpp:474
 msgid "<p>Time interval used in start rate limit for services.</p>"
 msgstr "<p>用以限制服務的啟動速度的時間間隔。</p>"
 
-#: src/kcmsystemd.cpp:450
+#: src/kcmsystemd.cpp:482
 msgid ""
 "<p>Services are not allowed to start more than this number of times within "
 "the time interval defined in DefaultStartLimitInterval"
@@ -302,7 +308,7 @@ msgstr ""
 "<p>服務在 DefaultStartLimitInterval 中定義的時間範圍內"
 "不被允許啟動多於這個次數"
 
-#: src/kcmsystemd.cpp:461
+#: src/kcmsystemd.cpp:493
 msgid ""
 "<p>Manager environment variables passed to all executed processes. Takes a "
 "space-separated list of variable assignments.</p>"
@@ -310,36 +316,36 @@ msgstr ""
 "<p>管理員的環境變數會傳遞給所有已執行的行程。 "
 "需要以空格分隔的變量賦值列表。</p>"
 
-#: src/kcmsystemd.cpp:472
+#: src/kcmsystemd.cpp:504
 msgid "<p>Default CPU usage accounting.</p>"
 msgstr "<p>預設的 CPU 使用量計算。</p>"
 
-#: src/kcmsystemd.cpp:480
+#: src/kcmsystemd.cpp:512
 msgid "<p>Default block IO accounting.</p>"
 msgstr "<p>預設的區塊 IO 計算。</p>"
 
-#: src/kcmsystemd.cpp:488
+#: src/kcmsystemd.cpp:520
 msgid "<p>Default process and kernel memory accounting.</p>"
 msgstr "<p>預設的行程及核心記憶體計算。</p>"
 
-#: src/kcmsystemd.cpp:506
+#: src/kcmsystemd.cpp:538
 msgid "<p>Default resource limit for units. Set to -1 for no limit.</p>"
 msgstr "<p>預設的單位資源限制。設定為 -1 以取消限制。</p>"
 
-#: src/kcmsystemd.cpp:518
+#: src/kcmsystemd.cpp:550
 msgid "<p>Where to store log files.</p>"
 msgstr "<p>存放記錄檔的地方。</p>"
 
-#: src/kcmsystemd.cpp:526
+#: src/kcmsystemd.cpp:558
 msgid "<p>Compress log files.</p>"
 msgstr "<p>壓縮記錄檔。</p>"
 
-#: src/kcmsystemd.cpp:534
+#: src/kcmsystemd.cpp:566
 msgid ""
 "<p>Enable Forward Secure Sealing (FSS) for all persistent journal files.</p>"
 msgstr "<p>為所有持續存在的日誌檔啟用轉發安全加密 (Forward Secure Sealing,FSS)。</p>"
 
-#: src/kcmsystemd.cpp:546
+#: src/kcmsystemd.cpp:578
 msgid ""
 "<p>Whether and how to split log files. If <i>uid</i>, all users will get "
 "each their own journal files regardless of whether they possess a login "
@@ -357,11 +363,11 @@ msgstr ""
 "系統日誌中。若為 <i>none</i>，日誌檔將不會為使用者拆解， "
 "且所有的訊息都會儲存在單一個系統日誌中。</p>"
 
-#: src/kcmsystemd.cpp:556
+#: src/kcmsystemd.cpp:587
 msgid "<p>The timeout before synchronizing journal files to disk.</p>"
 msgstr "<p>在同步日誌檔到磁碟前的延遲時間。</p>"
 
-#: src/kcmsystemd.cpp:565
+#: src/kcmsystemd.cpp:595
 msgid ""
 "<p>Time interval for rate limiting of log messages. Set to 0 to turn off "
 "rate-limiting.</p>"
@@ -369,7 +375,7 @@ msgstr ""
 "<p>限制記錄訊息的時間間隔。設定為 0 以關閉 "
 "速率限制。</p>"
 
-#: src/kcmsystemd.cpp:574
+#: src/kcmsystemd.cpp:603
 msgid ""
 "<p>Maximum number of messages logged for a unit in the interval specified in "
 "RateLimitInterval. Set to 0 to turn off rate-limiting.</p>"
@@ -377,7 +383,7 @@ msgstr ""
 "<p>在 RateLimitInterval 中所指定的一個單位的間隔的訊息最大數量。"
 "設定為 0 以關閉速率限制。</p>"
 
-#: src/kcmsystemd.cpp:583
+#: src/kcmsystemd.cpp:612
 #, c-format
 msgid ""
 "<p>Maximum disk space the persistent journal may take up. Defaults to 10% of "
@@ -386,7 +392,7 @@ msgstr ""
 "<p>持續性日誌的最大可能需要磁碟空間。"
 "預設為檔案系統大小的 10%。</p>"
 
-#: src/kcmsystemd.cpp:592
+#: src/kcmsystemd.cpp:621
 #, c-format
 msgid ""
 "<p>Minimum disk space the persistent journal should keep free for other "
@@ -395,7 +401,7 @@ msgstr ""
 "<p>持續性日誌的最小需要維持給其他用途的磁碟空間。"
 "預設為檔案系統大小的 15%。</p>"
 
-#: src/kcmsystemd.cpp:601
+#: src/kcmsystemd.cpp:630
 msgid ""
 "<p>Maximum size of individual journal files on persistent storage. Defaults "
 "to 1/8 of SystemMaxUse.</p>"
@@ -403,7 +409,7 @@ msgstr ""
 "<p>單一日誌持續性儲存的最大大小。"
 "預設為 SystemMaxUse 的 1/8。</p>"
 
-#: src/kcmsystemd.cpp:610
+#: src/kcmsystemd.cpp:639
 #, c-format
 msgid ""
 "<p>Maximum disk space the volatile journal may take up. Defaults to 10% of "
@@ -412,7 +418,7 @@ msgstr ""
 "<p>易變型日誌的最大可能需要磁碟空間。"
 "預設為檔案系統大小的 10%。</p>"
 
-#: src/kcmsystemd.cpp:619
+#: src/kcmsystemd.cpp:648
 #, c-format
 msgid ""
 "<p>Minimum disk space the volatile journal should keep free for other uses. "
@@ -421,7 +427,7 @@ msgstr ""
 "<p>易變型日誌的最小需要維持給其他用途的磁碟空間。"
 "預設為檔案系統大小的 15%。</p>"
 
-#: src/kcmsystemd.cpp:628
+#: src/kcmsystemd.cpp:657
 msgid ""
 "<p>Maximum size of individual journal files on volatile storage. Defaults to "
 "1/8 of RuntimeMaxUse.</p>"
@@ -429,11 +435,11 @@ msgstr ""
 "<p>單一日誌易變型儲存的最大大小。"
 "預設為 RuntimeMaxUse 的 1/8。</p>"
 
-#: src/kcmsystemd.cpp:638
+#: src/kcmsystemd.cpp:666
 msgid "<p>Maximum time to store journal entries. Set to 0 to disable.</p>"
 msgstr "<p>儲存日誌項目的最大次數。設定為 0 以停用。</p>"
 
-#: src/kcmsystemd.cpp:648
+#: src/kcmsystemd.cpp:675
 msgid ""
 "<p>Maximum time to store entries in a single journal file before rotating to "
 "the next one. Set to 0 to disable.</p>"
@@ -441,15 +447,15 @@ msgstr ""
 "<p>在單一日誌檔案儲存日誌項目在下一次壓縮前的最大次數。"
 "設定為 0 以停用。</p>"
 
-#: src/kcmsystemd.cpp:656
+#: src/kcmsystemd.cpp:683
 msgid "<p>Forward journal messages to syslog.</p>"
 msgstr "<p>轉發日誌訊息到 syslog。</p>"
 
-#: src/kcmsystemd.cpp:664
+#: src/kcmsystemd.cpp:691
 msgid "<p>Forward journal messages to kernel log buffer</p>"
 msgstr "<p>轉發日誌訊息到核心日誌緩衝。</p>"
 
-#: src/kcmsystemd.cpp:672
+#: src/kcmsystemd.cpp:699
 msgid ""
 "<p>Forward journal messages to the system console. The console can be "
 "changed with TTYPath.</p>"
@@ -457,20 +463,20 @@ msgstr ""
 "<p>轉發日誌訊息到系統終端機中。"
 "終端機可使用 TTYPath 來變更。</p>"
 
-#: src/kcmsystemd.cpp:682
+#: src/kcmsystemd.cpp:709
 msgid ""
 "<p>Forward journal messages as wall messages to all logged-in users.</p>"
 msgstr "<p>以 wall 訊息轉發日誌訊息給所有已登入的使用者。</p>"
 
-#: src/kcmsystemd.cpp:691
+#: src/kcmsystemd.cpp:718
 msgid "<p>Forward journal messages to this TTY if ForwardToConsole is set.</p>"
 msgstr "<p>若 ForwardToConsole 已設定，轉發日誌訊息到該 TTY。</p>"
 
-#: src/kcmsystemd.cpp:715
+#: src/kcmsystemd.cpp:742
 msgid "<p>Max log level to forward/store to the specified target.</p>"
 msgstr "<p>轉發/儲存到指定目標的最大記錄等級。</p>"
 
-#: src/kcmsystemd.cpp:728
+#: src/kcmsystemd.cpp:754
 msgid ""
 "<p>Number of virtual terminals (VTs) to allocate by default and which will "
 "autospawn. Set to 0 to disable.</p>"
@@ -478,7 +484,7 @@ msgstr ""
 "<p>預設分配及自動衍生的虛擬終端機 (VT) 數量。 "
 "設定為 0 以停用。</p>"
 
-#: src/kcmsystemd.cpp:738
+#: src/kcmsystemd.cpp:763
 msgid ""
 "<p>Virtual terminal that shall unconditionally be reserved for autospawning. "
 "Set to 0 to disable.</p>"
@@ -486,11 +492,11 @@ msgstr ""
 "<p>應無條件保留給自動衍生的虛擬終端機。 "
 "設定為 0 以停用。</p>"
 
-#: src/kcmsystemd.cpp:746
+#: src/kcmsystemd.cpp:771
 msgid "<p>Kill the processes of a user when the user completely logs out.</p>"
 msgstr "<p>當使用者完整登出時，砍除該使用者的行程。</p>"
 
-#: src/kcmsystemd.cpp:753
+#: src/kcmsystemd.cpp:778
 msgid ""
 "<p>Space-separated list of usernames for which only processes will be killed "
 "if KillUserProcesses is enabled.</p>"
@@ -498,7 +504,7 @@ msgstr ""
 "<p>以空格分隔的使用者名稱列表，其中的行程將只會在 "
 "KillUserProcesses 啟用時被砍除。</p>"
 
-#: src/kcmsystemd.cpp:761
+#: src/kcmsystemd.cpp:786
 msgid ""
 "<p>Space-separated list of usernames for which processes will be excluded "
 "from being killed if KillUserProcesses is enabled.</p>"
@@ -506,7 +512,7 @@ msgstr ""
 "<p>以空格分隔的使用者名稱列表，其中的行程將會在 "
 "KillUserProcesses 啟用時被排除在砍除的名單外。</p>"
 
-#: src/kcmsystemd.cpp:770
+#: src/kcmsystemd.cpp:794
 msgid ""
 "<p>Specifies the maximum time a system shutdown or sleep request is delayed "
 "due to an inhibitor lock of type delay being active before the inhibitor is "
@@ -516,7 +522,7 @@ msgstr ""
 "而延遲的在抑制器被忽略且動作無論如何"
 "都會執行前的最大時間。</p>"
 
-#: src/kcmsystemd.cpp:794
+#: src/kcmsystemd.cpp:818
 msgid ""
 "<p>Controls whether logind shall handle the system power and sleep keys and "
 "the lid switch to trigger power actions.</p>"
@@ -524,7 +530,7 @@ msgstr ""
 "<p>控制 logind 應該處理系統電源及睡眠鍵及 "
 "lid 切換以觸發電源動作。</p>"
 
-#: src/kcmsystemd.cpp:803
+#: src/kcmsystemd.cpp:827
 msgid ""
 "<p>Controls whether actions triggered by the power key are subject to "
 "inhibitor locks.</p>"
@@ -532,7 +538,7 @@ msgstr ""
 "<p>控制是否由受到抑制鎖的電源鍵 "
 "觸發動作。</p>"
 
-#: src/kcmsystemd.cpp:811
+#: src/kcmsystemd.cpp:835
 msgid ""
 "<p>Controls whether actions triggered by the suspend key are subject to "
 "inhibitor locks.</p>"
@@ -540,7 +546,7 @@ msgstr ""
 "<p>控制是否由受到抑制鎖的暫停鍵 "
 "觸發動作。</p>"
 
-#: src/kcmsystemd.cpp:819
+#: src/kcmsystemd.cpp:843
 msgid ""
 "<p>Controls whether actions triggered by the hibernate key are subject to "
 "inhibitor locks.</p>"
@@ -548,7 +554,7 @@ msgstr ""
 "<p>控制是否由受到抑制鎖的冬眠鍵 "
 "觸發動作。</p>"
 
-#: src/kcmsystemd.cpp:827
+#: src/kcmsystemd.cpp:851
 msgid ""
 "<p>Controls whether actions triggered by the lid switch are subject to "
 "inhibitor locks.</p>"
@@ -556,11 +562,11 @@ msgstr ""
 "<p>控制是否由受到抑制鎖的 lid 切換 "
 "觸發動作。</p>"
 
-#: src/kcmsystemd.cpp:836
+#: src/kcmsystemd.cpp:860
 msgid "<p>Configures the action to take when the system is idle.</p>"
 msgstr "<p>設定在系統閒置時要做的動作。</p>"
 
-#: src/kcmsystemd.cpp:845
+#: src/kcmsystemd.cpp:868
 msgid ""
 "<p>Configures the delay after which the action configured in IdleAction is "
 "taken after the system is idle.</p>"
@@ -568,7 +574,7 @@ msgstr ""
 "<p>設定在 IdleAction 中被定義的動作後 "
 "系統閒置的延遲。</p>"
 
-#: src/kcmsystemd.cpp:855
+#: src/kcmsystemd.cpp:878
 msgid ""
 "<p>Controls whether System V and POSIX IPC objects belonging to the user "
 "shall be removed when the user fully logs out.</p>"
@@ -576,7 +582,7 @@ msgstr ""
 "<p>控制屬於使用者的 System V 及 POSIX IPC 目標 "
 "是否應該在使用者完全登出時被移除。</p>"
 
-#: src/kcmsystemd.cpp:868
+#: src/kcmsystemd.cpp:891
 msgid ""
 "<p>Controls where to store cores. When <i>none</i>, the coredumps will be "
 "logged but not stored permanently. When <i>external</i>, cores will be "
@@ -590,11 +596,11 @@ msgstr ""
 "被儲存在日誌中並以一般的日誌壓縮方式壓縮。"
 "</p>"
 
-#: src/kcmsystemd.cpp:876
+#: src/kcmsystemd.cpp:899
 msgid "<p>Controls compression for external storage.</p>"
 msgstr "<p>控制外部儲存的壓縮。</p>"
 
-#: src/kcmsystemd.cpp:885
+#: src/kcmsystemd.cpp:908
 msgid ""
 "<p>The maximum size of a core which will be processed. Coredumps exceeding "
 "this size will be logged, but the backtrace will not be generated and the "
@@ -604,11 +610,11 @@ msgstr ""
 "該大小的核心傾印將會被記錄，但回溯記錄"
 "將不會產生， 且核心也將不會被儲存。</p>"
 
-#: src/kcmsystemd.cpp:894 src/kcmsystemd.cpp:903
+#: src/kcmsystemd.cpp:917 src/kcmsystemd.cpp:926
 msgid "<p>The maximum (uncompressed) size of a core to be saved.</p>"
 msgstr "<p>要被儲存的最大（未壓縮）的核心大小。</p>"
 
-#: src/kcmsystemd.cpp:912
+#: src/kcmsystemd.cpp:935
 #, c-format
 msgid ""
 "<p>Old coredumps are removed as soon as the total disk space taken up by "
@@ -619,7 +625,7 @@ msgstr ""
 "舊的核心傾印會盡快被移除。預設為總磁碟大小的 10%。</"
 "p>"
 
-#: src/kcmsystemd.cpp:921
+#: src/kcmsystemd.cpp:944
 #, c-format
 msgid ""
 "<p>Minimum disk space to keep free. Defaults to 15% of the total disk size.</"
@@ -628,51 +634,81 @@ msgstr ""
 "<p>要維持空閒的最小磁碟空間。預設為總磁碟大小的 15%。</"
 "p>"
 
-#: src/kcmsystemd.cpp:960
+#: src/kcmsystemd.cpp:974
+#, kde-format
+msgid ""
+"\"%1\" is not a valid value for %2. Using default value for this parameter."
+msgstr "「%1」並非 %2 的一個有效的值。正在使用預設值。"
+
+#: src/kcmsystemd.cpp:983
 #, kde-format
 msgid "Failed to read %1/%2. Using default values."
 msgstr "讀取 %1/%2 失敗。正在使用預設值。"
 
-#: src/kcmsystemd.cpp:1003
+#: src/kcmsystemd.cpp:1025
 msgid "Load state"
 msgstr "負載狀態"
 
-#: src/kcmsystemd.cpp:1004
+#: src/kcmsystemd.cpp:1026
 msgid "Active state"
 msgstr "活躍狀態"
 
-#: src/kcmsystemd.cpp:1005
+#: src/kcmsystemd.cpp:1027
 msgid "Unit state"
 msgstr "單位狀態"
 
-#: src/kcmsystemd.cpp:1006
+#: src/kcmsystemd.cpp:1028
 msgid "Unit"
 msgstr "單位"
 
-#: src/kcmsystemd.cpp:1022
+#: src/kcmsystemd.cpp:1056
+msgid "Session ID"
+msgstr "工作階段 ID"
+
+#: src/kcmsystemd.cpp:1057
+msgid "Session Object Path"
+msgstr "工作階段目標路徑"
+
+#: src/kcmsystemd.cpp:1058
+msgid "State"
+msgstr "狀態"
+
+#: src/kcmsystemd.cpp:1059
+msgid "User ID"
+msgstr "使用者 ID"
+
+#: src/kcmsystemd.cpp:1060
+msgid "User Name"
+msgstr "使用者名稱"
+
+#: src/kcmsystemd.cpp:1061
+msgid "Seat ID"
+msgstr "職位 ID"
+
+#: src/kcmsystemd.cpp:1073
 msgid "Load default settings for all files?"
 msgstr "為所有檔案載入預設的設定？"
 
-#: src/kcmsystemd.cpp:1077
+#: src/kcmsystemd.cpp:1128
 msgid "Unable to find directory for configuration files."
 msgstr "找不到設定檔的所在目錄。"
 
-#: src/kcmsystemd.cpp:1098
+#: src/kcmsystemd.cpp:1149
 #, kde-format
 msgid "Unable to authenticate/execute the action: %1, %2"
 msgstr "無法驗證/執行動作： %1, %2"
 
-#: src/kcmsystemd.cpp:1101
+#: src/kcmsystemd.cpp:1152
 #, kde-format
 msgid "Configuration files succesfully written to: %1"
 msgstr "設定檔成功寫入至： %1"
 
-#: src/kcmsystemd.cpp:1331
+#: src/kcmsystemd.cpp:1481
 #, kde-format
 msgid "Total: %1 units, %2 active, %3 displayed"
 msgstr "總計： %1 個單位， %2 個活躍， %3 個已顯示"
 
-#: src/kcmsystemd.cpp:1359
+#: src/kcmsystemd.cpp:1509
 #, kde-format
 msgid ""
 "Unable to authenticate/execute the action.\n"
@@ -685,85 +721,153 @@ msgstr ""
 "錯誤字串： %2\n"
 "錯誤文字： %3"
 
-#: src/kcmsystemd.cpp:1387
+#: src/kcmsystemd.cpp:1537
 msgid "&Start unit"
 msgstr "啟動單位(&S)"
 
-#: src/kcmsystemd.cpp:1388
+#: src/kcmsystemd.cpp:1538
 msgid "S&top unit"
 msgstr "停止單位(&T)"
 
-#: src/kcmsystemd.cpp:1389
+#: src/kcmsystemd.cpp:1539
 msgid "&Restart unit"
 msgstr "重新啟動單位(&R)"
 
-#: src/kcmsystemd.cpp:1390
+#: src/kcmsystemd.cpp:1540
 msgid "Re&load unit"
 msgstr "重新載入單位(&L)"
 
-#: src/kcmsystemd.cpp:1392
+#: src/kcmsystemd.cpp:1542
 msgid "&Edit unit file"
 msgstr "編輯單位檔案(&E)"
 
-#: src/kcmsystemd.cpp:1393
+#: src/kcmsystemd.cpp:1543
 msgid "&Isolate unit"
 msgstr "隔離單位(&I)"
 
-#: src/kcmsystemd.cpp:1395
+#: src/kcmsystemd.cpp:1545
 msgid "En&able unit"
 msgstr "啟用單位(&A)"
 
-#: src/kcmsystemd.cpp:1396
+#: src/kcmsystemd.cpp:1546
 msgid "&Disable unit"
 msgstr "停用單位(&D)"
 
-#: src/kcmsystemd.cpp:1398
+#: src/kcmsystemd.cpp:1548
 msgid "&Mask unit"
 msgstr "遮蔽單位(&M)"
 
-#: src/kcmsystemd.cpp:1399
+#: src/kcmsystemd.cpp:1549
 msgid "&Unmask unit"
 msgstr "解除遮蔽單位(&U)"
 
-#: src/kcmsystemd.cpp:1401
+#: src/kcmsystemd.cpp:1551
 msgid "Rel&oad all unit files"
 msgstr "重新載入所有單位的檔案(&O)"
 
-#: src/kcmsystemd.cpp:1402
+#: src/kcmsystemd.cpp:1552
 msgid "Ree&xecute systemd"
 msgstr "重新執行 systemd(&X)"
 
-#: src/kcmsystemd.cpp:1498
+#: src/kcmsystemd.cpp:1648
 msgid "kdesu executable not found. Unable to start kwrite!"
 msgstr "找不到 kdesu 可執行檔。無法啟動 kwrite！"
 
-#: src/kcmsystemd.cpp:1625
+#: src/kcmsystemd.cpp:1749
+msgid "&Activate session"
+msgstr "啟動工作階段(&A)"
+
+#: src/kcmsystemd.cpp:1750
+msgid "&Terminate session"
+msgstr "終止工作階段(&T)"
+
+#: src/kcmsystemd.cpp:1751
+msgid "&Lock session"
+msgstr "鎖定工作階段(&L)"
+
+#: src/kcmsystemd.cpp:1824
 msgid "<b>Description: </b>"
 msgstr "<b>描述： </b>"
 
-#: src/kcmsystemd.cpp:1627
+#: src/kcmsystemd.cpp:1826
 msgid "<br><b>Fragment path: </b>"
 msgstr "<br><b>碎片路徑： </b>"
 
-#: src/kcmsystemd.cpp:1629 src/kcmsystemd.cpp:1672
+#: src/kcmsystemd.cpp:1828 src/kcmsystemd.cpp:1872
 msgid "<br><b>Unit file state: </b>"
 msgstr "<br><b>單位的檔案狀態： </b>"
 
-#: src/kcmsystemd.cpp:1632
+#: src/kcmsystemd.cpp:1831
 msgid "<br><b>Activated: </b>"
 msgstr "<br><b>已啟用： </b>"
 
-#: src/kcmsystemd.cpp:1642
+#: src/kcmsystemd.cpp:1841
 msgid "<br><b>Deactivated: </b>"
 msgstr "<br><b>已停用： </b>"
 
-#: src/kcmsystemd.cpp:1668
+#: src/kcmsystemd.cpp:1868
 msgid "<b>Fragment path: </b>"
 msgstr "<b>碎片路徑： </b>"
 
-#: src/kcmsystemd.cpp:1740
+#: src/kcmsystemd.cpp:1882
+msgid "<hr><b>Last log entries:</b>"
+msgstr "<hr><b>最後記錄項目：</b>"
+
+#: src/kcmsystemd.cpp:1885
+msgid "<br><i>No log entries found for this unit.</i>"
+msgstr "<br><i>找不到此單位的記錄項目。</i>"
+
+#: src/kcmsystemd.cpp:1938
+#, kde-format
+msgid "<b>VT:</b> %1"
+msgstr "<b>虛擬終端機：</b> %1"
+
+#: src/kcmsystemd.cpp:1943
+#, kde-format
+msgid "<br><b>Remote host:</b> %1"
+msgstr "<br><b>遠端主機：</b> %1"
+
+#: src/kcmsystemd.cpp:1944
+#, kde-format
+msgid "<br><b>Remote user:</b> %1"
+msgstr "<br><b>遠端使用者：</b> %1"
+
+#: src/kcmsystemd.cpp:1946
+#, kde-format
+msgid "<br><b>Service:</b> %1"
+msgstr "<br><b>服務：</b> %1"
+
+#: src/kcmsystemd.cpp:1949
+#, kde-format
+msgid "<br><b>Type:</b> %1"
+msgstr "<br><b>類型：</b> %1"
+
+#: src/kcmsystemd.cpp:1951
+#, kde-format
+msgid " (display %1)"
+msgstr " (顯示 %1)"
+
+#: src/kcmsystemd.cpp:1961
+#, kde-format
+msgid "<br><b>Class:</b> %1"
+msgstr "<br><b>類別：</b> %1"
+
+#: src/kcmsystemd.cpp:1962
+#, kde-format
+msgid "<br><b>State:</b> %1"
+msgstr "<br><b>狀態：</b> %1"
+
+#: src/kcmsystemd.cpp:1963
+#, kde-format
+msgid "<br><b>Scope:</b> %1"
+msgstr "<br><b>觀測器：</b> %1"
+
+#: src/kcmsystemd.cpp:1966
+msgid "<br><b>Created: </b>"
+msgstr "<br><b>已建立： </b>"
+
+#: src/kcmsystemd.cpp:2045
 #, kde-format
 msgid "File to be written: %1/%2"
 msgstr "要被寫入的檔案： %1/%2"
-
 
