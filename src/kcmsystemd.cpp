@@ -1750,6 +1750,12 @@ void kcmsystemd::slotSessionContextMenu(const QPoint &pos)
   QAction *terminate = menu.addAction(i18n("&Terminate session"));
   QAction *lock = menu.addAction(i18n("&Lock session"));
 
+  if (ui.tblSessions->model()->index(ui.tblSessions->indexAt(pos).row(),2).data().toString() == "active")
+    activate->setEnabled(false);
+
+  if (dbusIfaceSession->property("Type") == "tty")
+    lock->setEnabled(false);
+
   QAction *a = menu.exec(ui.tblSessions->viewport()->mapToGlobal(pos));
 
   QString method;
