@@ -2082,6 +2082,8 @@ QStringList kcmsystemd::getLastJrnlEntries(QString unit)
     if (r == 1)
     {
       QString line;
+
+      // Get the date and time
       r = sd_journal_get_realtime_usec(journal, &time);
       if (r == 0)
       {
@@ -2089,10 +2091,11 @@ QStringList kcmsystemd::getLastJrnlEntries(QString unit)
         date.setMSecsSinceEpoch(time/1000);
         line.append(date.toString("yyyy.MM.dd hh:mm"));
       }
+
+      // Color messages according to priority
       r = sd_journal_get_data(journal, "PRIORITY", &data, &length);
       if (r == 0)
       {
-        qDebug() << unit << ": " << QString::fromLatin1((const char *)data, length).section("=",1);
         int prio = QString::fromLatin1((const char *)data, length).section("=",1).toInt();
         if (prio <= 3)
           line.append("<span style='color:tomato;'>");
@@ -2101,6 +2104,8 @@ QStringList kcmsystemd::getLastJrnlEntries(QString unit)
         else
           line.append("<span style='color:palegreen;'>");
       }
+
+      // Get the message itself
       r = sd_journal_get_data(journal, "MESSAGE", &data, &length);
       if (r == 0)
       {
