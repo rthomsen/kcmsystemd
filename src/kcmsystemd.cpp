@@ -25,7 +25,8 @@
 #include <KAboutData>
 #include <KPluginFactory>
 #include <KMessageBox>
-#include <KAuth/kauth.h>
+#include <KMimeTypeTrader>
+#include <KAuth>
 using namespace KAuth;
 
 #include <boost/filesystem.hpp>
@@ -1637,15 +1638,18 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
    
   if (a == edit)
   {
-    QProcess kwrite (this);
-    QString alt1 = QString(kdePrefix + "/lib/libexec/kdesu");
-    QString alt2 = QString(kdePrefix + "/bin/kdesu");
-    if (QFile(alt1).exists())
-      kwrite.startDetached(alt1, QStringList() << "-t" << "--" << "kwrite" << frpath);
-    else if (QFile(alt2).exists())
-      kwrite.startDetached(alt2, QStringList() << "-t" << "--" << "kwrite" << frpath);
-    else
-      KMessageBox::error(this, i18n("kdesu executable not found. Unable to start kwrite!"));
+    // Find the application associated with text files
+    KMimeTypeTrader* trader = KMimeTypeTrader::self();
+    const KService::Ptr service = trader->preferredService("text/plain");
+
+    // Open the unit file used the found application
+    QStringList args = QStringList() << "-t" << "--" << service->exec().section(' ', 0, 0) << frpath;
+    QProcess editor (this);
+    bool r = editor.startDetached("kdesu", args);
+    if (!r)
+      r = editor.startDetached(kdePrefix + "/lib/libexec/kdesu", args);
+    if (!r)
+      KMessageBox::error(this, i18n("kdesu executable not found. Unable to start text editor!"));
     return;
   }
 

@@ -13,6 +13,7 @@ add_library(kcm_systemd MODULE ${kcmsystemd_SRCS})
 target_link_libraries(kcm_systemd
                       KF5::I18n
                       KF5::ConfigWidgets
+                      KF5::Service
                       ${Boost_LIBRARIES}
                       -lsystemd)
 install(TARGETS kcm_systemd DESTINATION ${CMAKE_INSTALL_PLUGINDIR})

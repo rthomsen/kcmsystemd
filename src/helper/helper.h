@@ -18,13 +18,13 @@
 #ifndef HELPER_H
 #define HELPER_H
 
-#include <KAuth/kauth.h>
-// #include <kauthaction.h>
+#include <KAuth>
 using namespace KAuth;
 
 class Helper : public QObject
 {
   Q_OBJECT
+
   public Q_SLOTS:
     ActionReply save(const QVariantMap& args);
     ActionReply dbusaction(const QVariantMap& args);

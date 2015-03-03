@@ -19,10 +19,12 @@ find_package(Qt5 5.0.0 CONFIG REQUIRED COMPONENTS
              Widgets
              DBus)
 
-find_package(KF5 REQUIRED COMPONENTS 
-             ConfigWidgets
+find_package(KF5 REQUIRED COMPONENTS
              CoreAddons
+             WidgetsAddons
+             ConfigWidgets
              I18n
+             Service
              Auth)
 
 message(STATUS "Searching for libsystemd...")
