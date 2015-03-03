@@ -4,7 +4,7 @@
 # Jeff Huang <s8321414@gmail.com>, 2015.
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: 1.1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/rthomsen/kcmsystemd/issues\n"
 "POT-Creation-Date: 2015-03-02 19:38+0100\n"
 "PO-Revision-Date: 2015-03-03 07:25+0800\n"

@@ -1,5 +1,15 @@
 NEWS file for kcmsystemd
 
+1.1.0 (2015-03-03)
+---
+- Kcmsystemd can now view and manage logind sessions.
+- The last five journal entries for service and scope units are now accessible in the tooltip.
+- Inactive units are shown in black text instead of red.
+- Localization support.
+- Danish, French (thanks to Alexandre Detiste) and Taiwanese (thanks to Jeff Huang) translations.
+- Improved parsing of systemd configuration files.
+- Bugfixes.
+
 1.0.0 (2015-02-22)
 ---
 - Kcmsystemd was ported to KDE Frameworks 5 and Qt 5.

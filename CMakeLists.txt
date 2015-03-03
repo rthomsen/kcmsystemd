@@ -1,6 +1,6 @@
 project(kcmsystemd)
 set(KCM_SYSTEMD_VERSION_MAJOR "1")
-set(KCM_SYSTEMD_VERSION_MINOR "0")
+set(KCM_SYSTEMD_VERSION_MINOR "1")
 set(KCM_SYSTEMD_VERSION_PATCH "0")
 set(KCM_SYSTEMD_VERSION "${KCM_SYSTEMD_VERSION_MAJOR}.${KCM_SYSTEMD_VERSION_MINOR}.${KCM_SYSTEMD_VERSION_PATCH}")
 
@@ -28,9 +28,9 @@ find_package(KF5 REQUIRED COMPONENTS
 message(STATUS "Searching for libsystemd...")
 find_library(SYSTEMD_FOUND NAMES systemd)
 if(SYSTEMD_FOUND)
-    message(STATUS "Found at: " ${SYSTEMD_FOUND})
+  message(STATUS "Found at: " ${SYSTEMD_FOUND})
 else(SYSTEMD_FOUND)
-    message(FATAL_ERROR "Unable to find libsystemd. Configuration failed!")
+  message(FATAL_ERROR "Unable to find libsystemd. Configuration failed!")
 endif(SYSTEMD_FOUND)
 
 include(KDEInstallDirs)
