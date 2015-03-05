@@ -143,6 +143,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   setupUnitslist();
   setupConf();
   setupSessionlist();
+  setupTimerlist();
 }
 
 kcmsystemd::~kcmsystemd()
@@ -1069,6 +1070,31 @@ void kcmsystemd::setupSessionlist()
   slotRefreshSessionList();
 }
 
+void kcmsystemd::setupTimerlist()
+{
+  // Sets up the timer list initially
+
+  // Setup model for timer list
+  timerModel = new QStandardItemModel(this);
+
+  // Install eventfilter to capture mouse move events
+  // ui.tblTimers->viewport()->installEventFilter(this);
+
+  // Set header row
+  timerModel->setHorizontalHeaderItem(0, new QStandardItem(i18n("Timer")));
+  timerModel->setHorizontalHeaderItem(1, new QStandardItem(i18n("Next")));
+  timerModel->setHorizontalHeaderItem(2, new QStandardItem(i18n("Last")));
+  timerModel->setHorizontalHeaderItem(3, new QStandardItem(i18n("Unit to activate")));
+
+  // Set model for QTableView (should be called after headers are set)
+  ui.tblTimers->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  ui.tblTimers->setModel(timerModel);
+
+  // Add all the sessions
+  slotRefreshTimerList();
+}
+
+
 void kcmsystemd::defaults()
 {
   if (KMessageBox::warningYesNo(this, i18n("Load default settings for all files?")) == KMessageBox::Yes)
@@ -1242,6 +1268,7 @@ void kcmsystemd::slotRefreshUnitsList()
   // qDebug() << "Refreshing units...";
   // clear lists
   unitslist.clear();
+  timerslist.clear();
   unitfileslist.clear();
   unitpaths.clear();
   noActUnits = 0;
@@ -1266,6 +1293,8 @@ void kcmsystemd::slotRefreshUnitsList()
       SystemdUnit unit;
       arg >> unit;
       unitslist.append(unit);
+      if (unit.id.endsWith(".timer"))
+        timerslist.append(unit);
       unitpaths[unit.id] = unit.unit_path.path();
     }
     arg.endArray();
@@ -1476,6 +1505,75 @@ void kcmsystemd::slotRefreshSessionList()
       sessionModel->setData(sessionModel->index(row,col), QVariant(newcolor), Qt::ForegroundRole);
   }
 }
+
+void kcmsystemd::slotRefreshTimerList()
+{
+  // Updates the timer list
+
+  QDBusConnection systembus = QDBusConnection::systemBus();
+  QDBusInterface *iface;
+
+  foreach (SystemdUnit unit, timerslist)
+  {
+    iface = new QDBusInterface ("org.freedesktop.systemd1",
+                                unitpaths[unit.id].toString(),
+                                "org.freedesktop.systemd1.Timer",
+                                systembus,
+                                this);
+
+    QString unitToActivate = iface->property("Unit").toString();
+
+    QDateTime time = QDateTime().currentDateTime();
+
+    // Add the next elapsation point
+    time = time.addMSecs(iface->property("NextElapseUSecMonotonic").toULongLong()/1000);
+
+    // Get the monotonic system clock
+    struct timespec ts;
+    if (clock_gettime( CLOCK_MONOTONIC, &ts ) != 0)
+      qDebug() << "Failed to get the monotonic system clock!";
+
+    // Convert the monotonic system clock to microseconds
+    qlonglong now_mono_usec = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+
+    // And substract it
+    time = time.addMSecs(-now_mono_usec/1000);
+
+    QString next = time.toString("yyyy.MM.dd hh:mm:ss");
+
+    delete iface;
+
+    // unit object
+    iface = new QDBusInterface ("org.freedesktop.systemd1",
+                                unitpaths[unitToActivate].toString(),
+                                "org.freedesktop.systemd1.Unit",
+                                systembus,
+                                this);
+    QString last;
+    if (iface->property("InactiveExitTimestamp").toULongLong() == 0)
+      last = "n/a";
+    else
+    {
+      QDateTime time;
+      time.setMSecsSinceEpoch(iface->property("InactiveExitTimestamp").toULongLong()/1000);
+      last = time.toString("yyyy.MM.dd hh:mm:ss");
+    }
+    delete iface;
+
+
+    QList<QStandardItem *> row;
+    row <<
+    new QStandardItem(unit.id) <<
+    new QStandardItem(next) <<
+    new QStandardItem(last) <<
+    new QStandardItem(unitToActivate);
+    timerModel->appendRow(row);
+
+  }
+
+  ui.tblTimers->resizeColumnsToContents();
+}
+
 
 void kcmsystemd::updateUnitCount()
 {

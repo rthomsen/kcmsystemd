@@ -101,6 +101,7 @@ class kcmsystemd : public KCModule
     void setupUnitslist();
     void setupConf();
     void setupSessionlist();
+    void setupTimerlist();
     void readConfFile(int);
     void authServiceAction(QString, QString, QString, QString, QList<QVariant>);
     bool eventFilter(QObject *, QEvent*);
@@ -110,8 +111,9 @@ class kcmsystemd : public KCModule
     QProcess *kdeConfig;
     QVariantMap unitpaths;
     QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct, *proxyModelConf;
-    QStandardItemModel *unitsModel, *sessionModel;
+    QStandardItemModel *unitsModel, *sessionModel, *timerModel;
     QList<SystemdUnit> unitslist;
+    QList<SystemdUnit> timerslist;
     QList<SystemdSession> sessionlist;
     QList<unitfile> unitfileslist;
     QStringList listConfFiles;
@@ -130,6 +132,7 @@ class kcmsystemd : public KCModule
     void slotSessionContextMenu(const QPoint &);
     void slotRefreshUnitsList();
     void slotRefreshSessionList();
+    void slotRefreshTimerList();
     void slotSystemdReloading(bool);
     // void slotUnitLoaded(QString, QDBusObjectPath);
     // void slotUnitUnloaded(QString, QDBusObjectPath);
