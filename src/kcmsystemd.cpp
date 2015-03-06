@@ -144,6 +144,9 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   setupConf();
   setupSessionlist();
   setupTimerlist();
+
+  // Add all units/timers
+  slotRefreshUnitsList();
 }
 
 kcmsystemd::~kcmsystemd()
@@ -1036,9 +1039,6 @@ void kcmsystemd::setupUnitslist()
   ui.tblUnits->sortByColumn(3, Qt::AscendingOrder);
   proxyModelUnitId->setSortCaseSensitivity(Qt::CaseInsensitive);
   slotChkShowUnits();
-  
-  // Add all the units
-  slotRefreshUnitsList();
 }
 
 void kcmsystemd::setupSessionlist()
@@ -1089,9 +1089,6 @@ void kcmsystemd::setupTimerlist()
   // Set model for QTableView (should be called after headers are set)
   ui.tblTimers->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   ui.tblTimers->setModel(timerModel);
-
-  // Add all the sessions
-  slotRefreshTimerList();
 }
 
 
@@ -1265,7 +1262,7 @@ void kcmsystemd::slotRefreshUnitsList()
 {
   // Updates the units list
 
-  // qDebug() << "Refreshing units...";
+  qDebug() << "Refreshing units...";
   // clear lists
   unitslist.clear();
   timerslist.clear();
@@ -1378,9 +1375,9 @@ void kcmsystemd::slotRefreshUnitsList()
       unit.id = unitsModel->index(row,3).data().toString();    
       if (!unitslist.contains(unit))
       {
-	// Add removed units to list for deletion
+        // Add removed units to list for deletion
         // qDebug() << "Unit removed: " << unitsModel->index(row,3).data().toString();
-	indexes << unitsModel->index(row,3);
+        indexes << unitsModel->index(row,3);
       }
     }
     // Delete the identified units from model
@@ -1405,6 +1402,9 @@ void kcmsystemd::slotRefreshUnitsList()
   }
   
   slotChkShowUnits();
+
+  // Refresh the timer list
+  slotRefreshTimerList();
 }
 
 void kcmsystemd::slotRefreshSessionList()
@@ -1509,10 +1509,14 @@ void kcmsystemd::slotRefreshSessionList()
 void kcmsystemd::slotRefreshTimerList()
 {
   // Updates the timer list
+  // qDebug() << "Refreshing timer list...";
+
+  timerModel->removeRows(0, timerModel->rowCount());
 
   QDBusConnection systembus = QDBusConnection::systemBus();
   QDBusInterface *iface;
 
+  // Iterate through timerslist and add timers to the model
   foreach (SystemdUnit unit, timerslist)
   {
     iface = new QDBusInterface ("org.freedesktop.systemd1",
@@ -1523,27 +1527,42 @@ void kcmsystemd::slotRefreshTimerList()
 
     QString unitToActivate = iface->property("Unit").toString();
 
-    QDateTime time = QDateTime().currentDateTime();
+    QDateTime time;
 
     // Add the next elapsation point
-    time = time.addMSecs(iface->property("NextElapseUSecMonotonic").toULongLong()/1000);
+    qlonglong nextElapseMonotonicMsec = iface->property("NextElapseUSecMonotonic").toULongLong() / 1000;
+    qlonglong nextElapseRealtimeMsec = iface->property("NextElapseUSecRealtime").toULongLong() / 1000;
+    //qDebug() << "nextElapseMonotonicMsec for " << unit.id << " is " << nextElapseMonotonicMsec;
+    //qDebug() << "nextElapseRealtimeMsec for " << unit.id << " is " << nextElapseRealtimeMsec;
 
-    // Get the monotonic system clock
-    struct timespec ts;
-    if (clock_gettime( CLOCK_MONOTONIC, &ts ) != 0)
-      qDebug() << "Failed to get the monotonic system clock!";
+    if (nextElapseMonotonicMsec == 0)
+    {
+      // Timer is calendar-based
+      time.setMSecsSinceEpoch(nextElapseRealtimeMsec);
+    }
+    else
+    {
+      // Timer is monotonic
+      time = QDateTime().currentDateTime();
+      time = time.addMSecs(nextElapseMonotonicMsec);
 
-    // Convert the monotonic system clock to microseconds
-    qlonglong now_mono_usec = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+      // Get the monotonic system clock
+      struct timespec ts;
+      if (clock_gettime( CLOCK_MONOTONIC, &ts ) != 0)
+        qDebug() << "Failed to get the monotonic system clock!";
 
-    // And substract it
-    time = time.addMSecs(-now_mono_usec/1000);
+      // Convert the monotonic system clock to microseconds
+      qlonglong now_mono_usec = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+
+      // And substract it
+      time = time.addMSecs(-now_mono_usec/1000);
+    }
 
     QString next = time.toString("yyyy.MM.dd hh:mm:ss");
 
     delete iface;
 
-    // unit object
+    // use unit object to get last time for activated service
     iface = new QDBusInterface ("org.freedesktop.systemd1",
                                 unitpaths[unitToActivate].toString(),
                                 "org.freedesktop.systemd1.Unit",
@@ -1561,6 +1580,7 @@ void kcmsystemd::slotRefreshTimerList()
     delete iface;
 
 
+    // Add the timers to the model
     QList<QStandardItem *> row;
     row <<
     new QStandardItem(unit.id) <<
