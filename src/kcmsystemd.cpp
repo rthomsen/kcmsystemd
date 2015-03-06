@@ -1089,6 +1089,7 @@ void kcmsystemd::setupTimerlist()
   // Set model for QTableView (should be called after headers are set)
   ui.tblTimers->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   ui.tblTimers->setModel(timerModel);
+  ui.tblTimers->sortByColumn(1, Qt::AscendingOrder);
 }
 
 
@@ -1605,6 +1606,8 @@ void kcmsystemd::slotRefreshTimerList()
   }
 
   ui.tblTimers->resizeColumnsToContents();
+  ui.tblTimers->sortByColumn(ui.tblTimers->horizontalHeader()->sortIndicatorSection(),
+                             ui.tblTimers->horizontalHeader()->sortIndicatorOrder());
 }
 
 
