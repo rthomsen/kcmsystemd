@@ -1532,6 +1532,7 @@ void kcmsystemd::slotRefreshTimerList()
     // Add the next elapsation point
     qlonglong nextElapseMonotonicMsec = iface->property("NextElapseUSecMonotonic").toULongLong() / 1000;
     qlonglong nextElapseRealtimeMsec = iface->property("NextElapseUSecRealtime").toULongLong() / 1000;
+    qlonglong lastTriggerMSec = iface->property("LastTriggerUSec").toULongLong() / 1000;
     //qDebug() << "nextElapseMonotonicMsec for " << unit.id << " is " << nextElapseMonotonicMsec;
     //qDebug() << "nextElapseRealtimeMsec for " << unit.id << " is " << nextElapseRealtimeMsec;
 
@@ -1569,14 +1570,26 @@ void kcmsystemd::slotRefreshTimerList()
                                 systembus,
                                 this);
     QString last;
-    if (iface->property("InactiveExitTimestamp").toULongLong() == 0)
-      last = "n/a";
+    qlonglong inactivateExitTimestampMsec = iface->property("InactiveExitTimestamp").toULongLong() / 1000;
+    if (inactivateExitTimestampMsec == 0)
+    {
+      // The unit has not run in this boot
+      // Use LastTrigger to see if the timer is persistent
+      if (lastTriggerMSec == 0)
+        last = "n/a";
+      else
+      {
+        time.setMSecsSinceEpoch(lastTriggerMSec);
+        last = time.toString("yyyy.MM.dd hh:mm:ss");
+      }
+    }
     else
     {
       QDateTime time;
-      time.setMSecsSinceEpoch(iface->property("InactiveExitTimestamp").toULongLong()/1000);
+      time.setMSecsSinceEpoch(inactivateExitTimestampMsec);
       last = time.toString("yyyy.MM.dd hh:mm:ss");
     }
+
     delete iface;
 
 
