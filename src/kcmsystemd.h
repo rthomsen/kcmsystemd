@@ -123,6 +123,7 @@ class kcmsystemd : public KCModule
     int systemdVersion, timesLoad = 0, lastUnitRowChecked = -1, lastSessionRowChecked = -1, noActUnits;
     qulonglong partPersSizeMB, partVolaSizeMB;
     bool isPersistent, varLogDirExists;
+    QTimer *timer;
 
   private slots:
     void slotKdeConfig();
@@ -142,6 +143,7 @@ class kcmsystemd : public KCModule
     void slotLeSearchUnitChanged(QString);
     void slotConfChanged(const QModelIndex &, const QModelIndex &);
     void slotCmbConfFileChanged(int);
+    void slotUpdateTimers();
 };
 
 #endif // kcmsystemd_H

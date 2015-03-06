@@ -1083,13 +1083,20 @@ void kcmsystemd::setupTimerlist()
   // Set header row
   timerModel->setHorizontalHeaderItem(0, new QStandardItem(i18n("Timer")));
   timerModel->setHorizontalHeaderItem(1, new QStandardItem(i18n("Next")));
-  timerModel->setHorizontalHeaderItem(2, new QStandardItem(i18n("Last")));
-  timerModel->setHorizontalHeaderItem(3, new QStandardItem(i18n("Unit to activate")));
+  timerModel->setHorizontalHeaderItem(2, new QStandardItem(i18n("Left")));
+  timerModel->setHorizontalHeaderItem(3, new QStandardItem(i18n("Last")));
+  timerModel->setHorizontalHeaderItem(4, new QStandardItem(i18n("Passed")));
+  timerModel->setHorizontalHeaderItem(5, new QStandardItem(i18n("Activates")));
 
   // Set model for QTableView (should be called after headers are set)
   ui.tblTimers->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   ui.tblTimers->setModel(timerModel);
   ui.tblTimers->sortByColumn(1, Qt::AscendingOrder);
+
+  // Setup a timer that updates the left and passed columns every 5secs
+  timer = new QTimer(this);
+  connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdateTimers()));
+  timer->start(5000);
 }
 
 
@@ -1263,7 +1270,7 @@ void kcmsystemd::slotRefreshUnitsList()
 {
   // Updates the units list
 
-  qDebug() << "Refreshing units...";
+  // qDebug() << "Refreshing units...";
   // clear lists
   unitslist.clear();
   timerslist.clear();
@@ -1599,11 +1606,16 @@ void kcmsystemd::slotRefreshTimerList()
     row <<
     new QStandardItem(unit.id) <<
     new QStandardItem(next) <<
+    new QStandardItem("") <<
     new QStandardItem(last) <<
+    new QStandardItem("") <<
     new QStandardItem(unitToActivate);
     timerModel->appendRow(row);
 
   }
+
+  // Update the left and passed columns
+  slotUpdateTimers();
 
   ui.tblTimers->resizeColumnsToContents();
   ui.tblTimers->sortByColumn(ui.tblTimers->horizontalHeader()->sortIndicatorSection(),
@@ -2260,6 +2272,48 @@ QStringList kcmsystemd::getLastJrnlEntries(QString unit)
   sd_journal_close(journal);
 
   return reply;
+}
+
+void kcmsystemd::slotUpdateTimers()
+{
+  for (int row = 0; row < timerModel->rowCount(); ++row)
+  {
+    QDateTime next = timerModel->index(row, 1).data().toDateTime();
+    QDateTime last = timerModel->index(row, 3).data().toDateTime();
+    QDateTime current = QDateTime().currentDateTime();
+    qlonglong leftSecs = current.secsTo(next);
+    qlonglong passedSecs = last.secsTo(current);
+
+    QString left;
+    if (leftSecs >= 31536000)
+      left = QString::number(leftSecs / 31536000) + " years";
+    else if (leftSecs >= 604800)
+      left = QString::number(leftSecs / 604800) + " weeks";
+    else if (leftSecs >= 86400)
+      left = QString::number(leftSecs / 86400) + " days";
+    else if (leftSecs >= 3600)
+      left = QString::number(leftSecs / 3600) + " hr";
+    else if (leftSecs >= 60)
+      left = QString::number(leftSecs / 60) + " min";
+    else
+      left = QString::number(leftSecs) + " s";
+    timerModel->setData(timerModel->index(row, 2), left);
+
+    QString passed;
+    if (passedSecs >= 31536000)
+      passed = QString::number(passedSecs / 31536000) + " years";
+    else if (passedSecs >= 604800)
+      passed = QString::number(passedSecs / 604800) + " weeks";
+    else if (passedSecs >= 86400)
+      passed = QString::number(passedSecs / 86400) + " days";
+    else if (passedSecs >= 3600)
+      passed = QString::number(passedSecs / 3600) + " hr";
+    else if (passedSecs >= 60)
+      passed = QString::number(passedSecs / 60) + " min";
+    else
+      passed = QString::number(passedSecs) + " s";
+    timerModel->setData(timerModel->index(row, 4), passed);
+  }
 }
 
 #include "kcmsystemd.moc"
