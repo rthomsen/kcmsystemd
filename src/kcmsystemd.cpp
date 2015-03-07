@@ -2300,7 +2300,9 @@ void kcmsystemd::slotUpdateTimers()
     timerModel->setData(timerModel->index(row, 2), left);
 
     QString passed;
-    if (passedSecs >= 31536000)
+    if (timerModel->index(row, 3).data() == "n/a")
+      passed = "n/a";
+    else if (passedSecs >= 31536000)
       passed = QString::number(passedSecs / 31536000) + " years";
     else if (passedSecs >= 604800)
       passed = QString::number(passedSecs / 604800) + " weeks";
