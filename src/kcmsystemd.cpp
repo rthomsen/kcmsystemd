@@ -30,10 +30,11 @@
 using namespace KAuth;
 
 #include <boost/filesystem.hpp>
-#include <systemd/sd-journal.h>
 
 ConfModel *kcmsystemd::confModel = new ConfModel();
 QList<confOption> kcmsystemd::confOptList;
+UnitModel *kcmsystemd::unitsModel = new UnitModel();
+QList<SystemdUnit> kcmsystemd::unitslist;
 
 K_PLUGIN_FACTORY(kcmsystemdFactory, registerPlugin<kcmsystemd>();)
 
@@ -139,14 +140,13 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   delete iface;
   QDBusConnection::systemBus().connect("org.freedesktop.login1","","org.freedesktop.DBus.Properties","PropertiesChanged",this,SLOT(slotLogindPropertiesChanged(QString, QVariantMap, QStringList)));
   
-  // Setup widgets
+  // Get list of units
+  slotRefreshUnitsList();
+
   setupUnitslist();
   setupConf();
   setupSessionlist();
   setupTimerlist();
-
-  // Add all units/timers
-  slotRefreshUnitsList();
 }
 
 kcmsystemd::~kcmsystemd()
@@ -1015,7 +1015,7 @@ void kcmsystemd::setupUnitslist()
   qDBusRegisterMetaType<SystemdUnit>();
   
   // Setup models for unitslist
-  unitsModel = new QStandardItemModel(this);
+  unitsModel = new UnitModel(this);
   proxyModelAct = new QSortFilterProxyModel (this);
   proxyModelAct->setDynamicSortFilter(false);
   proxyModelUnitId = new QSortFilterProxyModel (this);
@@ -1023,16 +1023,6 @@ void kcmsystemd::setupUnitslist()
   proxyModelAct->setSourceModel(unitsModel);
   proxyModelUnitId->setSourceModel(proxyModelAct);
 
-  // Install eventfilter to capture mouse move events
-  ui.tblUnits->viewport()->installEventFilter(this);
-  
-  // Set header row
-  unitsModel->setHorizontalHeaderItem(0, new QStandardItem(i18n("Load state")));
-  unitsModel->setHorizontalHeaderItem(1, new QStandardItem(i18n("Active state")));
-  unitsModel->setHorizontalHeaderItem(2, new QStandardItem(i18n("Unit state")));
-  unitsModel->setHorizontalHeaderItem(3, new QStandardItem(i18n("Unit")));
-
-  // Set model for QTableView (should be called after headers are set)
   ui.tblUnits->setModel(proxyModelUnitId);
   
   // Setup initial filters and sorting
@@ -1097,6 +1087,8 @@ void kcmsystemd::setupTimerlist()
   timer = new QTimer(this);
   connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdateTimers()));
   timer->start(5000);
+
+  slotRefreshTimerList();
 }
 
 
@@ -1271,146 +1263,13 @@ void kcmsystemd::slotRefreshUnitsList()
   // Updates the units list
 
   // qDebug() << "Refreshing units...";
+
   // clear lists
   unitslist.clear();
-  timerslist.clear();
-  unitfileslist.clear();
   noActUnits = 0;
   
   // get an updated list of units via dbus
-  QDBusMessage dbusreply;
-  QDBusConnection systembus = QDBusConnection::systemBus();
-  QDBusInterface *iface = new QDBusInterface ("org.freedesktop.systemd1",
-					      "/org/freedesktop/systemd1",
-					      "org.freedesktop.systemd1.Manager",
-					      systembus,
-					      this);
-  if (iface->isValid())
-    dbusreply = iface->call(QDBus::AutoDetect, "ListUnits");
-  delete iface;
-  const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
-  if (arg.currentType() == QDBusArgument::ArrayType)
-  {
-    arg.beginArray();
-    while (!arg.atEnd())
-    {
-      SystemdUnit unit;
-      arg >> unit;
-      unitslist.append(unit);
-      if (unit.id.endsWith(".timer"))
-        timerslist.append(unit);
-    }
-    arg.endArray();
-  }
-  
-  // Find unit files
-  iface = new QDBusInterface ("org.freedesktop.systemd1",
-			      "/org/freedesktop/systemd1",
-			      "org.freedesktop.systemd1.Manager",
-			      systembus,
-			      this);
-  if (iface->isValid())
-  {
-    dbusreply = iface->call("ListUnitFiles");
-    const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
-    arg.beginArray();
-    while (!arg.atEnd())
-    {
-      unitfile u;
-      arg.beginStructure();
-      arg >> u.name >> u.status;
-      arg.endStructure();
-      unitfileslist.append(u);
-    }
-    arg.endArray();
-  }
-  delete iface;
-
-  // Add unloaded units to the list
-  for (int i = 0;  i < unitfileslist.size(); ++i)
-  { 
-    if (!unitslist.contains(SystemdUnit(unitfileslist.at(i).name.section('/',-1))))
-    {
-      QFile unitfile(unitfileslist.at(i).name);
-      if (unitfile.symLinkTarget().isEmpty())
-      {
-        SystemdUnit unit;
-        unit.id = unitfileslist.at(i).name.section('/',-1);
-        unit.load_state = "unloaded";
-        unit.active_state = "-";
-        unit.sub_state = "-";
-        unitslist.append(unit);
-      }
-    }
-  }
-
-  // Iterate through the new list and compare to model
-  for (int i = 0;  i < unitslist.size(); ++i)
-  {
-    QList<QStandardItem *> items = unitsModel->findItems(unitslist.at(i).id, Qt::MatchExactly, 3);
-    if (items.isEmpty())
-    {
-      // New unit discovered so add it to the model
-      // qDebug() << "Found new unit: " << unitslist.at(i).id;
-      QList<QStandardItem *> row;
-      row <<
-      new QStandardItem(unitslist.at(i).load_state) <<
-      new QStandardItem(unitslist.at(i).active_state) <<
-      new QStandardItem(unitslist.at(i).sub_state) <<
-      new QStandardItem(unitslist.at(i).id);
-      unitsModel->appendRow(row);
-      ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(), ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
-    } else {
-      // Update stats for previously known units
-      unitsModel->item(items.at(0)->row(), 0)->setData(unitslist.at(i).load_state, Qt::DisplayRole);
-      unitsModel->item(items.at(0)->row(), 1)->setData(unitslist.at(i).active_state, Qt::DisplayRole);
-      unitsModel->item(items.at(0)->row(), 2)->setData(unitslist.at(i).sub_state, Qt::DisplayRole);
-    }
-    if (unitslist.at(i).active_state == "active")
-      noActUnits++;
-  }
-  
-  // Check to see if any units were removed
-  if (unitsModel->rowCount() != unitslist.size())
-  {
-    QList<QPersistentModelIndex> indexes;
-    // Loop through model and compare to retrieved unitslist
-    for (int row = 0; row < unitsModel->rowCount(); ++row)
-    {
-      SystemdUnit unit;
-      unit.id = unitsModel->index(row,3).data().toString();    
-      if (!unitslist.contains(unit))
-      {
-        // Add removed units to list for deletion
-        // qDebug() << "Unit removed: " << unitsModel->index(row,3).data().toString();
-        indexes << unitsModel->index(row,3);
-      }
-    }
-    // Delete the identified units from model
-    foreach (QPersistentModelIndex i, indexes)
-      unitsModel->removeRow(i.row());
-  }
-  
-  // Update the text color in model
-  QColor newcolor;
-  for (int row = 0; row < unitsModel->rowCount(); ++row)
-  {
-    if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "active")
-      newcolor = Qt::darkGreen;
-    else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "failed")
-      newcolor = Qt::darkRed;
-    else if (unitsModel->data(unitsModel->index(row,1), Qt::DisplayRole) == "-")
-      newcolor = Qt::darkGray;
-    else
-      newcolor = Qt::black;
-    for (int col = 0; col < unitsModel->columnCount(); ++col)
-      unitsModel->setData(unitsModel->index(row,col), QVariant(newcolor), Qt::ForegroundRole);
-  }
-  
-  slotChkShowUnits();
-
-  // Refresh the timer list
-  slotRefreshTimerList();
+  unitslist = getUnitsFromDbus(sys);
 }
 
 void kcmsystemd::slotRefreshSessionList()
@@ -1522,95 +1381,100 @@ void kcmsystemd::slotRefreshTimerList()
   QDBusConnection systembus = QDBusConnection::systemBus();
   QDBusInterface *iface;
 
-  // Iterate through timerslist and add timers to the model
-  foreach (SystemdUnit unit, timerslist)
+  // Iterate through unitslist and add timers to the model
+  foreach (SystemdUnit unit, unitslist)
   {
-    iface = new QDBusInterface ("org.freedesktop.systemd1",
-                                unit.unit_path.path(),
-                                "org.freedesktop.systemd1.Timer",
-                                systembus,
-                                this);
-
-    QString unitToActivate = iface->property("Unit").toString();
-
-    QDateTime time;
-
-    // Add the next elapsation point
-    qlonglong nextElapseMonotonicMsec = iface->property("NextElapseUSecMonotonic").toULongLong() / 1000;
-    qlonglong nextElapseRealtimeMsec = iface->property("NextElapseUSecRealtime").toULongLong() / 1000;
-    qlonglong lastTriggerMSec = iface->property("LastTriggerUSec").toULongLong() / 1000;
-    //qDebug() << "nextElapseMonotonicMsec for " << unit.id << " is " << nextElapseMonotonicMsec;
-    //qDebug() << "nextElapseRealtimeMsec for " << unit.id << " is " << nextElapseRealtimeMsec;
-
-    if (nextElapseMonotonicMsec == 0)
+    if (unit.id.endsWith(".timer") && unit.load_state != "unloaded")
     {
-      // Timer is calendar-based
-      time.setMSecsSinceEpoch(nextElapseRealtimeMsec);
-    }
-    else
-    {
-      // Timer is monotonic
-      time = QDateTime().currentDateTime();
-      time = time.addMSecs(nextElapseMonotonicMsec);
+      // qDebug() << "Found timer: " << unit.id;
+      iface = new QDBusInterface ("org.freedesktop.systemd1",
+                                  unit.unit_path.path(),
+                                  "org.freedesktop.systemd1.Timer",
+                                  systembus,
+                                  this);
 
-      // Get the monotonic system clock
-      struct timespec ts;
-      if (clock_gettime( CLOCK_MONOTONIC, &ts ) != 0)
-        qDebug() << "Failed to get the monotonic system clock!";
+      QString unitToActivate = iface->property("Unit").toString();
 
-      // Convert the monotonic system clock to microseconds
-      qlonglong now_mono_usec = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+      QDateTime time;
 
-      // And substract it
-      time = time.addMSecs(-now_mono_usec/1000);
-    }
+      // Add the next elapsation point
+      qlonglong nextElapseMonotonicMsec = iface->property("NextElapseUSecMonotonic").toULongLong() / 1000;
+      qlonglong nextElapseRealtimeMsec = iface->property("NextElapseUSecRealtime").toULongLong() / 1000;
+      qlonglong lastTriggerMSec = iface->property("LastTriggerUSec").toULongLong() / 1000;
+      //qDebug() << "nextElapseMonotonicMsec for " << unit.id << " is " << nextElapseMonotonicMsec;
+      //qDebug() << "nextElapseRealtimeMsec for " << unit.id << " is " << nextElapseRealtimeMsec;
 
-    QString next = time.toString("yyyy.MM.dd hh:mm:ss");
-
-    delete iface;
-
-    // use unit object to get last time for activated service
-    iface = new QDBusInterface ("org.freedesktop.systemd1",
-                                unitslist.at(unitslist.indexOf(SystemdUnit(unitToActivate))).unit_path.path(),
-                                "org.freedesktop.systemd1.Unit",
-                                systembus,
-                                this);
-
-    QString last;
-    qlonglong inactivateExitTimestampMsec = iface->property("InactiveExitTimestamp").toULongLong() / 1000;
-    if (inactivateExitTimestampMsec == 0)
-    {
-      // The unit has not run in this boot
-      // Use LastTrigger to see if the timer is persistent
-      if (lastTriggerMSec == 0)
-        last = "n/a";
+      if (nextElapseMonotonicMsec == 0)
+      {
+        // Timer is calendar-based
+        time.setMSecsSinceEpoch(nextElapseRealtimeMsec);
+      }
       else
       {
-        time.setMSecsSinceEpoch(lastTriggerMSec);
-        last = time.toString("yyyy.MM.dd hh:mm:ss");
+        // Timer is monotonic
+        time = QDateTime().currentDateTime();
+        time = time.addMSecs(nextElapseMonotonicMsec);
+
+        // Get the monotonic system clock
+        struct timespec ts;
+        if (clock_gettime( CLOCK_MONOTONIC, &ts ) != 0)
+          qDebug() << "Failed to get the monotonic system clock!";
+
+        // Convert the monotonic system clock to microseconds
+        qlonglong now_mono_usec = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+
+        // And substract it
+        time = time.addMSecs(-now_mono_usec/1000);
       }
+
+      QString next = time.toString("yyyy.MM.dd hh:mm:ss");
+      delete iface;
+
+      QString last;
+
+      // use unit object to get last time for activated service
+      int index = unitslist.indexOf(SystemdUnit(unitToActivate));
+      if (index != -1)
+      {
+        iface = new QDBusInterface ("org.freedesktop.systemd1",
+                                  unitslist.at(index).unit_path.path(),
+                                  "org.freedesktop.systemd1.Unit",
+                                  systembus,
+                                  this);
+        qlonglong inactivateExitTimestampMsec = iface->property("InactiveExitTimestamp").toULongLong() / 1000;
+        if (inactivateExitTimestampMsec == 0)
+        {
+          // The unit has not run in this boot
+          // Use LastTrigger to see if the timer is persistent
+          if (lastTriggerMSec == 0)
+            last = "n/a";
+          else
+          {
+            time.setMSecsSinceEpoch(lastTriggerMSec);
+            last = time.toString("yyyy.MM.dd hh:mm:ss");
+          }
+        }
+        else
+        {
+          QDateTime time;
+          time.setMSecsSinceEpoch(inactivateExitTimestampMsec);
+          last = time.toString("yyyy.MM.dd hh:mm:ss");
+        }
+
+        delete iface;
+      }
+
+
+      // Add the timers to the model
+      QList<QStandardItem *> row;
+      row << new QStandardItem(unit.id) <<
+             new QStandardItem(next) <<
+             new QStandardItem("") <<
+             new QStandardItem(last) <<
+             new QStandardItem("") <<
+             new QStandardItem(unitToActivate);
+      timerModel->appendRow(row);
     }
-    else
-    {
-      QDateTime time;
-      time.setMSecsSinceEpoch(inactivateExitTimestampMsec);
-      last = time.toString("yyyy.MM.dd hh:mm:ss");
-    }
-
-    delete iface;
-
-
-    // Add the timers to the model
-    QList<QStandardItem *> row;
-    row <<
-    new QStandardItem(unit.id) <<
-    new QStandardItem(next) <<
-    new QStandardItem("") <<
-    new QStandardItem(last) <<
-    new QStandardItem("") <<
-    new QStandardItem(unitToActivate);
-    timerModel->appendRow(row);
-
   }
 
   // Update the left and passed columns
@@ -1771,11 +1635,9 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
   
   // Check if unit has a unit file, if not disable editing
   QString frpath;
-  unitfile afile;
-  afile.name = unit;
-  int index = unitfileslist.indexOf(afile);
+  int index = unitslist.indexOf(SystemdUnit(unit));
   if (index != -1)
-    frpath = unitfileslist.at(index).name;
+    frpath = unitslist.at(index).unit_file;
   if (frpath.isEmpty())
     edit->setEnabled(false);
 
@@ -1933,125 +1795,10 @@ void kcmsystemd::slotSessionContextMenu(const QPoint &pos)
 
 bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
 {
-  // Eventfilter for catching mouse move events over unit and session lists
+  // Eventfilter for catching mouse move events over session list
   // Used for dynamically generating tooltips
-  if (event->type() == QEvent::MouseMove && obj->parent()->objectName() == "tblUnits")
-  {
-    QMouseEvent *me = static_cast<QMouseEvent*>(event);
-    QModelIndex inUnitsModel, inProxyModelAct, inProxyModelUnitId;
-    inProxyModelUnitId = ui.tblUnits->indexAt(me->pos());
-    inProxyModelAct = proxyModelUnitId->mapToSource(inProxyModelUnitId);
-    inUnitsModel = proxyModelAct->mapToSource(inProxyModelAct);
-    if (!inUnitsModel.isValid())
-      return false;
 
-    if (unitsModel->itemFromIndex(inUnitsModel)->row() != lastUnitRowChecked)
-    {
-      // Cursor moved to a different row. Only build tooltips when moving
-      // cursor to a new row to avoid excessive DBus calls.
-
-      QString selUnit = ui.tblUnits->model()->index(ui.tblUnits->indexAt(me->pos()).row(),3).data().toString();
-      // qDebug() << "selUnit: " << selUnit;
-
-      QString toolTipText;
-      toolTipText.append("<FONT COLOR=white>");
-      toolTipText.append("<b>" + selUnit + "</b><hr>");
-
-      // Create a DBus interface
-      QDBusConnection systembus = QDBusConnection::systemBus();
-      QDBusInterface *iface;
-      iface = new QDBusInterface ("org.freedesktop.systemd1",
-                                  unitslist.at(unitslist.indexOf(SystemdUnit(selUnit))).unit_path.path(),
-                                  "org.freedesktop.systemd1.Unit",
-                                  systembus,
-                                  this);
-
-      // Use the DBus interface to get unit properties
-      if (iface->isValid())
-      {
-        // Unit has a valid unit DBus object
-        toolTipText.append(i18n("<b>Description: </b>"));
-        toolTipText.append(iface->property("Description").toString());
-        toolTipText.append(i18n("<br><b>Fragment path: </b>"));
-        toolTipText.append(iface->property("FragmentPath").toString());
-        toolTipText.append(i18n("<br><b>Unit file state: </b>"));
-        toolTipText.append(iface->property("UnitFileState").toString());
-
-        toolTipText.append(i18n("<br><b>Activated: </b>"));
-        if (iface->property("ActiveEnterTimestamp").toULongLong() == 0)
-          toolTipText.append("n/a");
-        else
-        {
-          QDateTime timeActivated;
-          timeActivated.setMSecsSinceEpoch(iface->property("ActiveEnterTimestamp").toULongLong()/1000);
-          toolTipText.append(timeActivated.toString());
-        }
-
-        toolTipText.append(i18n("<br><b>Deactivated: </b>"));
-        if (iface->property("InactiveEnterTimestamp").toULongLong() == 0)
-          toolTipText.append("n/a");
-        else
-        {
-          QDateTime timeDeactivated;
-          timeDeactivated.setMSecsSinceEpoch(iface->property("InactiveEnterTimestamp").toULongLong()/1000);
-          toolTipText.append(timeDeactivated.toString());
-        }
-        delete iface;
-
-      }
-      else
-      {
-        // Unit does not have a valid unit DBus object
-        // Retrieve UnitFileState from Manager object
-
-        iface = new QDBusInterface ("org.freedesktop.systemd1",
-                                    "/org/freedesktop/systemd1",
-                                    "org.freedesktop.systemd1.Manager",
-                                    systembus,
-                                    this);
-        QList<QVariant> args;
-        args << selUnit;
-        unitfile a;
-        a.name = selUnit;
-
-        toolTipText.append(i18n("<b>Fragment path: </b>"));
-        if (!a.name.isEmpty())
-          toolTipText.append(unitfileslist.at(unitfileslist.indexOf(a)).name);
-
-        toolTipText.append(i18n("<br><b>Unit file state: </b>"));
-        if (!a.name.isEmpty())
-          toolTipText.append(iface->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString());
-
-        delete iface;
-      }
-
-      // Journal entries for service and scope units
-      if (selUnit.contains(QRegExp("(.service|.scope)$")))
-      {
-        toolTipText.append(i18n("<hr><b>Last log entries:</b>"));
-        QStringList log = getLastJrnlEntries(selUnit);
-        if (log.isEmpty())
-          toolTipText.append(i18n("<br><i>No log entries found for this unit.</i>"));
-        else
-        {
-          for(int i = log.count()-1; i >= 0; --i)
-          {
-            if (!log.at(i).isEmpty())
-              toolTipText.append(QString("<br>" + log.at(i)));
-          }
-        }
-      }
-
-      toolTipText.append("</FONT");
-      unitsModel->itemFromIndex(inUnitsModel)->setToolTip(toolTipText);
-
-      lastUnitRowChecked = unitsModel->itemFromIndex(inUnitsModel)->row();
-      return true;
-
-    } // Row was different
-  } // Cursor was moved
-
-  else if (event->type() == QEvent::MouseMove && obj->parent()->objectName() == "tblSessions")
+  if (event->type() == QEvent::MouseMove && obj->parent()->objectName() == "tblSessions")
   {
     // Session list
     QMouseEvent *me = static_cast<QMouseEvent*>(event);
@@ -2165,10 +1912,14 @@ void kcmsystemd::slotUnitFilesChanged()
 void kcmsystemd::slotSystemdPropertiesChanged(QString iface_name, QVariantMap, QStringList)
 {
   // qDebug() << "Systemd properties changed.";
+
   // This signal gets emitted on two different interfaces,
   // but no reason to call slotRefreshUnitsList() twice
   if (iface_name == "org.freedesktop.systemd1.Unit")
+  {
     slotRefreshUnitsList();
+    slotRefreshTimerList();
+  }
   updateUnitCount();
 }
 
@@ -2195,82 +1946,6 @@ void kcmsystemd::slotCmbConfFileChanged(int index)
 
   proxyModelConf->setFilterRegExp(ui.cmbConfFile->itemText(index));
   proxyModelConf->setFilterKeyColumn(2);
-}
-
-QStringList kcmsystemd::getLastJrnlEntries(QString unit)
-{
-  QString match = QString("_SYSTEMD_UNIT=" + unit);
-  QStringList reply;
-  int r, jflags = SD_JOURNAL_LOCAL_ONLY;
-  const void *data;
-  size_t length;
-  uint64_t time;
-  sd_journal *journal;
-
-  r = sd_journal_open(&journal, jflags);
-  if (r != 0)
-  {
-    qDebug() << "Failed to open journal";
-    return reply;
-  }
-
-  sd_journal_flush_matches(journal);
-
-  r = sd_journal_add_match(journal, match.toLatin1(), 0);
-  if (r != 0)
-    return reply;
-
-  r = sd_journal_seek_tail(journal);
-  if (r != 0)
-    return reply;
-
-  // Fetch the last 5 entries
-  for (int i = 0; i < 5; ++i)
-  {
-    r = sd_journal_previous(journal);
-    if (r == 1)
-    {
-      QString line;
-
-      // Get the date and time
-      r = sd_journal_get_realtime_usec(journal, &time);
-      if (r == 0)
-      {
-        QDateTime date;
-        date.setMSecsSinceEpoch(time/1000);
-        line.append(date.toString("yyyy.MM.dd hh:mm"));
-      }
-
-      // Color messages according to priority
-      r = sd_journal_get_data(journal, "PRIORITY", &data, &length);
-      if (r == 0)
-      {
-        int prio = QString::fromLatin1((const char *)data, length).section("=",1).toInt();
-        if (prio <= 3)
-          line.append("<span style='color:tomato;'>");
-        else if (prio == 4)
-          line.append("<span style='color:khaki;'>");
-        else
-          line.append("<span style='color:palegreen;'>");
-      }
-
-      // Get the message itself
-      r = sd_journal_get_data(journal, "MESSAGE", &data, &length);
-      if (r == 0)
-      {
-        line.append(": " + QString::fromLatin1((const char *)data, length).section("=",1) + "</span>");
-        if (line.length() > 195)
-          line = QString(line.left(195) + "..." + "</span>");
-        reply << line;
-      }
-    }
-    else // previous failed, no more entries
-      return reply;
-  }
-
-  sd_journal_close(journal);
-
-  return reply;
 }
 
 void kcmsystemd::slotUpdateTimers()
@@ -2315,6 +1990,112 @@ void kcmsystemd::slotUpdateTimers()
       passed = QString::number(passedSecs) + " s";
     timerModel->setData(timerModel->index(row, 4), passed);
   }
+}
+
+QList<SystemdUnit> kcmsystemd::getUnitsFromDbus(dbusBus bus)
+{
+  // get an updated list of units via dbus
+
+  QList<SystemdUnit> list;
+  QList<unitfile> unitfileslist;
+  QDBusMessage dbusreply;
+  QString userBusPath("unix:path=/run/user/" + QString::number(getuid()) + "/dbus/user_bus_socket");
+
+  QDBusConnection nbus("test");
+  if (bus == sys)
+    nbus = QDBusConnection::systemBus();
+  else if (bus == user)
+    nbus = QDBusConnection::connectToBus(userBusPath, "org.freedesktop.systemd1");
+
+  QDBusInterface *iface = new QDBusInterface ("org.freedesktop.systemd1",
+                                              "/org/freedesktop/systemd1",
+                                              "org.freedesktop.systemd1.Manager",
+                                              nbus,
+                                              this);
+
+  if (iface->isValid())
+    dbusreply = iface->call(QDBus::AutoDetect, "ListUnits");
+  else
+    qDebug() << "DBus interface invalid.";
+  delete iface;
+
+  const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
+  if (arg.currentType() == QDBusArgument::ArrayType)
+  {
+    arg.beginArray();
+    while (!arg.atEnd())
+    {
+      SystemdUnit unit;
+      arg >> unit;
+      list.append(unit);
+
+      // qDebug() << "Added unit " << unit.id;
+
+      if (unit.active_state == "active")
+        noActUnits++;
+    }
+    arg.endArray();
+  }
+
+  // Get a list of unit files
+  iface = new QDBusInterface ("org.freedesktop.systemd1",
+                              "/org/freedesktop/systemd1",
+                              "org.freedesktop.systemd1.Manager",
+                              nbus,
+                              this);
+  if (iface->isValid())
+  {
+    dbusreply = iface->call("ListUnitFiles");
+    const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
+    arg.beginArray();
+    while (!arg.atEnd())
+    {
+      unitfile u;
+      arg.beginStructure();
+      arg >> u.name >> u.status;
+      arg.endStructure();
+      unitfileslist.append(u);
+    }
+    arg.endArray();
+  }
+  else
+    qDebug() << "DBus interface invalid.";
+  delete iface;
+
+  // Add unloaded units to the list
+  for (int i = 0;  i < unitfileslist.size(); ++i)
+  {
+    int index = list.indexOf(SystemdUnit(unitfileslist.at(i).name.section('/',-1)));
+    if (index > -1)
+    {
+      // The unit was already in the list, add unit file and its status
+      list[index].unit_file = unitfileslist.at(i).name;
+      list[index].unit_file_status = unitfileslist.at(i).status;
+    }
+    else
+    {
+      // Unit not in the list, add it
+      QFile unitfile(unitfileslist.at(i).name);
+      if (unitfile.symLinkTarget().isEmpty())
+      {
+        SystemdUnit unit;
+        unit.id = unitfileslist.at(i).name.section('/',-1);
+        unit.load_state = "unloaded";
+        unit.active_state = "-";
+        unit.sub_state = "-";
+        unit.unit_file = unitfileslist.at(i).name;
+        unit.unit_file_status= unitfileslist.at(i).status;
+        list.append(unit);
+
+        // qDebug() << "Added unit " << unit.id;
+
+        if (unit.active_state == "active")
+          noActUnits++;
+      }
+    }
+  }
+
+  return list;
 }
 
 #include "kcmsystemd.moc"

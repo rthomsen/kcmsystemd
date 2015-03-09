@@ -27,6 +27,7 @@
 #include <KLocalizedString>
 
 #include "ui_kcmsystemd.h"
+#include "unitmodel.h"
 #include "confoption.h"
 #include "confmodel.h"
 #include "confdelegate.h"
@@ -34,7 +35,7 @@
 // struct for storing units retrieved from systemd via DBus
 struct SystemdUnit
 {
-  QString id, description, load_state, active_state, sub_state, following, job_type;
+  QString id, description, load_state, active_state, sub_state, following, job_type, unit_file, unit_file_status;
   QDBusObjectPath unit_path, job_path;
   unsigned int job_id;
   
@@ -75,6 +76,11 @@ struct SystemdSession
 };
 Q_DECLARE_METATYPE(SystemdSession)
 
+enum dbusBus
+{
+  sys, session, user
+};
+
 struct unitfile
 {
   QString name, status;
@@ -100,6 +106,8 @@ class kcmsystemd : public KCModule
     void save();
     static ConfModel *confModel;
     static QList<confOption> confOptList;
+    static UnitModel *unitsModel;
+    static QList<SystemdUnit> unitslist;
 
   private:
     Ui::kcmsystemd ui;
@@ -113,14 +121,12 @@ class kcmsystemd : public KCModule
     bool eventFilter(QObject *, QEvent*);
     void updateUnitCount();
     void setupConfigParms();
-    QStringList getLastJrnlEntries(QString);
+    QList<SystemdUnit> getUnitsFromDbus(dbusBus bus);
     QProcess *kdeConfig;
     QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct, *proxyModelConf;
-    QStandardItemModel *unitsModel, *sessionModel, *timerModel;
-    QList<SystemdUnit> unitslist;
+    QStandardItemModel *sessionModel, *timerModel;
     QList<SystemdUnit> timerslist;
     QList<SystemdSession> sessionlist;
-    QList<unitfile> unitfileslist;
     QStringList listConfFiles;
     QString kdePrefix, selectedUnit, etcDir, filterUnitType, searchTerm;
     QMenu *contextMenuUnits;
