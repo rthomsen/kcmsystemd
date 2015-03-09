@@ -47,6 +47,12 @@ struct SystemdUnit
     else
       return false;
   }
+  SystemdUnit(){};
+
+  SystemdUnit(QString newId)
+  {
+    id = newId;
+  }
 };
 Q_DECLARE_METATYPE(SystemdUnit)
 
@@ -109,7 +115,6 @@ class kcmsystemd : public KCModule
     void setupConfigParms();
     QStringList getLastJrnlEntries(QString);
     QProcess *kdeConfig;
-    QVariantMap unitpaths;
     QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct, *proxyModelConf;
     QStandardItemModel *unitsModel, *sessionModel, *timerModel;
     QList<SystemdUnit> unitslist;

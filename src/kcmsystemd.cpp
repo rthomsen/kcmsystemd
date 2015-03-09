@@ -1275,7 +1275,6 @@ void kcmsystemd::slotRefreshUnitsList()
   unitslist.clear();
   timerslist.clear();
   unitfileslist.clear();
-  unitpaths.clear();
   noActUnits = 0;
   
   // get an updated list of units via dbus
@@ -1300,7 +1299,6 @@ void kcmsystemd::slotRefreshUnitsList()
       unitslist.append(unit);
       if (unit.id.endsWith(".timer"))
         timerslist.append(unit);
-      unitpaths[unit.id] = unit.unit_path.path();
     }
     arg.endArray();
   }
@@ -1331,7 +1329,7 @@ void kcmsystemd::slotRefreshUnitsList()
   // Add unloaded units to the list
   for (int i = 0;  i < unitfileslist.size(); ++i)
   { 
-    if (!unitpaths.contains(unitfileslist.at(i).name.section('/',-1)))
+    if (!unitslist.contains(SystemdUnit(unitfileslist.at(i).name.section('/',-1))))
     {
       QFile unitfile(unitfileslist.at(i).name);
       if (unitfile.symLinkTarget().isEmpty())
@@ -1528,7 +1526,7 @@ void kcmsystemd::slotRefreshTimerList()
   foreach (SystemdUnit unit, timerslist)
   {
     iface = new QDBusInterface ("org.freedesktop.systemd1",
-                                unitpaths[unit.id].toString(),
+                                unit.unit_path.path(),
                                 "org.freedesktop.systemd1.Timer",
                                 systembus,
                                 this);
@@ -1573,10 +1571,11 @@ void kcmsystemd::slotRefreshTimerList()
 
     // use unit object to get last time for activated service
     iface = new QDBusInterface ("org.freedesktop.systemd1",
-                                unitpaths[unitToActivate].toString(),
+                                unitslist.at(unitslist.indexOf(SystemdUnit(unitToActivate))).unit_path.path(),
                                 "org.freedesktop.systemd1.Unit",
                                 systembus,
                                 this);
+
     QString last;
     qlonglong inactivateExitTimestampMsec = iface->property("InactiveExitTimestamp").toULongLong() / 1000;
     if (inactivateExitTimestampMsec == 0)
@@ -1672,7 +1671,7 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
   // Setup DBus interfaces
   QString service = "org.freedesktop.systemd1";
   QString pathManager = "/org/freedesktop/systemd1";
-  QString pathUnit = unitpaths[unit].toString();
+  QString pathUnit = unitslist.at(unitslist.indexOf(SystemdUnit(unit))).unit_path.path();
   QString ifaceManager = "org.freedesktop.systemd1.Manager";
   QString ifaceUnit = "org.freedesktop.systemd1.Unit";
   QDBusConnection systembus = QDBusConnection::systemBus();
@@ -1962,7 +1961,7 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
       QDBusConnection systembus = QDBusConnection::systemBus();
       QDBusInterface *iface;
       iface = new QDBusInterface ("org.freedesktop.systemd1",
-                                  unitpaths[selUnit].toString(),
+                                  unitslist.at(unitslist.indexOf(SystemdUnit(selUnit))).unit_path.path(),
                                   "org.freedesktop.systemd1.Unit",
                                   systembus,
                                   this);
