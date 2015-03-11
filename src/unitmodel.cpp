@@ -109,44 +109,48 @@ QVariant UnitModel::data(const QModelIndex & index, int role) const
       bus = QDBusConnection::connectToBus(userBus, "org.freedesktop.systemd1");
     else
       bus = QDBusConnection::systemBus();
-
     QDBusInterface *iface;
-    iface = new QDBusInterface ("org.freedesktop.systemd1",
-                                selUnitPath,
-                                "org.freedesktop.systemd1.Unit",
-                                bus);
 
     // Use the DBus interface to get unit properties
-    if (iface->isValid())
+    if (!selUnitPath.isEmpty())
     {
-      // Unit has a valid unit DBus object
-      toolTipText.append(i18n("<b>Description: </b>"));
-      toolTipText.append(iface->property("Description").toString());
-      toolTipText.append(i18n("<br><b>Unit file: </b>"));
-      toolTipText.append(iface->property("FragmentPath").toString());
-      toolTipText.append(i18n("<br><b>Unit file state: </b>"));
-      toolTipText.append(iface->property("UnitFileState").toString());
+      // Unit has a valid path
 
-      qulonglong ActiveEnterTimestamp = iface->property("ActiveEnterTimestamp").toULongLong();
-      toolTipText.append(i18n("<br><b>Activated: </b>"));
-      if (ActiveEnterTimestamp == 0)
-        toolTipText.append("n/a");
-      else
+      iface = new QDBusInterface ("org.freedesktop.systemd1",
+                                  selUnitPath,
+                                  "org.freedesktop.systemd1.Unit",
+                                  bus);
+      if (iface->isValid())
       {
-        QDateTime timeActivated;
-        timeActivated.setMSecsSinceEpoch(ActiveEnterTimestamp/1000);
-        toolTipText.append(timeActivated.toString());
-      }
+        // Unit has a valid unit DBus object
+        toolTipText.append(i18n("<b>Description: </b>"));
+        toolTipText.append(iface->property("Description").toString());
+        toolTipText.append(i18n("<br><b>Unit file: </b>"));
+        toolTipText.append(iface->property("FragmentPath").toString());
+        toolTipText.append(i18n("<br><b>Unit file state: </b>"));
+        toolTipText.append(iface->property("UnitFileState").toString());
 
-      qulonglong InactiveEnterTimestamp = iface->property("InactiveEnterTimestamp").toULongLong();
-      toolTipText.append(i18n("<br><b>Deactivated: </b>"));
-      if (InactiveEnterTimestamp == 0)
-        toolTipText.append("n/a");
-      else
-      {
-        QDateTime timeDeactivated;
-        timeDeactivated.setMSecsSinceEpoch(InactiveEnterTimestamp/1000);
-        toolTipText.append(timeDeactivated.toString());
+        qulonglong ActiveEnterTimestamp = iface->property("ActiveEnterTimestamp").toULongLong();
+        toolTipText.append(i18n("<br><b>Activated: </b>"));
+        if (ActiveEnterTimestamp == 0)
+          toolTipText.append("n/a");
+        else
+        {
+          QDateTime timeActivated;
+          timeActivated.setMSecsSinceEpoch(ActiveEnterTimestamp/1000);
+          toolTipText.append(timeActivated.toString());
+        }
+
+        qulonglong InactiveEnterTimestamp = iface->property("InactiveEnterTimestamp").toULongLong();
+        toolTipText.append(i18n("<br><b>Deactivated: </b>"));
+        if (InactiveEnterTimestamp == 0)
+          toolTipText.append("n/a");
+        else
+        {
+          QDateTime timeDeactivated;
+          timeDeactivated.setMSecsSinceEpoch(InactiveEnterTimestamp/1000);
+          toolTipText.append(timeDeactivated.toString());
+        }
       }
       delete iface;
 

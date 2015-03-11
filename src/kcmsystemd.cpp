@@ -1618,7 +1618,7 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
   // Check capabilities of unit
   QString LoadState, ActiveState;
   bool CanStart, CanStop, CanReload;
-  if (getDbusProperty("Test", sysdUnit, pathUnit, busInt).toString() != "invalidIface")
+  if (!pathUnit.path().isEmpty() && getDbusProperty("Test", sysdUnit, pathUnit, busInt).toString() != "invalidIface")
   {
     // Unit has a Unit DBus object, fetch properties
     isolate->setEnabled(getDbusProperty("CanIsolate", sysdUnit, pathUnit, busInt).toBool());
@@ -1770,9 +1770,11 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
     // user unit
     QDBusInterface *dbusIfaceManager = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, busConn, this);
     QDBusMessage dbusreply = dbusIfaceManager->callWithArgumentList(QDBus::AutoDetect, method, argsForCall);
-    delete dbusIfaceManager;
     if (dbusreply.type() == QDBusMessage::ErrorMessage)
       qDebug() << "DBus call failed:" << dbusreply.errorMessage();
+    if (method == "EnableUnitFiles" || method == "DisableUnitFiles" || method == "MaskUnitFiles" || method == "UnmaskUnitFiles")
+      dbusIfaceManager->call(QDBus::AutoDetect, "Reload");
+    delete dbusIfaceManager;
   }
 }
 
