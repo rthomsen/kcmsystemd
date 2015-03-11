@@ -174,20 +174,17 @@ QVariant UnitModel::data(const QModelIndex & index, int role) const
       delete iface;
     }
 
-    // Journal entries for service and scope units
-    if (selUnit.contains(QRegExp("(.service|.scope|.socket)$")))
+    // Journal entries for units
+    toolTipText.append(i18n("<hr><b>Last log entries:</b>"));
+    QStringList log = getLastJrnlEntries(selUnit);
+    if (log.isEmpty())
+      toolTipText.append(i18n("<br><i>No log entries found for this unit.</i>"));
+    else
     {
-      toolTipText.append(i18n("<hr><b>Last log entries:</b>"));
-      QStringList log = getLastJrnlEntries(selUnit);
-      if (log.isEmpty())
-        toolTipText.append(i18n("<br><i>No log entries found for this unit.</i>"));
-      else
+      for(int i = log.count()-1; i >= 0; --i)
       {
-        for(int i = log.count()-1; i >= 0; --i)
-        {
-          if (!log.at(i).isEmpty())
-            toolTipText.append(QString("<br>" + log.at(i)));
-        }
+        if (!log.at(i).isEmpty())
+          toolTipText.append(QString("<br>" + log.at(i)));
       }
     }
 
@@ -201,18 +198,25 @@ QVariant UnitModel::data(const QModelIndex & index, int role) const
 
 QStringList UnitModel::getLastJrnlEntries(QString unit) const
 {
-  QString match;
-  if (!userBus.isEmpty())
-    match = QString("USER_UNIT=" + unit);
-  else
-    match = QString("_SYSTEMD_UNIT=" + unit);
-
+  QString match1, match2;
+  int r, jflags;
   QStringList reply;
-  int r, jflags = SD_JOURNAL_LOCAL_ONLY;
   const void *data;
   size_t length;
   uint64_t time;
   sd_journal *journal;
+
+  if (!userBus.isEmpty())
+  {
+    match1 = QString("USER_UNIT=" + unit);
+    jflags = (SD_JOURNAL_LOCAL_ONLY | SD_JOURNAL_CURRENT_USER);
+  }
+  else
+  {
+    match1 = QString("_SYSTEMD_UNIT=" + unit);
+    match2 = QString("UNIT=" + unit);
+    jflags = (SD_JOURNAL_LOCAL_ONLY | SD_JOURNAL_SYSTEM);
+  }
 
   r = sd_journal_open(&journal, jflags);
   if (r != 0)
@@ -223,9 +227,18 @@ QStringList UnitModel::getLastJrnlEntries(QString unit) const
 
   sd_journal_flush_matches(journal);
 
-  r = sd_journal_add_match(journal, match.toLatin1(), 0);
+  r = sd_journal_add_match(journal, match1.toLatin1(), 0);
   if (r != 0)
     return reply;
+
+  if (!match2.isEmpty())
+  {
+    sd_journal_add_disjunction(journal);
+    r = sd_journal_add_match(journal, match2.toLatin1(), 0);
+    if (r != 0)
+      return reply;
+  }
+
 
   r = sd_journal_seek_tail(journal);
   if (r != 0)
