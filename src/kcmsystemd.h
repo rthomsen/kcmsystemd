@@ -83,7 +83,7 @@ class kcmsystemd : public KCModule
     void updateUnitCount();
     void setupConfigParms();
     QList<SystemdUnit> getUnitsFromDbus(dbusBus bus);
-    QVariant getDbusProperty(QString prop, dbusIface ifaceName, QDBusObjectPath path = QDBusObjectPath("/org/freedesktop/systemd1"));
+    QVariant getDbusProperty(QString prop, dbusIface ifaceName, QDBusObjectPath path = QDBusObjectPath("/org/freedesktop/systemd1"), dbusBus bus = sys);
     QProcess *kdeConfig;
     QSortFilterProxyModel *proxyModelConf;
     SortFilterUnitModel *systemUnitFilterModel, *userUnitFilterModel;

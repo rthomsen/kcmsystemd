@@ -222,6 +222,7 @@ void kcmsystemd::setupSignalSlots()
   connect(ui.cmbUnitTypes, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbUnitTypes(int)));
   connect(ui.cmbUserUnitTypes, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbUnitTypes(int)));
   connect(ui.tblUnits, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotUnitContextMenu(QPoint)));
+  connect(ui.tblUserUnits, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotUnitContextMenu(QPoint)));
   connect(ui.leSearchUnit, SIGNAL(textChanged(QString)), this, SLOT(slotLeSearchUnitChanged(QString)));
   connect(ui.leSearchUserUnit, SIGNAL(textChanged(QString)), this, SLOT(slotLeSearchUnitChanged(QString)));
 
@@ -1560,14 +1561,33 @@ void kcmsystemd::authServiceAction(QString service, QString path, QString interf
 
 void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
 {
-  // Slot for creating the right-click menu in the units list
+  // Slot for creating the right-click menu in unitlists
 
-  // Find name of unit
-  QString unit = ui.tblUnits->model()->index(ui.tblUnits->indexAt(pos).row(),3).data().toString();
+  // Setup objects which can be used for both system and user units
+  QList<SystemdUnit> *list;
+  QTableView *tblView;
+  QDBusConnection busConn("");
+  dbusBus busInt;
+  bool requiresAuth = true;
+  if (ui.tabWidget->currentIndex() == 0)
+  {
+    list = &unitslist;
+    tblView = ui.tblUnits;
+    busConn = systembus;
+    busInt = sys;
+  }
+  else if (ui.tabWidget->currentIndex() == 1)
+  {
+    list = &userUnitslist;
+    tblView = ui.tblUserUnits;
+    busConn = QDBusConnection::connectToBus(userBusPath, connSystemd);
+    busInt = user;
+    requiresAuth = false;
+  }
 
-  // Setup DBus interfaces
-  QDBusObjectPath pathUnit = unitslist.at(unitslist.indexOf(SystemdUnit(unit))).unit_path;
-  QDBusInterface *dbusIfaceManager = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, systembus, this);
+  // Find name and object path of unit
+  QString unit = tblView->model()->index(tblView->indexAt(pos).row(), 3).data().toString();
+  QDBusObjectPath pathUnit = list->at(list->indexOf(SystemdUnit(unit))).unit_path;
 
   // Create rightclick menu items
   QMenu menu(this);
@@ -1589,23 +1609,24 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
   QAction *reexecdaemon = menu.addAction(i18n("Ree&xecute systemd"));
   
   // Get UnitFileState (have to use Manager object for this)
+  QDBusInterface *dbusIfaceManager = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, busConn, this);
   QList<QVariant> args;
   args << unit;
   QString UnitFileState = dbusIfaceManager->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString();
   delete dbusIfaceManager;
 
-  // Check if unit can be isolated
+  // Check capabilities of unit
   QString LoadState, ActiveState;
   bool CanStart, CanStop, CanReload;
-  if (getDbusProperty("Test", sysdUnit, pathUnit).toString() != "invalidIface")
+  if (getDbusProperty("Test", sysdUnit, pathUnit, busInt).toString() != "invalidIface")
   {
     // Unit has a Unit DBus object, fetch properties
-    isolate->setEnabled(getDbusProperty("CanIsolate", sysdUnit, pathUnit).toBool());
-    LoadState = getDbusProperty("LoadState", sysdUnit, pathUnit).toString();
-    ActiveState = getDbusProperty("ActiveState", sysdUnit, pathUnit).toString();
-    CanStart = getDbusProperty("CanStart", sysdUnit, pathUnit).toBool();
-    CanStop = getDbusProperty("CanStop", sysdUnit, pathUnit).toBool();
-    CanReload = getDbusProperty("CanReload", sysdUnit, pathUnit).toBool();
+    isolate->setEnabled(getDbusProperty("CanIsolate", sysdUnit, pathUnit, busInt).toBool());
+    LoadState = getDbusProperty("LoadState", sysdUnit, pathUnit, busInt).toString();
+    ActiveState = getDbusProperty("ActiveState", sysdUnit, pathUnit, busInt).toString();
+    CanStart = getDbusProperty("CanStart", sysdUnit, pathUnit, busInt).toBool();
+    CanStop = getDbusProperty("CanStop", sysdUnit, pathUnit, busInt).toBool();
+    CanReload = getDbusProperty("CanReload", sysdUnit, pathUnit, busInt).toBool();
   }
   else
   {
@@ -1616,8 +1637,8 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
     CanReload = false;
   }
 
-  if (CanStart &&
-      ActiveState != "active")
+  // Enable/disable menu items
+  if (CanStart && ActiveState != "active")
     start->setEnabled(true);
   else
     start->setEnabled(false);
@@ -1645,31 +1666,29 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
     reload->setEnabled(false);
 
   if (UnitFileState == "disabled")
-  {
     disable->setEnabled(false);
-  } else if (UnitFileState == "enabled") {
+  else if (UnitFileState == "enabled")
     enable->setEnabled(false);
-  } else {
+  else
+  {
     enable->setEnabled(false);    
     disable->setEnabled(false);
   }
 
   if (LoadState == "masked")
-  {
     mask->setEnabled(false);
-  } else if (LoadState != "masked") {
+  else if (LoadState != "masked")
     unmask->setEnabled(false);
-  }
   
   // Check if unit has a unit file, if not disable editing
   QString frpath;
-  int index = unitslist.indexOf(SystemdUnit(unit));
+  int index = list->indexOf(SystemdUnit(unit));
   if (index != -1)
-    frpath = unitslist.at(index).unit_file;
+    frpath = list->at(index).unit_file;
   if (frpath.isEmpty())
     edit->setEnabled(false);
 
-  QAction *a = menu.exec(ui.tblUnits->viewport()->mapToGlobal(pos));
+  QAction *a = menu.exec(tblView->viewport()->mapToGlobal(pos));
    
   if (a == edit)
   {
@@ -1677,7 +1696,7 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
     KMimeTypeTrader* trader = KMimeTypeTrader::self();
     const KService::Ptr service = trader->preferredService("text/plain");
 
-    // Open the unit file used the found application
+    // Open the unit file using the found application
     QStringList args = QStringList() << "-t" << "--" << service->exec().section(' ', 0, 0) << frpath;
     QProcess editor (this);
     bool r = editor.startDetached("kdesu", args);
@@ -1688,84 +1707,72 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
     return;
   }
 
-  QList<QString> unitsForCall;
-  unitsForCall << unit;
+  // Setup arguments for DBus call
+  QStringList unitsForCall = QStringList() << unit;
   QString method;
+  QList<QVariant> argsForCall;
 
   if (a == start)
   {
-    QList<QVariant> argsForCall;
     argsForCall << unit << "replace";
     method = "StartUnit";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == stop)
   {
-    QList<QVariant> argsForCall;
     argsForCall << unit << "replace";
     method = "StopUnit";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == restart)
   {
-    QList<QVariant> argsForCall;
     argsForCall << unit << "replace";
     method = "RestartUnit";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == reload)
   {
-    QList<QVariant> argsForCall;
     argsForCall << unit << "replace";
     method = "ReloadUnit";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == isolate)
   {
-    QList<QVariant> argsForCall;
     argsForCall << unit << "isolate";
     method = "StartUnit";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == enable)
   {
-    QList<QVariant> argsForCall;
     argsForCall << QVariant(unitsForCall) << false << true;
     method = "EnableUnitFiles";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == disable)
   {
-    QList<QVariant> argsForCall;
     argsForCall << QVariant(unitsForCall) << false;
     method = "DisableUnitFiles";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == mask)
   {
-    QList<QVariant> argsForCall;
     argsForCall << QVariant(unitsForCall) << false << true;
     method = "MaskUnitFiles";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == unmask)
   {
-    QList<QVariant> argsForCall;
     argsForCall << QVariant(unitsForCall) << false;
     method = "UnmaskUnitFiles";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
   }
   else if (a == reloaddaemon)
-  {
-    QList<QVariant> argsForCall;
     method = "Reload";
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
-  }
   else if (a == reexecdaemon)
-  {
-    QList<QVariant> argsForCall;
     method = "Reexecute";
+
+  // Execute the DBus actions
+  if (!method.isEmpty() && requiresAuth)
     authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
+  else if (!method.isEmpty())
+  {
+    // user unit
+    QDBusInterface *dbusIfaceManager = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, busConn, this);
+    QDBusMessage dbusreply = dbusIfaceManager->callWithArgumentList(QDBus::AutoDetect, method, argsForCall);
+    delete dbusIfaceManager;
+    if (dbusreply.type() == QDBusMessage::ErrorMessage)
+      qDebug() << "DBus call failed:" << dbusreply.errorMessage();
   }
 }
 
@@ -2133,10 +2140,15 @@ QList<SystemdUnit> kcmsystemd::getUnitsFromDbus(dbusBus bus)
   return list;
 }
 
-QVariant kcmsystemd::getDbusProperty(QString prop, dbusIface ifaceName, QDBusObjectPath path)
+QVariant kcmsystemd::getDbusProperty(QString prop, dbusIface ifaceName, QDBusObjectPath path, dbusBus bus)
 {
-  // qDebug() << "Fetching property: " << prop << ifaceName << path.path();
+  // qDebug() << "Fetching property" << prop << ifaceName << path.path() << "on bus" << bus;
   QString conn, ifc;
+  QDBusConnection abus("");
+  if (bus == user)
+    abus = QDBusConnection::connectToBus(userBusPath, connSystemd);
+  else
+    abus = systembus;
 
   if (ifaceName == sysdMgr)
   {
@@ -2159,7 +2171,7 @@ QVariant kcmsystemd::getDbusProperty(QString prop, dbusIface ifaceName, QDBusObj
     ifc = ifaceSession;
   }
   QVariant r;
-  QDBusInterface *iface = new QDBusInterface (conn, path.path(), ifc, systembus, this);
+  QDBusInterface *iface = new QDBusInterface (conn, path.path(), ifc, abus, this);
   if (iface->isValid())
   {
     r = iface->property(prop.toLatin1());
