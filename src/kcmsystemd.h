@@ -121,13 +121,12 @@ class kcmsystemd : public KCModule
     void slotRefreshUnitsList(bool, dbusBus);
     void slotRefreshSessionList();
     void slotRefreshTimerList();
-    void slotSystemdReloading(bool);
+    void slotSystemSystemdReloading(bool);
+    void slotUserSystemdReloading(bool);
+    void slotSystemUnitsChanged();
+    void slotUserUnitsChanged();
     // void slotUnitLoaded(QString, QDBusObjectPath);
     // void slotUnitUnloaded(QString, QDBusObjectPath);
-    void slotJobRemoved(quint32, QDBusObjectPath, QString, QString);
-    void slotUnitFilesChanged();
-    void slotSystemdPropertiesChanged(QString, QVariantMap, QStringList);
-    void slotUserPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLogindPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLeSearchUnitChanged(QString);
     void slotConfChanged(const QModelIndex &, const QModelIndex &);

@@ -115,27 +115,32 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   setupConfigParms();
   setupSignalSlots();
   
-  // Subscribe to dbus signals from systemd daemon and connect them to slots
+  // Subscribe to dbus signals from systemd system daemon and connect them to slots
   QDBusInterface *iface = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, systembus, this);
   if (iface->isValid())
     iface->call(QDBus::AutoDetect, "Subscribe");
   delete iface;
 
-  systembus.connect(connSystemd, pathMgr, ifaceMgr, "Reloading", this, SLOT(slotSystemdReloading(bool)));
+  systembus.connect(connSystemd, pathMgr, ifaceMgr, "Reloading", this, SLOT(slotSystemSystemdReloading(bool)));
   // systembus.connect(connSystemd, pathMgr, ifaceMgr, "UnitNew", this, SLOT(slotUnitLoaded(QString, QDBusObjectPath)));
   // systembus.connect(connSystemd,pathMgr, ifaceMgr, "UnitRemoved", this, SLOT(slotUnitUnloaded(QString, QDBusObjectPath)));
-  systembus.connect(connSystemd, pathMgr, ifaceMgr, "JobRemoved", this, SLOT(slotJobRemoved(quint32, QDBusObjectPath, QString, QString)));
-  systembus.connect(connSystemd, pathMgr, ifaceMgr, "UnitFilesChanged", this, SLOT(slotUnitFilesChanged()));
-  systembus.connect(connSystemd, "", ifaceDbusProp, "PropertiesChanged", this, SLOT(slotSystemdPropertiesChanged(QString, QVariantMap, QStringList)));
+  systembus.connect(connSystemd, pathMgr, ifaceMgr, "UnitFilesChanged", this, SLOT(slotSystemUnitsChanged()));
+  systembus.connect(connSystemd, "", ifaceDbusProp, "PropertiesChanged", this, SLOT(slotSystemUnitsChanged()));
+  // We need to use the JobRemoved signal, because stopping units does not emit PropertiesChanged signal
+  systembus.connect(connSystemd, pathMgr, ifaceMgr, "JobRemoved", this, SLOT(slotSystemUnitsChanged()));
 
-  // User bus
+  // Subscribe to dbus signals from systemd user daemon and connect them to slots
   QDBusConnection userbus = QDBusConnection::connectToBus(userBusPath, connSystemd);
   // Subscribe to dbus signals from systemd daemon and connect them to slots
   iface = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, userbus, this);
   if (iface->isValid())
     iface->call(QDBus::AutoDetect, "Subscribe");
   delete iface;
-  userbus.connect(connSystemd, "", ifaceDbusProp, "PropertiesChanged", this, SLOT(slotUserPropertiesChanged(QString, QVariantMap, QStringList)));
+
+  userbus.connect(connSystemd, pathMgr, ifaceMgr, "Reloading", this, SLOT(slotUserSystemdReloading(bool)));
+  userbus.connect(connSystemd, pathMgr, ifaceMgr, "UnitFilesChanged", this, SLOT(slotUserUnitsChanged()));
+  userbus.connect(connSystemd, "", ifaceDbusProp, "PropertiesChanged", this, SLOT(slotUserUnitsChanged()));
+  userbus.connect(connSystemd, pathMgr, ifaceMgr, "JobRemoved", this, SLOT(slotUserUnitsChanged()));
 
   // logind
   systembus.connect(connLogind, "", ifaceDbusProp, "PropertiesChanged", this, SLOT(slotLogindPropertiesChanged(QString, QVariantMap, QStringList)));
@@ -1299,6 +1304,8 @@ void kcmsystemd::slotRefreshUnitsList(bool initial, dbusBus bus)
     {
       systemUnitModel->dataChanged(systemUnitModel->index(0, 0), systemUnitModel->index(systemUnitModel->rowCount(), 3));
       systemUnitFilterModel->invalidate();
+      updateUnitCount();
+      slotRefreshTimerList();
     }
   }
 
@@ -1319,6 +1326,7 @@ void kcmsystemd::slotRefreshUnitsList(bool initial, dbusBus bus)
     {
       userUnitModel->dataChanged(userUnitModel->index(0, 0), userUnitModel->index(userUnitModel->rowCount(), 3));
       userUnitFilterModel->invalidate();
+      updateUnitCount();
     }
   }
 }
@@ -1901,16 +1909,20 @@ bool kcmsystemd::eventFilter(QObject *obj, QEvent* event)
   // return true;
 }
 
-void kcmsystemd::slotSystemdReloading(bool status)
+void kcmsystemd::slotSystemSystemdReloading(bool status)
 {
   if (status)
-    qDebug() << "Systemd reloading...";
+    qDebug() << "System systemd reloading...";
   else
-  {
     slotRefreshUnitsList(false, sys);
-    slotRefreshTimerList();
-    updateUnitCount();
-  }
+}
+
+void kcmsystemd::slotUserSystemdReloading(bool status)
+{
+  if (status)
+    qDebug() << "User systemd reloading...";
+  else
+    slotRefreshUnitsList(false, user);
 }
 
 /*
@@ -1925,47 +1937,16 @@ void kcmsystemd::slotUnitUnloaded(QString id, QDBusObjectPath path)
 }
 */
 
-void kcmsystemd::slotJobRemoved(quint32, QDBusObjectPath, QString, QString)
+void kcmsystemd::slotSystemUnitsChanged()
 {
-  // This signal is used because PropertiesChanged is not always emitted.
-  // qDebug() << "JobRemoved for " << unitName;
-
+  // qDebug() << "System units changed";
   slotRefreshUnitsList(false, sys);
-  slotRefreshTimerList();
-  updateUnitCount();
 }
 
-void kcmsystemd::slotUnitFilesChanged()
+void kcmsystemd::slotUserUnitsChanged()
 {
-  qDebug() << "Unit files changed.";
-}
-
-void kcmsystemd::slotSystemdPropertiesChanged(QString iface_name, QVariantMap, QStringList)
-{
-  // qDebug() << "Systemd properties changed on iface " << iface_name;
-
-  // This signal gets emitted on two different interfaces,
-  // but no reason to call slotRefreshUnitsList() twice
-  if (iface_name == "org.freedesktop.systemd1.Unit")
-  {
-    slotRefreshUnitsList(false, sys);
-    slotRefreshTimerList();
-    updateUnitCount();
-  }
-}
-
-void kcmsystemd::slotUserPropertiesChanged(QString iface_name, QVariantMap, QStringList)
-{
-  // qDebug() << "User properties changed on iface " << iface_name;
-
-  // This signal gets emitted on two different interfaces,
-  // but no reason to call slotRefreshUnitsList() twice
-
-  if (iface_name == "org.freedesktop.systemd1.Unit")
-  {
-    slotRefreshUnitsList(false, user);
-    updateUnitCount();
-  }
+  // qDebug() << "User units changed";
+  slotRefreshUnitsList(false, user);
 }
 
 void kcmsystemd::slotLogindPropertiesChanged(QString, QVariantMap, QStringList)
