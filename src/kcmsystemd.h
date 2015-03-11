@@ -47,6 +47,16 @@ struct unitfile
   }
 };
 
+enum dbusConn
+{
+  systemd, logind
+};
+
+enum dbusIface
+{
+  sysdMgr, sysdUnit, sysdTimer, logdSession
+};
+
 class kcmsystemd : public KCModule
 {
   Q_OBJECT
@@ -73,6 +83,7 @@ class kcmsystemd : public KCModule
     void updateUnitCount();
     void setupConfigParms();
     QList<SystemdUnit> getUnitsFromDbus(dbusBus bus);
+    QVariant getDbusProperty(QString prop, dbusIface ifaceName, QDBusObjectPath path = QDBusObjectPath("/org/freedesktop/systemd1"));
     QProcess *kdeConfig;
     QSortFilterProxyModel *proxyModelConf;
     SortFilterUnitModel *systemUnitFilterModel, *userUnitFilterModel;
@@ -88,8 +99,18 @@ class kcmsystemd : public KCModule
     qulonglong partPersSizeMB, partVolaSizeMB;
     bool enableUserUnits = true;
     QTimer *timer;
-    QStringList unitTypeSufx = QStringList() << "" << ".target" << ".service" << ".device" << ".mount" << ".automount"
-                                          << ".swap" << ".socket" << ".path" << ".timer" << ".snapshot" << ".slice" << ".scope";
+    const QStringList unitTypeSufx = QStringList() << "" << ".target" << ".service" << ".device" << ".mount"
+                                                   << ".automount" << ".swap" << ".socket" << ".path"
+                                                   << ".timer" << ".snapshot" << ".slice" << ".scope";
+    const QString connSystemd = "org.freedesktop.systemd1";
+    const QString connLogind = "org.freedesktop.login1";
+    const QString pathMgr = "/org/freedesktop/systemd1";
+    const QString ifaceMgr = "org.freedesktop.systemd1.Manager";
+    const QString ifaceUnit = "org.freedesktop.systemd1.Unit";
+    const QString ifaceTimer = "org.freedesktop.systemd1.Timer";
+    const QString ifaceSession = "org.freedesktop.login1.Session";
+    const QString ifaceDbusProp = "org.freedesktop.DBus.Properties";
+    QDBusConnection systembus = QDBusConnection::systemBus();
 
   private slots:
     void slotKdeConfig();
