@@ -15,30 +15,30 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************/
 
-#ifndef UNITMODEL_H
-#define UNITMODEL_H
+#ifndef SORTFILTERUNITMODEL_H
+#define SORTFILTERUNITMODEL_H
 
-#include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
 
-#include "systemdunit.h"
+enum filterType
+{
+  activeState, unitType, unitName
+};
 
-class UnitModel : public QAbstractTableModel
+class SortFilterUnitModel : public QSortFilterProxyModel
 {
   Q_OBJECT
-  
+
 public:
-  UnitModel(QObject *parent = 0);
-  UnitModel(QObject *parent = 0, const QList<SystemdUnit> *list = NULL, QString userBusPath = "");
-  int rowCount(const QModelIndex & parent = QModelIndex()) const;
-  int columnCount(const QModelIndex & parent = QModelIndex()) const;
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-  QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+  SortFilterUnitModel(QObject *parent = 0);
+  void initFilterMap(const QMap<filterType, QString> &map);
+  void addFilterRegExp(filterType type, const QString &pattern);
+
+protected:
+  bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
 
 private:
-  QStringList getLastJrnlEntries(QString unit) const;
-  const QList<SystemdUnit> *unitList;
-  QString userBus;
+  QMap<filterType, QString> filtersMap;
 };
-  
-#endif // UNITMODEL_H
- 
+
+#endif // SORTFILTERUNITMODEL_H

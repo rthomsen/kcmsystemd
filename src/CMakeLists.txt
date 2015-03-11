@@ -2,6 +2,7 @@ add_subdirectory(helper)
 
 set(kcmsystemd_SRCS kcmsystemd.cpp
                     unitmodel.cpp
+                    sortfilterunitmodel.cpp
                     confoption.cpp
                     confmodel.cpp
                     confdelegate.cpp)

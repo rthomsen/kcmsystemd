@@ -16,21 +16,28 @@
  *******************************************************************************/
 
 #include <QtDBus/QtDBus>
+#include <QColor>
+#include <KLocalizedString>
 
 #include <systemd/sd-journal.h>
 
 #include "unitmodel.h"
-#include "kcmsystemd.h"
 
 UnitModel::UnitModel(QObject *parent)
  : QAbstractTableModel(parent)
 {
 }
 
+UnitModel::UnitModel(QObject *parent, const QList<SystemdUnit> *list, QString userBusPath)
+ : QAbstractTableModel(parent)
+{
+  unitList = list;
+  userBus = userBusPath;
+}
+
 int UnitModel::rowCount(const QModelIndex &) const
 {
-  // qDebug() << "size of unitslist is " << kcmsystemd::unitslist.size();
-  return kcmsystemd::unitslist.size();
+  return unitList->size();
 }
 
 int UnitModel::columnCount(const QModelIndex &) const
@@ -53,19 +60,20 @@ QVariant UnitModel::headerData(int section, Qt::Orientation orientation, int rol
 
 QVariant UnitModel::data(const QModelIndex & index, int role) const
 {
+
   if (!index.isValid())
     return QVariant();
 
   if (role == Qt::DisplayRole)
   {
     if (index.column() == 0)
-      return kcmsystemd::unitslist.at(index.row()).load_state;
+      return unitList->at(index.row()).load_state;
     else if (index.column() == 1)
-      return kcmsystemd::unitslist.at(index.row()).active_state;
+      return unitList->at(index.row()).active_state;
     else if (index.column() == 2)
-      return kcmsystemd::unitslist.at(index.row()).sub_state;
+      return unitList->at(index.row()).sub_state;
     else if (index.column() == 3)
-      return kcmsystemd::unitslist.at(index.row()).id;
+      return unitList->at(index.row()).id;
   }
 
   else if (role == Qt::ForegroundRole)
@@ -73,11 +81,11 @@ QVariant UnitModel::data(const QModelIndex & index, int role) const
     // Update the text color in model
     QColor newcolor;
 
-    if (kcmsystemd::unitslist.at(index.row()).active_state == "active")
+    if (unitList->at(index.row()).active_state == "active")
       newcolor = Qt::darkGreen;
-    else if (kcmsystemd::unitslist.at(index.row()).active_state == "failed")
+    else if (unitList->at(index.row()).active_state == "failed")
       newcolor = Qt::darkRed;
-    else if (kcmsystemd::unitslist.at(index.row()).active_state == "-")
+    else if (unitList->at(index.row()).active_state == "-")
       newcolor = Qt::darkGray;
     else
       newcolor = Qt::black;
@@ -87,21 +95,26 @@ QVariant UnitModel::data(const QModelIndex & index, int role) const
 
   else if (role == Qt::ToolTipRole)
   {
-    QString selUnit = kcmsystemd::unitslist.at(index.row()).id;
-    QString selUnitPath = kcmsystemd::unitslist.at(index.row()).unit_path.path();
-    QString selUnitFile = kcmsystemd::unitslist.at(index.row()).unit_file;
+    QString selUnit = unitList->at(index.row()).id;
+    QString selUnitPath = unitList->at(index.row()).unit_path.path();
+    QString selUnitFile = unitList->at(index.row()).unit_file;
 
     QString toolTipText;
     toolTipText.append("<FONT COLOR=white>");
     toolTipText.append("<b>" + selUnit + "</b><hr>");
 
     // Create a DBus interface
-    QDBusConnection systembus = QDBusConnection::systemBus();
+    QDBusConnection bus("");
+    if (!userBus.isEmpty())
+      bus = QDBusConnection::connectToBus(userBus, "org.freedesktop.systemd1");
+    else
+      bus = QDBusConnection::systemBus();
+
     QDBusInterface *iface;
     iface = new QDBusInterface ("org.freedesktop.systemd1",
                                 selUnitPath,
                                 "org.freedesktop.systemd1.Unit",
-                                systembus);
+                                bus);
 
     // Use the DBus interface to get unit properties
     if (iface->isValid())
@@ -146,7 +159,7 @@ QVariant UnitModel::data(const QModelIndex & index, int role) const
       iface = new QDBusInterface ("org.freedesktop.systemd1",
                                   "/org/freedesktop/systemd1",
                                   "org.freedesktop.systemd1.Manager",
-                                  systembus);
+                                  bus);
       QList<QVariant> args;
       args << selUnit;
 
@@ -162,7 +175,7 @@ QVariant UnitModel::data(const QModelIndex & index, int role) const
     }
 
     // Journal entries for service and scope units
-    if (selUnit.contains(QRegExp("(.service|.scope)$")))
+    if (selUnit.contains(QRegExp("(.service|.scope|.socket)$")))
     {
       toolTipText.append(i18n("<hr><b>Last log entries:</b>"));
       QStringList log = getLastJrnlEntries(selUnit);
@@ -188,7 +201,12 @@ QVariant UnitModel::data(const QModelIndex & index, int role) const
 
 QStringList UnitModel::getLastJrnlEntries(QString unit) const
 {
-  QString match = QString("_SYSTEMD_UNIT=" + unit);
+  QString match;
+  if (!userBus.isEmpty())
+    match = QString("USER_UNIT=" + unit);
+  else
+    match = QString("_SYSTEMD_UNIT=" + unit);
+
   QStringList reply;
   int r, jflags = SD_JOURNAL_LOCAL_ONLY;
   const void *data;

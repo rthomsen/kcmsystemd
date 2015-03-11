@@ -27,59 +27,12 @@
 #include <KLocalizedString>
 
 #include "ui_kcmsystemd.h"
+#include "systemdunit.h"
 #include "unitmodel.h"
+#include "sortfilterunitmodel.h"
 #include "confoption.h"
 #include "confmodel.h"
 #include "confdelegate.h"
-
-// struct for storing units retrieved from systemd via DBus
-struct SystemdUnit
-{
-  QString id, description, load_state, active_state, sub_state, following, job_type, unit_file, unit_file_status;
-  QDBusObjectPath unit_path, job_path;
-  unsigned int job_id;
-  
-  // The == operator must be provided to use contains() and indexOf()
-  // on QLists of this struct
-  bool operator==(const SystemdUnit& right) const
-  {
-    if (id == right.id)
-      return true;
-    else
-      return false;
-  }
-  SystemdUnit(){};
-
-  SystemdUnit(QString newId)
-  {
-    id = newId;
-  }
-};
-Q_DECLARE_METATYPE(SystemdUnit)
-
-// struct for storing sessions retrieved from logind via DBus
-struct SystemdSession
-{
-  QString session_id, user_name, seat_id, session_state;
-  QDBusObjectPath session_path;
-  unsigned int user_id;
-
-  // The == operator must be provided to use contains() and indexOf()
-  // on QLists of this struct
-  bool operator==(const SystemdSession& right) const
-  {
-    if (session_id == right.session_id)
-      return true;
-    else
-      return false;
-  }
-};
-Q_DECLARE_METATYPE(SystemdSession)
-
-enum dbusBus
-{
-  sys, session, user
-};
 
 struct unitfile
 {
@@ -106,8 +59,6 @@ class kcmsystemd : public KCModule
     void save();
     static ConfModel *confModel;
     static QList<confOption> confOptList;
-    static UnitModel *unitsModel;
-    static QList<SystemdUnit> unitslist;
 
   private:
     Ui::kcmsystemd ui;
@@ -123,33 +74,39 @@ class kcmsystemd : public KCModule
     void setupConfigParms();
     QList<SystemdUnit> getUnitsFromDbus(dbusBus bus);
     QProcess *kdeConfig;
-    QSortFilterProxyModel *proxyModelUnitId, *proxyModelAct, *proxyModelConf;
+    QSortFilterProxyModel *proxyModelConf;
+    SortFilterUnitModel *systemUnitFilterModel, *userUnitFilterModel;
     QStandardItemModel *sessionModel, *timerModel;
-    QList<SystemdUnit> timerslist;
+    UnitModel *systemUnitModel, *userUnitModel;
+    QList<SystemdUnit> unitslist, userUnitslist;
     QList<SystemdSession> sessionlist;
     QStringList listConfFiles;
-    QString kdePrefix, selectedUnit, etcDir, filterUnitType, searchTerm;
+    QString kdePrefix, etcDir, userBusPath;
     QMenu *contextMenuUnits;
     QAction *actEnableUnit, *actDisableUnit;
-    int systemdVersion, timesLoad = 0, lastUnitRowChecked = -1, lastSessionRowChecked = -1, noActUnits;
+    int systemdVersion, timesLoad = 0, lastUnitRowChecked = -1, lastSessionRowChecked = -1, noActSystemUnits, noActUserUnits;
     qulonglong partPersSizeMB, partVolaSizeMB;
     bool isPersistent, varLogDirExists;
     QTimer *timer;
+    QStringList unitTypeSufx = QStringList() << "" << ".target" << ".service" << ".device" << ".mount" << ".automount"
+                                          << ".swap" << ".socket" << ".path" << ".timer" << ".snapshot" << ".slice" << ".scope";
 
   private slots:
     void slotKdeConfig();
-    void slotChkShowUnits();
-    void slotCmbUnitTypes();
+    void slotChkShowUnits(int);
+    void slotCmbUnitTypes(int);
     void slotUnitContextMenu(const QPoint &);
     void slotSessionContextMenu(const QPoint &);
-    void slotRefreshUnitsList();
+    void slotRefreshUnitsList(bool, dbusBus);
     void slotRefreshSessionList();
     void slotRefreshTimerList();
     void slotSystemdReloading(bool);
     // void slotUnitLoaded(QString, QDBusObjectPath);
     // void slotUnitUnloaded(QString, QDBusObjectPath);
+    void slotJobRemoved(quint32, QDBusObjectPath, QString, QString);
     void slotUnitFilesChanged();
     void slotSystemdPropertiesChanged(QString, QVariantMap, QStringList);
+    void slotUserPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLogindPropertiesChanged(QString, QVariantMap, QStringList);
     void slotLeSearchUnitChanged(QString);
     void slotConfChanged(const QModelIndex &, const QModelIndex &);

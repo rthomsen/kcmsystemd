@@ -31,10 +31,9 @@ using namespace KAuth;
 
 #include <boost/filesystem.hpp>
 
+// Static members
 ConfModel *kcmsystemd::confModel = new ConfModel();
 QList<confOption> kcmsystemd::confOptList;
-UnitModel *kcmsystemd::unitsModel = new UnitModel();
-QList<SystemdUnit> kcmsystemd::unitslist;
 
 K_PLUGIN_FACTORY(kcmsystemdFactory, registerPlugin<kcmsystemd>();)
 
@@ -73,6 +72,8 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
     ui.stackedWidget->setCurrentIndex(1);
   }
   delete iface;
+
+  userBusPath = "unix:path=/run/user/" + QString::number(getuid()) + "/dbus/user_bus_socket";
 
   // Use kf5-config to get kde prefix
   kdeConfig = new QProcess(this);
@@ -114,6 +115,7 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   setupConfigParms();
   setupSignalSlots();
   
+
   // Subscribe to dbus signals from systemd daemon and connect them to slots
   iface = new QDBusInterface ("org.freedesktop.systemd1",
 					      "/org/freedesktop/systemd1",
@@ -123,25 +125,33 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   if (iface->isValid())
     iface->call(QDBus::AutoDetect, "Subscribe");
   delete iface;
+
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","Reloading",this,SLOT(slotSystemdReloading(bool)));
   // QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitNew",this,SLOT(slotUnitLoaded(QString, QDBusObjectPath)));
   // QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitRemoved",this,SLOT(slotUnitUnloaded(QString, QDBusObjectPath)));
+  QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","JobRemoved",this,SLOT(slotJobRemoved(quint32, QDBusObjectPath, QString, QString)));
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","/org/freedesktop/systemd1","org.freedesktop.systemd1.Manager","UnitFilesChanged",this,SLOT(slotUnitFilesChanged()));
   QDBusConnection::systemBus().connect("org.freedesktop.systemd1","","org.freedesktop.DBus.Properties","PropertiesChanged",this,SLOT(slotSystemdPropertiesChanged(QString, QVariantMap, QStringList)));
 
-  // Subscribe to dbus signals from logind daemon and connect them to slots
-  iface = new QDBusInterface ("org.freedesktop.login1",
-                              "/org/freedesktop/login1",
-                              "org.freedesktop.login1.Manager",
-                              systembus,
+  // User bus
+  QDBusConnection userbus = QDBusConnection::connectToBus(userBusPath, "org.freedesktop.systemd1");
+  // Subscribe to dbus signals from systemd daemon and connect them to slots
+  iface = new QDBusInterface ("org.freedesktop.systemd1",
+                              "/org/freedesktop/systemd1",
+                              "org.freedesktop.systemd1.Manager",
+                              userbus,
                               this);
   if (iface->isValid())
     iface->call(QDBus::AutoDetect, "Subscribe");
   delete iface;
+  userbus.connect("org.freedesktop.systemd1","","org.freedesktop.DBus.Properties","PropertiesChanged",this,SLOT(slotUserPropertiesChanged(QString, QVariantMap, QStringList)));
+
+  // logind
   QDBusConnection::systemBus().connect("org.freedesktop.login1","","org.freedesktop.DBus.Properties","PropertiesChanged",this,SLOT(slotLogindPropertiesChanged(QString, QVariantMap, QStringList)));
   
   // Get list of units
-  slotRefreshUnitsList();
+  slotRefreshUnitsList(true, sys);
+  slotRefreshUnitsList(true, user);
 
   setupUnitslist();
   setupConf();
@@ -170,18 +180,6 @@ QDBusArgument &operator<<(QDBusArgument &argument, const SystemdUnit &unit)
   return argument;
 }
 
-QDBusArgument &operator<<(QDBusArgument &argument, const SystemdSession &session)
-{
-  argument.beginStructure();
-  argument << session.session_id
-     << session.user_id
-     << session.user_name
-     << session.seat_id
-     << session.session_path;
-  argument.endStructure();
-  return argument;
-}
-
 const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdUnit &unit)
 {
      argument.beginStructure();
@@ -199,6 +197,18 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdUnit &unit
      return argument;
 }
 
+QDBusArgument &operator<<(QDBusArgument &argument, const SystemdSession &session)
+{
+  argument.beginStructure();
+  argument << session.session_id
+     << session.user_id
+     << session.user_name
+     << session.seat_id
+     << session.session_path;
+  argument.endStructure();
+  return argument;
+}
+
 const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdSession &session)
 {
      argument.beginStructure();
@@ -213,14 +223,19 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, SystemdSession &s
 
 void kcmsystemd::setupSignalSlots()
 {
-  // Connect signals for units tab
-  connect(ui.btnRefreshUnits, SIGNAL(clicked()), this, SLOT(slotRefreshUnitsList()));
-  connect(ui.chkInactiveUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits()));
-  connect(ui.chkShowUnloadedUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits()));
-  connect(ui.cmbUnitTypes, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbUnitTypes()));
+  // Connect signals for unit tabs
+  connect(ui.chkInactiveUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits(int)));
+  connect(ui.chkUnloadedUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits(int)));
+  connect(ui.chkInactiveUserUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits(int)));
+  connect(ui.chkUnloadedUserUnits, SIGNAL(stateChanged(int)), this, SLOT(slotChkShowUnits(int)));
+  connect(ui.cmbUnitTypes, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbUnitTypes(int)));
+  connect(ui.cmbUserUnitTypes, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbUnitTypes(int)));
   connect(ui.tblUnits, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotUnitContextMenu(QPoint)));
-  connect(ui.tblSessions, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotSessionContextMenu(QPoint)));
   connect(ui.leSearchUnit, SIGNAL(textChanged(QString)), this, SLOT(slotLeSearchUnitChanged(QString)));
+  connect(ui.leSearchUserUnit, SIGNAL(textChanged(QString)), this, SLOT(slotLeSearchUnitChanged(QString)));
+
+  // Connect signals for sessions tab
+  connect(ui.tblSessions, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotSessionContextMenu(QPoint)));
 
   // Connect signals for conf tab
   connect(ui.cmbConfFile, SIGNAL(currentIndexChanged(int)), this, SLOT(slotCmbConfFileChanged(int)));
@@ -236,6 +251,7 @@ void kcmsystemd::load()
                                                << i18n("Sockets") << i18n("Paths") << i18n("Timers") << i18n("Snapshots")
                                                << i18n("Slices") << i18n("Scopes");
     ui.cmbUnitTypes->addItems(allowUnitTypes);
+    ui.cmbUserUnitTypes->addItems(allowUnitTypes);
     ui.cmbConfFile->addItems(listConfFiles);
   }
   timesLoad = timesLoad + 1;
@@ -1013,22 +1029,34 @@ void kcmsystemd::setupUnitslist()
 
   // Register the meta type for storing units
   qDBusRegisterMetaType<SystemdUnit>();
-  
-  // Setup models for unitslist
-  unitsModel = new UnitModel(this);
-  proxyModelAct = new QSortFilterProxyModel (this);
-  proxyModelAct->setDynamicSortFilter(false);
-  proxyModelUnitId = new QSortFilterProxyModel (this);
-  proxyModelUnitId->setDynamicSortFilter(false);
-  proxyModelAct->setSourceModel(unitsModel);
-  proxyModelUnitId->setSourceModel(proxyModelAct);
 
-  ui.tblUnits->setModel(proxyModelUnitId);
-  
-  // Setup initial filters and sorting
+  QMap<filterType, QString> filters;
+  filters[activeState] = "";
+  filters[unitType] = "";
+  filters[unitName] = "";
+
+  // QList<SystemdUnit> *ptrUnits;
+  // ptrUnits = &unitslist;
+
+  // Setup the system unit model
+  systemUnitModel = new UnitModel(this, &unitslist);
+  systemUnitFilterModel = new SortFilterUnitModel(this);
+  systemUnitFilterModel->setDynamicSortFilter(false);
+  systemUnitFilterModel->initFilterMap(filters);
+  systemUnitFilterModel->setSourceModel(systemUnitModel);
+  ui.tblUnits->setModel(systemUnitFilterModel);
   ui.tblUnits->sortByColumn(3, Qt::AscendingOrder);
-  proxyModelUnitId->setSortCaseSensitivity(Qt::CaseInsensitive);
-  slotChkShowUnits();
+
+  // Setup the user unit model
+  userUnitModel = new UnitModel(this, &userUnitslist, userBusPath);
+  userUnitFilterModel = new SortFilterUnitModel(this);
+  userUnitFilterModel->setDynamicSortFilter(false);
+  userUnitFilterModel->initFilterMap(filters);
+  userUnitFilterModel->setSourceModel(userUnitModel);
+  ui.tblUserUnits->setModel(userUnitFilterModel);
+  ui.tblUserUnits->sortByColumn(3, Qt::AscendingOrder);
+
+  slotChkShowUnits(-1);
 }
 
 void kcmsystemd::setupSessionlist()
@@ -1090,7 +1118,6 @@ void kcmsystemd::setupTimerlist()
 
   slotRefreshTimerList();
 }
-
 
 void kcmsystemd::defaults()
 {
@@ -1189,87 +1216,119 @@ void kcmsystemd::slotKdeConfig()
   kdePrefix = QString::fromLatin1(kdeConfig->readAllStandardOutput()).trimmed();
 }
 
-void kcmsystemd::slotChkShowUnits()
+void kcmsystemd::slotChkShowUnits(int state)
 {
-  if (ui.chkInactiveUnits->isChecked()) {
-    ui.chkShowUnloadedUnits->setEnabled(true);
-    if (ui.chkShowUnloadedUnits->isChecked())
-      proxyModelAct->setFilterRegExp("");
+  if (state == -1 ||
+      QObject::sender()->objectName() == "chkInactiveUnits" ||
+      QObject::sender()->objectName() == "chkUnloadedUnits")
+  {
+    // System units
+    if (ui.chkInactiveUnits->isChecked())
+    {
+      ui.chkUnloadedUnits->setEnabled(true);
+      if (ui.chkUnloadedUnits->isChecked())
+        systemUnitFilterModel->addFilterRegExp(activeState, "");
+      else
+        systemUnitFilterModel->addFilterRegExp(activeState, "active");
+    }
     else
-      proxyModelAct->setFilterRegExp("active");
-  } else {
-    ui.chkShowUnloadedUnits->setEnabled(false);
-    proxyModelAct->setFilterRegExp(QRegExp("^(active)"));
+    {
+      ui.chkUnloadedUnits->setEnabled(false);
+      systemUnitFilterModel->addFilterRegExp(activeState, "^(active)");
+    }
+    systemUnitFilterModel->invalidate();
+    ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(),
+                              ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
   }
-  proxyModelAct->setFilterKeyColumn(1);
-  ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(), ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
+  if (state == -1 ||
+      QObject::sender()->objectName() == "chkInactiveUserUnits" ||
+      QObject::sender()->objectName() == "chkUnloadedUserUnits")
+  {
+    // User units
+    if (ui.chkInactiveUserUnits->isChecked())
+    {
+      ui.chkUnloadedUserUnits->setEnabled(true);
+      if (ui.chkUnloadedUserUnits->isChecked())
+        userUnitFilterModel->addFilterRegExp(activeState, "");
+      else
+        userUnitFilterModel->addFilterRegExp(activeState, "active");
+    }
+    else
+    {
+      ui.chkUnloadedUserUnits->setEnabled(false);
+      userUnitFilterModel->addFilterRegExp(activeState, "^(active)");
+    }
+    userUnitFilterModel->invalidate();
+    ui.tblUserUnits->sortByColumn(ui.tblUserUnits->horizontalHeader()->sortIndicatorSection(),
+                                  ui.tblUserUnits->horizontalHeader()->sortIndicatorOrder());
+  }
   updateUnitCount();
 }
 
-void kcmsystemd::slotCmbUnitTypes()
+void kcmsystemd::slotCmbUnitTypes(int index)
 {
   // Filter unit list for a selected unit type
-  switch (ui.cmbUnitTypes->currentIndex())
+
+  if (QObject::sender()->objectName() == "cmbUnitTypes")
   {
-  case 0:
-    filterUnitType = "";
-    break;
-  case 1:
-    filterUnitType = ".target";
-    break;
-  case 2:
-    filterUnitType = ".service";
-    break;
-  case 3:
-    filterUnitType = ".device";
-    break;
-  case 4:
-    filterUnitType = ".mount";
-    break;
-  case 5:
-    filterUnitType = ".automount";
-    break;
-  case 6:
-    filterUnitType = ".swap";
-    break;
-  case 7:
-    filterUnitType = ".socket";
-    break;
-  case 8:
-    filterUnitType = ".path";
-    break;
-  case 9:
-    filterUnitType = ".timer";
-    break;
-  case 10:
-    filterUnitType = ".snapshot";
-    break;
-  case 11:
-    filterUnitType = ".slice";
-    break;
-  case 12:
-    filterUnitType = ".scope";
+    systemUnitFilterModel->addFilterRegExp(unitType, "(" + unitTypeSufx.at(index) + ")$");
+    systemUnitFilterModel->invalidate();
+    ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(),
+                              ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
   }
-  proxyModelUnitId->setFilterRegExp(QRegExp("(?=.*" + searchTerm + ")(?=.*" + filterUnitType + "$)",
-                                            Qt::CaseInsensitive,
-                                            QRegExp::RegExp));
-  proxyModelUnitId->setFilterKeyColumn(3);
-  ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(), ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
+  else if (QObject::sender()->objectName() == "cmbUserUnitTypes")
+  {
+    userUnitFilterModel->addFilterRegExp(unitType, "(" + unitTypeSufx.at(index) + ")$");
+    userUnitFilterModel->invalidate();
+    ui.tblUserUnits->sortByColumn(ui.tblUserUnits->horizontalHeader()->sortIndicatorSection(),
+                                  ui.tblUserUnits->horizontalHeader()->sortIndicatorOrder());
+  }
   updateUnitCount();
 }
 
-void kcmsystemd::slotRefreshUnitsList()
+void kcmsystemd::slotRefreshUnitsList(bool initial, dbusBus bus)
 {
-  // Updates the units list
+  // Updates the unit lists
 
-  // qDebug() << "Refreshing units...";
+  if (bus == sys)
+  {
+    qDebug() << "Refreshing system units...";
 
-  // clear lists
-  unitslist.clear();
-  noActUnits = 0;
-  
-  // get an updated list of units via dbus
-  unitslist = getUnitsFromDbus(sys);
+    // get an updated list of system units via dbus
+    unitslist.clear();
+    unitslist = getUnitsFromDbus(sys);
+    noActSystemUnits = 0;
+    foreach (SystemdUnit unit, unitslist)
+    {
+      if (unit.active_state == "active")
+        noActSystemUnits++;
+    }
+    if (!initial)
+    {
+      systemUnitModel->dataChanged(systemUnitModel->index(0, 0), systemUnitModel->index(systemUnitModel->rowCount(), 3));
+      systemUnitFilterModel->invalidate();
+    }
+  }
+
+  else if (bus == user)
+  {
+    qDebug() << "Refreshing user units...";
+
+    // get an updated list of user units via dbus
+    userUnitslist.clear();
+    userUnitslist = getUnitsFromDbus(user);
+    noActUserUnits = 0;
+    foreach (SystemdUnit unit, userUnitslist)
+    {
+      if (unit.active_state == "active")
+        noActUserUnits++;
+    }
+    if (!initial)
+    {
+      userUnitModel->dataChanged(userUnitModel->index(0, 0), userUnitModel->index(userUnitModel->rowCount(), 3));
+      userUnitFilterModel->invalidate();
+    }
+  }
 }
 
 void kcmsystemd::slotRefreshSessionList()
@@ -1347,7 +1406,7 @@ void kcmsystemd::slotRefreshSessionList()
       if (!sessionlist.contains(session))
       {
         // Add removed units to list for deletion
-        // qDebug() << "Unit removed: " << unitsModel->index(row,3).data().toString();
+        // qDebug() << "Unit removed: " << systemUnitModel->index(row,3).data().toString();
         indexes << sessionModel->index(row,0);
       }
     }
@@ -1488,10 +1547,14 @@ void kcmsystemd::slotRefreshTimerList()
 
 void kcmsystemd::updateUnitCount()
 {
-  ui.lblStatus->setText(i18n("Total: %1 units, %2 active, %3 displayed",
-                             QString::number(unitsModel->rowCount()),
-                             QString::number(noActUnits),
-                             QString::number(proxyModelUnitId->rowCount())));
+  ui.lblUnitCount->setText(i18n("Total: %1 units, %2 active, %3 displayed",
+                                QString::number(systemUnitModel->rowCount()),
+                                QString::number(noActSystemUnits),
+                                QString::number(systemUnitFilterModel->rowCount())));
+  ui.lblUserUnitCount->setText(i18n("Total: %1 units, %2 active, %3 displayed",
+                                    QString::number(userUnitModel->rowCount()),
+                                    QString::number(noActUserUnits),
+                                    QString::number(userUnitFilterModel->rowCount())));
 }
 
 void kcmsystemd::authServiceAction(QString service, QString path, QString interface, QString method, QList<QVariant> args)
@@ -1888,7 +1951,11 @@ void kcmsystemd::slotSystemdReloading(bool status)
   if (status)
     qDebug() << "Systemd reloading...";
   else
-    slotRefreshUnitsList();
+  {
+    slotRefreshUnitsList(false, sys);
+    slotRefreshTimerList();
+    updateUnitCount();
+  }
 }
 
 /*
@@ -1903,40 +1970,71 @@ void kcmsystemd::slotUnitUnloaded(QString id, QDBusObjectPath path)
 }
 */
 
+void kcmsystemd::slotJobRemoved(quint32, QDBusObjectPath, QString, QString)
+{
+  // This signal is used because PropertiesChanged is not always emitted.
+  // qDebug() << "JobRemoved for " << unitName;
+
+  slotRefreshUnitsList(false, sys);
+  slotRefreshTimerList();
+  updateUnitCount();
+}
+
 void kcmsystemd::slotUnitFilesChanged()
 {
-  // qDebug() << "Unit files changed.";
-  // slotRefreshUnitsList();
+  qDebug() << "Unit files changed.";
 }
 
 void kcmsystemd::slotSystemdPropertiesChanged(QString iface_name, QVariantMap, QStringList)
 {
-  // qDebug() << "Systemd properties changed.";
+  // qDebug() << "Systemd properties changed on iface " << iface_name;
 
   // This signal gets emitted on two different interfaces,
   // but no reason to call slotRefreshUnitsList() twice
   if (iface_name == "org.freedesktop.systemd1.Unit")
   {
-    slotRefreshUnitsList();
+    slotRefreshUnitsList(false, sys);
     slotRefreshTimerList();
+    updateUnitCount();
   }
-  updateUnitCount();
+}
+
+void kcmsystemd::slotUserPropertiesChanged(QString iface_name, QVariantMap, QStringList)
+{
+  // qDebug() << "User properties changed on iface " << iface_name;
+
+  // This signal gets emitted on two different interfaces,
+  // but no reason to call slotRefreshUnitsList() twice
+
+  if (iface_name == "org.freedesktop.systemd1.Unit")
+  {
+    slotRefreshUnitsList(false, user);
+    updateUnitCount();
+  }
 }
 
 void kcmsystemd::slotLogindPropertiesChanged(QString, QVariantMap, QStringList)
 {
-  // qDebug() << "Logind properties changed, iface: " << iface_name;
+  // qDebug() << "Logind properties changed on iface " << iface_name;
   slotRefreshSessionList();
 }
 
 void kcmsystemd::slotLeSearchUnitChanged(QString term)
 {
-  searchTerm = term;
-  proxyModelUnitId->setFilterRegExp(QRegExp("(?=.*" + searchTerm + ")(?=.*" + filterUnitType + "$)", Qt::CaseInsensitive, QRegExp::RegExp));
-  proxyModelUnitId->setFilterKeyColumn(3);
-  int section = ui.tblUnits->horizontalHeader()->sortIndicatorSection();
-  Qt::SortOrder order = ui.tblUnits->horizontalHeader()->sortIndicatorOrder();
-  ui.tblUnits->sortByColumn(section, order);
+  if (QObject::sender()->objectName() == "leSearchUnit")
+  {
+    systemUnitFilterModel->addFilterRegExp(unitName, term);
+    systemUnitFilterModel->invalidate();
+    ui.tblUnits->sortByColumn(ui.tblUnits->horizontalHeader()->sortIndicatorSection(),
+                              ui.tblUnits->horizontalHeader()->sortIndicatorOrder());
+  }
+  else if (QObject::sender()->objectName() == "leSearchUserUnit")
+  {
+    userUnitFilterModel->addFilterRegExp(unitName, term);
+    userUnitFilterModel->invalidate();
+    ui.tblUserUnits->sortByColumn(ui.tblUserUnits->horizontalHeader()->sortIndicatorSection(),
+                                  ui.tblUserUnits->horizontalHeader()->sortIndicatorOrder());
+  }
   updateUnitCount();
 }
 
@@ -1999,9 +2097,8 @@ QList<SystemdUnit> kcmsystemd::getUnitsFromDbus(dbusBus bus)
   QList<SystemdUnit> list;
   QList<unitfile> unitfileslist;
   QDBusMessage dbusreply;
-  QString userBusPath("unix:path=/run/user/" + QString::number(getuid()) + "/dbus/user_bus_socket");
 
-  QDBusConnection nbus("test");
+  QDBusConnection nbus("");
   if (bus == sys)
     nbus = QDBusConnection::systemBus();
   else if (bus == user)
@@ -2020,6 +2117,7 @@ QList<SystemdUnit> kcmsystemd::getUnitsFromDbus(dbusBus bus)
   delete iface;
 
   const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
+  int tal = 0;
   if (arg.currentType() == QDBusArgument::ArrayType)
   {
     arg.beginArray();
@@ -2030,12 +2128,12 @@ QList<SystemdUnit> kcmsystemd::getUnitsFromDbus(dbusBus bus)
       list.append(unit);
 
       // qDebug() << "Added unit " << unit.id;
-
-      if (unit.active_state == "active")
-        noActUnits++;
+      tal++;
     }
     arg.endArray();
   }
+  // qDebug() << "Added " << tal << " units on bus " << bus;
+  tal = 0;
 
   // Get a list of unit files
   iface = new QDBusInterface ("org.freedesktop.systemd1",
@@ -2088,12 +2186,11 @@ QList<SystemdUnit> kcmsystemd::getUnitsFromDbus(dbusBus bus)
         list.append(unit);
 
         // qDebug() << "Added unit " << unit.id;
-
-        if (unit.active_state == "active")
-          noActUnits++;
+        tal++;
       }
     }
   }
+  // qDebug() << "Added " << tal << " units from files on bus " << bus;
 
   return list;
 }
