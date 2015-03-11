@@ -73,7 +73,17 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   }
   delete iface;
 
-  userBusPath = "unix:path=/run/user/" + QString::number(getuid()) + "/dbus/user_bus_socket";
+  // Search for user bus
+  if (QFile("/run/user/" + QString::number(getuid()) + "/bus").exists())
+    userBusPath = "unix:path=/run/user/" + QString::number(getuid()) + "/bus";
+  else if (QFile("/run/user/" + QString::number(getuid()) + "/dbus/user_bus_socket").exists())
+    userBusPath = "unix:path=/run/user/" + QString::number(getuid()) + "/dbus/user_bus_socket";
+  else
+  {
+    qDebug() << "User bus not found. Support for user units disabled.";
+    ui.tabWidget->setTabEnabled(1,false);
+    enableUserUnits = false;
+  }
 
   // Use kf5-config to get kde prefix
   kdeConfig = new QProcess(this);
@@ -1310,7 +1320,7 @@ void kcmsystemd::slotRefreshUnitsList(bool initial, dbusBus bus)
     }
   }
 
-  else if (bus == user)
+  else if (enableUserUnits && bus == user)
   {
     qDebug() << "Refreshing user units...";
 
