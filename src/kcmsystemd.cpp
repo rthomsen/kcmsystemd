@@ -57,10 +57,10 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   // See if systemd is reachable via dbus
   QDBusConnection systembus = QDBusConnection::systemBus();
   QDBusInterface *iface = new QDBusInterface ("org.freedesktop.systemd1",
-					      "/org/freedesktop/systemd1",
-					      "org.freedesktop.systemd1.Manager",
-					      systembus,
-					      this);
+                                              "/org/freedesktop/systemd1",
+                                              "org.freedesktop.systemd1.Manager",
+                                              systembus,
+                                              this);
   if (iface->isValid())
   {
     systemdVersion = iface->property("Version").toString().remove("systemd ").toInt();
@@ -107,9 +107,6 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   if (systemdVersion >= 215)
     listConfFiles << "coredump.conf";
   
-  varLogDirExists = QDir("/var/log/journal").exists();
-  if (varLogDirExists)
-    isPersistent = true;
   // Use boost to find persistent partition size
   boost::filesystem::path pp ("/var/log");
   boost::filesystem::space_info logPpart = boost::filesystem::space(pp);
@@ -125,7 +122,6 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   setupConfigParms();
   setupSignalSlots();
   
-
   // Subscribe to dbus signals from systemd daemon and connect them to slots
   iface = new QDBusInterface ("org.freedesktop.systemd1",
 					      "/org/freedesktop/systemd1",

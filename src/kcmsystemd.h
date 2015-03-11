@@ -86,7 +86,7 @@ class kcmsystemd : public KCModule
     QAction *actEnableUnit, *actDisableUnit;
     int systemdVersion, timesLoad = 0, lastUnitRowChecked = -1, lastSessionRowChecked = -1, noActSystemUnits, noActUserUnits;
     qulonglong partPersSizeMB, partVolaSizeMB;
-    bool isPersistent, varLogDirExists, enableUserUnits = true;
+    bool enableUserUnits = true;
     QTimer *timer;
     QStringList unitTypeSufx = QStringList() << "" << ".target" << ".service" << ".device" << ".mount" << ".automount"
                                           << ".swap" << ".socket" << ".path" << ".timer" << ".snapshot" << ".slice" << ".scope";
