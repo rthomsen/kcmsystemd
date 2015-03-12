@@ -1419,20 +1419,14 @@ void kcmsystemd::slotRefreshTimerList()
   foreach (SystemdUnit unit, unitslist)
   {
     if (unit.id.endsWith(".timer") && unit.load_state != "unloaded")
-    {
-      qDebug() << "Found system timer: " << unit.id;
       timerModel->appendRow(buildTimerListRow(unit, unitslist, sys));
-    }
   }
 
   // Iterate through user unitlist and add timers to the model
   foreach (SystemdUnit unit, userUnitslist)
   {
     if (unit.id.endsWith(".timer") && unit.load_state != "unloaded")
-    {
-      qDebug() << "Found user timer: " << unit.id;
       timerModel->appendRow(buildTimerListRow(unit, userUnitslist, user));
-    }
   }
 
   // Update the left and passed columns
