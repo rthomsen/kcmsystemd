@@ -85,6 +85,7 @@ class kcmsystemd : public KCModule
     QList<SystemdUnit> getUnitsFromDbus(dbusBus bus);
     QVariant getDbusProperty(QString prop, dbusIface ifaceName, QDBusObjectPath path = QDBusObjectPath("/org/freedesktop/systemd1"), dbusBus bus = sys);
     QDBusMessage callDbusMethod(QString method, dbusIface ifaceName, dbusBus bus = sys, const QList<QVariant> &args = QList<QVariant> ());
+    QList<QStandardItem *> buildTimerListRow(const SystemdUnit &unit, const QList<SystemdUnit> &list, dbusBus bus);
     QProcess *kdeConfig;
     QSortFilterProxyModel *proxyModelConf;
     SortFilterUnitModel *systemUnitFilterModel, *userUnitFilterModel;

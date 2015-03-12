@@ -1102,7 +1102,7 @@ void kcmsystemd::setupTimerlist()
   // Setup a timer that updates the left and passed columns every 5secs
   timer = new QTimer(this);
   connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdateTimers()));
-  timer->start(5000);
+  timer->start(1000);
 
   slotRefreshTimerList();
 }
@@ -1318,6 +1318,7 @@ void kcmsystemd::slotRefreshUnitsList(bool initial, dbusBus bus)
       userUnitModel->dataChanged(userUnitModel->index(0, 0), userUnitModel->index(userUnitModel->rowCount(), 3));
       userUnitFilterModel->invalidate();
       updateUnitCount();
+      slotRefreshTimerList();
     }
   }
 }
@@ -1414,87 +1415,23 @@ void kcmsystemd::slotRefreshTimerList()
 
   timerModel->removeRows(0, timerModel->rowCount());
 
-  // Iterate through unitslist and add timers to the model
+  // Iterate through system unitlist and add timers to the model
   foreach (SystemdUnit unit, unitslist)
   {
     if (unit.id.endsWith(".timer") && unit.load_state != "unloaded")
     {
-      // qDebug() << "Found timer: " << unit.id;
-      QDBusObjectPath path = unit.unit_path;
-      QString unitToActivate = getDbusProperty("Unit", sysdTimer, path).toString();
+      qDebug() << "Found system timer: " << unit.id;
+      timerModel->appendRow(buildTimerListRow(unit, unitslist, sys));
+    }
+  }
 
-      QDateTime time;
-
-      // Add the next elapsation point
-      qlonglong nextElapseMonotonicMsec = getDbusProperty("NextElapseUSecMonotonic", sysdTimer, path).toULongLong() / 1000;
-      qlonglong nextElapseRealtimeMsec = getDbusProperty("NextElapseUSecRealtime", sysdTimer, path).toULongLong() / 1000;
-      qlonglong lastTriggerMSec = getDbusProperty("LastTriggerUSec", sysdTimer, path).toULongLong() / 1000;
-      //qDebug() << "nextElapseMonotonicMsec for " << unit.id << " is " << nextElapseMonotonicMsec;
-      //qDebug() << "nextElapseRealtimeMsec for " << unit.id << " is " << nextElapseRealtimeMsec;
-
-      if (nextElapseMonotonicMsec == 0)
-      {
-        // Timer is calendar-based
-        time.setMSecsSinceEpoch(nextElapseRealtimeMsec);
-      }
-      else
-      {
-        // Timer is monotonic
-        time = QDateTime().currentDateTime();
-        time = time.addMSecs(nextElapseMonotonicMsec);
-
-        // Get the monotonic system clock
-        struct timespec ts;
-        if (clock_gettime( CLOCK_MONOTONIC, &ts ) != 0)
-          qDebug() << "Failed to get the monotonic system clock!";
-
-        // Convert the monotonic system clock to microseconds
-        qlonglong now_mono_usec = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
-
-        // And substract it
-        time = time.addMSecs(-now_mono_usec/1000);
-      }
-
-      QString next = time.toString("yyyy.MM.dd hh:mm:ss");
-
-      QString last;
-
-      // use unit object to get last time for activated service
-      int index = unitslist.indexOf(SystemdUnit(unitToActivate));
-      if (index != -1)
-      {
-        qlonglong inactivateExitTimestampMsec =
-            getDbusProperty("InactiveExitTimestamp", sysdUnit, unitslist.at(index).unit_path).toULongLong() / 1000;
-
-        if (inactivateExitTimestampMsec == 0)
-        {
-          // The unit has not run in this boot
-          // Use LastTrigger to see if the timer is persistent
-          if (lastTriggerMSec == 0)
-            last = "n/a";
-          else
-          {
-            time.setMSecsSinceEpoch(lastTriggerMSec);
-            last = time.toString("yyyy.MM.dd hh:mm:ss");
-          }
-        }
-        else
-        {
-          QDateTime time;
-          time.setMSecsSinceEpoch(inactivateExitTimestampMsec);
-          last = time.toString("yyyy.MM.dd hh:mm:ss");
-        }
-      }
-
-      // Add the timers to the model
-      QList<QStandardItem *> row;
-      row << new QStandardItem(unit.id) <<
-             new QStandardItem(next) <<
-             new QStandardItem("") <<
-             new QStandardItem(last) <<
-             new QStandardItem("") <<
-             new QStandardItem(unitToActivate);
-      timerModel->appendRow(row);
+  // Iterate through user unitlist and add timers to the model
+  foreach (SystemdUnit unit, userUnitslist)
+  {
+    if (unit.id.endsWith(".timer") && unit.load_state != "unloaded")
+    {
+      qDebug() << "Found user timer: " << unit.id;
+      timerModel->appendRow(buildTimerListRow(unit, userUnitslist, user));
     }
   }
 
@@ -1506,6 +1443,94 @@ void kcmsystemd::slotRefreshTimerList()
                              ui.tblTimers->horizontalHeader()->sortIndicatorOrder());
 }
 
+QList<QStandardItem *> kcmsystemd::buildTimerListRow(const SystemdUnit &unit, const QList<SystemdUnit> &list, dbusBus bus)
+{
+  // Builds a row for the timers list
+
+  QDBusObjectPath path = unit.unit_path;
+  QString unitToActivate = getDbusProperty("Unit", sysdTimer, path, bus).toString();
+
+  QDateTime time;
+  QIcon icon;
+  if (bus == sys)
+    icon = QIcon::fromTheme("object-locked");
+  else
+    icon = QIcon::fromTheme("user-identity");
+
+  // Add the next elapsation point
+  qlonglong nextElapseMonotonicMsec = getDbusProperty("NextElapseUSecMonotonic", sysdTimer, path, bus).toULongLong() / 1000;
+  qlonglong nextElapseRealtimeMsec = getDbusProperty("NextElapseUSecRealtime", sysdTimer, path, bus).toULongLong() / 1000;
+  qlonglong lastTriggerMSec = getDbusProperty("LastTriggerUSec", sysdTimer, path, bus).toULongLong() / 1000;
+
+  if (nextElapseMonotonicMsec == 0)
+  {
+    // Timer is calendar-based
+    time.setMSecsSinceEpoch(nextElapseRealtimeMsec);
+  }
+  else
+  {
+    // Timer is monotonic
+    time = QDateTime().currentDateTime();
+    time = time.addMSecs(nextElapseMonotonicMsec);
+
+    // Get the monotonic system clock
+    struct timespec ts;
+    if (clock_gettime( CLOCK_MONOTONIC, &ts ) != 0)
+      qDebug() << "Failed to get the monotonic system clock!";
+
+    // Convert the monotonic system clock to microseconds
+    qlonglong now_mono_usec = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+
+    // And substract it
+    time = time.addMSecs(-now_mono_usec/1000);
+  }
+
+  QString next = time.toString("yyyy.MM.dd hh:mm:ss");
+
+  QString last;
+
+  // use unit object to get last time for activated service
+  int index = list.indexOf(SystemdUnit(unitToActivate));
+  if (index != -1)
+  {
+    qlonglong inactivateExitTimestampMsec =
+        getDbusProperty("InactiveExitTimestamp", sysdUnit, list.at(index).unit_path, bus).toULongLong() / 1000;
+
+    if (inactivateExitTimestampMsec == 0)
+    {
+      // The unit has not run in this boot
+      // Use LastTrigger to see if the timer is persistent
+      if (lastTriggerMSec == 0)
+        last = "n/a";
+      else
+      {
+        time.setMSecsSinceEpoch(lastTriggerMSec);
+        last = time.toString("yyyy.MM.dd hh:mm:ss");
+      }
+    }
+    else
+    {
+      QDateTime time;
+      time.setMSecsSinceEpoch(inactivateExitTimestampMsec);
+      last = time.toString("yyyy.MM.dd hh:mm:ss");
+    }
+  }
+
+  // Set icon for id column
+  QStandardItem *id = new QStandardItem(unit.id);
+  id->setData(icon, Qt::DecorationRole);
+
+  // Build a row from QStandardItems
+  QList<QStandardItem *> row;
+  row << id <<
+         new QStandardItem(next) <<
+         new QStandardItem("") <<
+         new QStandardItem(last) <<
+         new QStandardItem("") <<
+         new QStandardItem(unitToActivate);
+
+  return row;
+}
 
 void kcmsystemd::updateUnitCount()
 {
@@ -1971,6 +1996,7 @@ void kcmsystemd::slotCmbConfFileChanged(int index)
 
 void kcmsystemd::slotUpdateTimers()
 {
+  // Updates the left and passed columns in the timers list
   for (int row = 0; row < timerModel->rowCount(); ++row)
   {
     QDateTime next = timerModel->index(row, 1).data().toDateTime();
@@ -1990,6 +2016,8 @@ void kcmsystemd::slotUpdateTimers()
       left = QString::number(leftSecs / 3600) + " hr";
     else if (leftSecs >= 60)
       left = QString::number(leftSecs / 60) + " min";
+    else if (leftSecs < 0)
+      left = "0 s";
     else
       left = QString::number(leftSecs) + " s";
     timerModel->setData(timerModel->index(row, 2), left);
@@ -2007,6 +2035,8 @@ void kcmsystemd::slotUpdateTimers()
       passed = QString::number(passedSecs / 3600) + " hr";
     else if (passedSecs >= 60)
       passed = QString::number(passedSecs / 60) + " min";
+    else if (passedSecs < 0)
+      passed = "0 s";
     else
       passed = QString::number(passedSecs) + " s";
     timerModel->setData(timerModel->index(row, 4), passed);
