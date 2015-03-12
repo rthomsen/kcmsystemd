@@ -54,7 +54,7 @@ enum dbusConn
 
 enum dbusIface
 {
-  sysdMgr, sysdUnit, sysdTimer, logdSession
+  sysdMgr, sysdUnit, sysdTimer, logdMgr, logdSession
 };
 
 class kcmsystemd : public KCModule
@@ -84,6 +84,7 @@ class kcmsystemd : public KCModule
     void setupConfigParms();
     QList<SystemdUnit> getUnitsFromDbus(dbusBus bus);
     QVariant getDbusProperty(QString prop, dbusIface ifaceName, QDBusObjectPath path = QDBusObjectPath("/org/freedesktop/systemd1"), dbusBus bus = sys);
+    QDBusMessage callDbusMethod(QString method, dbusIface ifaceName, dbusBus bus = sys, const QList<QVariant> &args = QList<QVariant> ());
     QProcess *kdeConfig;
     QSortFilterProxyModel *proxyModelConf;
     SortFilterUnitModel *systemUnitFilterModel, *userUnitFilterModel;
@@ -104,8 +105,10 @@ class kcmsystemd : public KCModule
                                                    << ".timer" << ".snapshot" << ".slice" << ".scope";
     const QString connSystemd = "org.freedesktop.systemd1";
     const QString connLogind = "org.freedesktop.login1";
-    const QString pathMgr = "/org/freedesktop/systemd1";
+    const QString pathSysdMgr = "/org/freedesktop/systemd1";
+    const QString pathLogdMgr = "/org/freedesktop/login1";
     const QString ifaceMgr = "org.freedesktop.systemd1.Manager";
+    const QString ifaceLogdMgr = "org.freedesktop.login1.Manager";
     const QString ifaceUnit = "org.freedesktop.systemd1.Unit";
     const QString ifaceTimer = "org.freedesktop.systemd1.Timer";
     const QString ifaceSession = "org.freedesktop.login1.Session";

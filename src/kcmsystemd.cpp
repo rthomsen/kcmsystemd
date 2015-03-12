@@ -116,31 +116,22 @@ kcmsystemd::kcmsystemd(QWidget *parent, const QVariantList &args) : KCModule(par
   setupSignalSlots();
   
   // Subscribe to dbus signals from systemd system daemon and connect them to slots
-  QDBusInterface *iface = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, systembus, this);
-  if (iface->isValid())
-    iface->call(QDBus::AutoDetect, "Subscribe");
-  delete iface;
-
-  systembus.connect(connSystemd, pathMgr, ifaceMgr, "Reloading", this, SLOT(slotSystemSystemdReloading(bool)));
-  // systembus.connect(connSystemd, pathMgr, ifaceMgr, "UnitNew", this, SLOT(slotUnitLoaded(QString, QDBusObjectPath)));
-  // systembus.connect(connSystemd,pathMgr, ifaceMgr, "UnitRemoved", this, SLOT(slotUnitUnloaded(QString, QDBusObjectPath)));
-  systembus.connect(connSystemd, pathMgr, ifaceMgr, "UnitFilesChanged", this, SLOT(slotSystemUnitsChanged()));
+  callDbusMethod("Subscribe", sysdMgr);
+  systembus.connect(connSystemd, pathSysdMgr, ifaceMgr, "Reloading", this, SLOT(slotSystemSystemdReloading(bool)));
+  // systembus.connect(connSystemd, pathSysdMgr, ifaceMgr, "UnitNew", this, SLOT(slotUnitLoaded(QString, QDBusObjectPath)));
+  // systembus.connect(connSystemd,pathSysdMgr, ifaceMgr, "UnitRemoved", this, SLOT(slotUnitUnloaded(QString, QDBusObjectPath)));
+  systembus.connect(connSystemd, pathSysdMgr, ifaceMgr, "UnitFilesChanged", this, SLOT(slotSystemUnitsChanged()));
   systembus.connect(connSystemd, "", ifaceDbusProp, "PropertiesChanged", this, SLOT(slotSystemUnitsChanged()));
   // We need to use the JobRemoved signal, because stopping units does not emit PropertiesChanged signal
-  systembus.connect(connSystemd, pathMgr, ifaceMgr, "JobRemoved", this, SLOT(slotSystemUnitsChanged()));
+  systembus.connect(connSystemd, pathSysdMgr, ifaceMgr, "JobRemoved", this, SLOT(slotSystemUnitsChanged()));
 
   // Subscribe to dbus signals from systemd user daemon and connect them to slots
+  callDbusMethod("Subscribe", sysdMgr, user);
   QDBusConnection userbus = QDBusConnection::connectToBus(userBusPath, connSystemd);
-  // Subscribe to dbus signals from systemd daemon and connect them to slots
-  iface = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, userbus, this);
-  if (iface->isValid())
-    iface->call(QDBus::AutoDetect, "Subscribe");
-  delete iface;
-
-  userbus.connect(connSystemd, pathMgr, ifaceMgr, "Reloading", this, SLOT(slotUserSystemdReloading(bool)));
-  userbus.connect(connSystemd, pathMgr, ifaceMgr, "UnitFilesChanged", this, SLOT(slotUserUnitsChanged()));
+  userbus.connect(connSystemd, pathSysdMgr, ifaceMgr, "Reloading", this, SLOT(slotUserSystemdReloading(bool)));
+  userbus.connect(connSystemd, pathSysdMgr, ifaceMgr, "UnitFilesChanged", this, SLOT(slotUserUnitsChanged()));
   userbus.connect(connSystemd, "", ifaceDbusProp, "PropertiesChanged", this, SLOT(slotUserUnitsChanged()));
-  userbus.connect(connSystemd, pathMgr, ifaceMgr, "JobRemoved", this, SLOT(slotUserUnitsChanged()));
+  userbus.connect(connSystemd, pathSysdMgr, ifaceMgr, "JobRemoved", this, SLOT(slotUserUnitsChanged()));
 
   // logind
   systembus.connect(connLogind, "", ifaceDbusProp, "PropertiesChanged", this, SLOT(slotLogindPropertiesChanged(QString, QVariantMap, QStringList)));
@@ -1340,15 +1331,7 @@ void kcmsystemd::slotRefreshSessionList()
   sessionlist.clear();
 
   // get an updated list of sessions via dbus
-  QDBusMessage dbusreply;
-  QDBusInterface *iface = new QDBusInterface (connLogind,
-                                              "/org/freedesktop/login1",
-                                              "org.freedesktop.login1.Manager",
-                                              systembus,
-                                              this);
-  if (iface->isValid())
-    dbusreply = iface->call(QDBus::AutoDetect, "ListSessions");
-  delete iface;
+  QDBusMessage dbusreply = callDbusMethod("ListSessions", logdMgr);
 
   // extract the list of sessions from the reply
   const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
@@ -1574,22 +1557,19 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
   // Setup objects which can be used for both system and user units
   QList<SystemdUnit> *list;
   QTableView *tblView;
-  QDBusConnection busConn("");
-  dbusBus busInt;
+  dbusBus bus;
   bool requiresAuth = true;
   if (ui.tabWidget->currentIndex() == 0)
   {
     list = &unitslist;
     tblView = ui.tblUnits;
-    busConn = systembus;
-    busInt = sys;
+    bus = sys;
   }
   else if (ui.tabWidget->currentIndex() == 1)
   {
     list = &userUnitslist;
     tblView = ui.tblUserUnits;
-    busConn = QDBusConnection::connectToBus(userBusPath, connSystemd);
-    busInt = user;
+    bus = user;
     requiresAuth = false;
   }
 
@@ -1617,24 +1597,22 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
   QAction *reexecdaemon = menu.addAction(i18n("Ree&xecute systemd"));
   
   // Get UnitFileState (have to use Manager object for this)
-  QDBusInterface *dbusIfaceManager = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, busConn, this);
   QList<QVariant> args;
   args << unit;
-  QString UnitFileState = dbusIfaceManager->callWithArgumentList(QDBus::AutoDetect, "GetUnitFileState", args).arguments().at(0).toString();
-  delete dbusIfaceManager;
+  QString UnitFileState = callDbusMethod("GetUnitFileState", sysdMgr, bus, args).arguments().at(0).toString();
 
   // Check capabilities of unit
   QString LoadState, ActiveState;
   bool CanStart, CanStop, CanReload;
-  if (!pathUnit.path().isEmpty() && getDbusProperty("Test", sysdUnit, pathUnit, busInt).toString() != "invalidIface")
+  if (!pathUnit.path().isEmpty() && getDbusProperty("Test", sysdUnit, pathUnit, bus).toString() != "invalidIface")
   {
     // Unit has a Unit DBus object, fetch properties
-    isolate->setEnabled(getDbusProperty("CanIsolate", sysdUnit, pathUnit, busInt).toBool());
-    LoadState = getDbusProperty("LoadState", sysdUnit, pathUnit, busInt).toString();
-    ActiveState = getDbusProperty("ActiveState", sysdUnit, pathUnit, busInt).toString();
-    CanStart = getDbusProperty("CanStart", sysdUnit, pathUnit, busInt).toBool();
-    CanStop = getDbusProperty("CanStop", sysdUnit, pathUnit, busInt).toBool();
-    CanReload = getDbusProperty("CanReload", sysdUnit, pathUnit, busInt).toBool();
+    isolate->setEnabled(getDbusProperty("CanIsolate", sysdUnit, pathUnit, bus).toBool());
+    LoadState = getDbusProperty("LoadState", sysdUnit, pathUnit, bus).toString();
+    ActiveState = getDbusProperty("ActiveState", sysdUnit, pathUnit, bus).toString();
+    CanStart = getDbusProperty("CanStart", sysdUnit, pathUnit, bus).toBool();
+    CanStop = getDbusProperty("CanStop", sysdUnit, pathUnit, bus).toBool();
+    CanReload = getDbusProperty("CanReload", sysdUnit, pathUnit, bus).toBool();
   }
   else
   {
@@ -1728,7 +1706,7 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
     return;
   }
 
-  // Setup arguments for DBus call
+  // Setup method and arguments for DBus call
   QStringList unitsForCall = QStringList() << unit;
   QString method;
   QList<QVariant> argsForCall;
@@ -1785,17 +1763,13 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
 
   // Execute the DBus actions
   if (!method.isEmpty() && requiresAuth)
-    authServiceAction(connSystemd, pathMgr, ifaceMgr, method, argsForCall);
+    authServiceAction(connSystemd, pathSysdMgr, ifaceMgr, method, argsForCall);
   else if (!method.isEmpty())
   {
     // user unit
-    QDBusInterface *dbusIfaceManager = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, busConn, this);
-    QDBusMessage dbusreply = dbusIfaceManager->callWithArgumentList(QDBus::AutoDetect, method, argsForCall);
-    if (dbusreply.type() == QDBusMessage::ErrorMessage)
-      qDebug() << "DBus call failed:" << dbusreply.errorMessage();
+    callDbusMethod(method, sysdMgr, bus, argsForCall);
     if (method == "EnableUnitFiles" || method == "DisableUnitFiles" || method == "MaskUnitFiles" || method == "UnmaskUnitFiles")
-      dbusIfaceManager->call(QDBus::AutoDetect, "Reload");
-    delete dbusIfaceManager;
+      callDbusMethod("Reload", sysdMgr, bus);
   }
 }
 
@@ -2047,59 +2021,40 @@ QList<SystemdUnit> kcmsystemd::getUnitsFromDbus(dbusBus bus)
   QList<unitfile> unitfileslist;
   QDBusMessage dbusreply;
 
-  QDBusConnection nbus("");
-  if (bus == sys)
-    nbus = systembus;
-  else if (bus == user)
-    nbus = QDBusConnection::connectToBus(userBusPath, connSystemd);
+  dbusreply = callDbusMethod("ListUnits", sysdMgr, bus);
 
-  QDBusInterface *iface = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, nbus, this);
-
-  if (iface->isValid())
-    dbusreply = iface->call(QDBus::AutoDetect, "ListUnits");
-  else
-    qDebug() << "DBus interface invalid.";
-  delete iface;
-
-  const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
+  const QDBusArgument argUnits = dbusreply.arguments().at(0).value<QDBusArgument>();
   int tal = 0;
-  if (arg.currentType() == QDBusArgument::ArrayType)
+  if (argUnits.currentType() == QDBusArgument::ArrayType)
   {
-    arg.beginArray();
-    while (!arg.atEnd())
+    argUnits.beginArray();
+    while (!argUnits.atEnd())
     {
       SystemdUnit unit;
-      arg >> unit;
+      argUnits >> unit;
       list.append(unit);
 
       // qDebug() << "Added unit " << unit.id;
       tal++;
     }
-    arg.endArray();
+    argUnits.endArray();
   }
   // qDebug() << "Added " << tal << " units on bus " << bus;
   tal = 0;
 
   // Get a list of unit files
-  iface = new QDBusInterface (connSystemd, pathMgr, ifaceMgr, nbus, this);
-  if (iface->isValid())
+  dbusreply = callDbusMethod("ListUnitFiles", sysdMgr, bus);
+  const QDBusArgument argUnitFiles = dbusreply.arguments().at(0).value<QDBusArgument>();
+  argUnitFiles.beginArray();
+  while (!argUnitFiles.atEnd())
   {
-    dbusreply = iface->call("ListUnitFiles");
-    const QDBusArgument arg = dbusreply.arguments().at(0).value<QDBusArgument>();
-    arg.beginArray();
-    while (!arg.atEnd())
-    {
-      unitfile u;
-      arg.beginStructure();
-      arg >> u.name >> u.status;
-      arg.endStructure();
-      unitfileslist.append(u);
-    }
-    arg.endArray();
+    unitfile u;
+    argUnitFiles.beginStructure();
+    argUnitFiles >> u.name >> u.status;
+    argUnitFiles.endStructure();
+    unitfileslist.append(u);
   }
-  else
-    qDebug() << "DBus interface invalid.";
-  delete iface;
+  argUnitFiles.endArray();
 
   // Add unloaded units to the list
   for (int i = 0;  i < unitfileslist.size(); ++i)
@@ -2176,6 +2131,40 @@ QVariant kcmsystemd::getDbusProperty(QString prop, dbusIface ifaceName, QDBusObj
   }
   qDebug() << "Interface" << ifc << "invalid for" << path.path();
   return QVariant("invalidIface");
+}
+
+QDBusMessage kcmsystemd::callDbusMethod(QString method, dbusIface ifaceName, dbusBus bus, const QList<QVariant> &args)
+{
+  // qDebug() << "Calling method" << method << "with iface" << ifaceName << "on bus" << bus;
+  QDBusConnection abus("");
+  if (bus == user)
+    abus = QDBusConnection::connectToBus(userBusPath, connSystemd);
+  else
+    abus = systembus;
+
+  QDBusInterface *iface;
+  if (ifaceName == sysdMgr)
+    iface = new QDBusInterface (connSystemd, pathSysdMgr, ifaceMgr, abus, this);
+  else if (ifaceName == logdMgr)
+    iface = new QDBusInterface (connLogind, pathLogdMgr, ifaceLogdMgr, abus, this);
+
+  QDBusMessage msg;
+  if (iface->isValid())
+  {
+    if (args.isEmpty())
+      msg = iface->call(QDBus::AutoDetect, method.toLatin1());
+    else
+      msg = iface->callWithArgumentList(QDBus::AutoDetect, method.toLatin1(), args);
+    delete iface;
+    if (msg.type() == QDBusMessage::ErrorMessage)
+      qDebug() << "DBus method call failed: " << msg.errorMessage();
+  }
+  else
+  {
+    qDebug() << "Invalid DBus interface!";
+    delete iface;
+  }
+  return msg;
 }
 
 #include "kcmsystemd.moc"
