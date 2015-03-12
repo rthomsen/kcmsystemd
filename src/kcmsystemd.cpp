@@ -1705,13 +1705,26 @@ void kcmsystemd::slotUnitContextMenu(const QPoint &pos)
     const KService::Ptr service = trader->preferredService("text/plain");
 
     // Open the unit file using the found application
-    QStringList args = QStringList() << "-t" << "--" << service->exec().section(' ', 0, 0) << frpath;
+    QString app;
+    QStringList args;
+    if (frpath.startsWith(getenv("HOME")))
+    {
+      // Unit file is in $HOME, no authentication required
+      app = service->exec().section(' ', 0, 0);
+      args << frpath;
+    }
+    else
+    {
+      // Unit file is outside $HOME, use kdesu for authentication
+      app = "kdesu";
+      args << "-t" << "--" << service->exec().section(' ', 0, 0) << frpath;
+    }
     QProcess editor (this);
-    bool r = editor.startDetached("kdesu", args);
-    if (!r)
+    bool r = editor.startDetached(app, args);
+    if (!r && app == "kdesu")
       r = editor.startDetached(kdePrefix + "/lib/libexec/kdesu", args);
     if (!r)
-      KMessageBox::error(this, i18n("kdesu executable not found. Unable to start text editor!"));
+      KMessageBox::error(this, i18n("Failed to open unit file!"));
     return;
   }
 
