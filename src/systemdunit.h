@@ -17,7 +17,7 @@ struct SystemdUnit
     else
       return false;
   }
-  SystemdUnit(){};
+  SystemdUnit(){}
 
   SystemdUnit(QString newId)
   {
