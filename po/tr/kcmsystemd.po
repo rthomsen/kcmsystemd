@@ -1,0 +1,882 @@
+# Copyright (C) 2021  Cihan Alkan
+# This file is distributed under the same license as the kcmsystemd package.
+# Cihan Alkan <cihanalk@gmail.com>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/rthomsen/kcmsystemd/issues\n"
+"POT-Creation-Date: 2015-03-02 19:38+0100\n"
+"PO-Revision-Date: 2021-06-07 18:03+0300\n"
+"Last-Translator: Cihan Alkan <cihanalk@gmail.com>\n"
+"Language-Team: Turkish <cihanalk@gmail.com>\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.3\n"
+
+#. i18n: file: ui/kcmsystemd.ui:29
+#. i18n: ectx: property (windowTitle), widget (QWidget, kcmsystemd)
+#: rc.cpp:3
+msgid "kcmsystemd"
+msgstr "kcmsystemd"
+
+#. i18n: file: ui/kcmsystemd.ui:79
+#. i18n: ectx: attribute (title), widget (QWidget, tabServices)
+#: rc.cpp:6
+msgid "Units"
+msgstr "Birimler"
+
+#. i18n: file: ui/kcmsystemd.ui:85
+#. i18n: ectx: property (text), widget (QLabel, lblStatus)
+#: rc.cpp:9
+msgid "Overall stats:"
+msgstr "Genel istatistikler:"
+
+#. i18n: file: ui/kcmsystemd.ui:100
+#. i18n: ectx: property (toolTip), widget (QComboBox, cmbUnitTypes)
+#: rc.cpp:12
+msgid "<html><head/><body><p>Filter unit types.</p></body></html>"
+msgstr "<html><head/><body><p>Filtre birimi türleri.</p></body></html>"
+
+#. i18n: file: ui/kcmsystemd.ui:110
+#. i18n: ectx: property (toolTip), widget (QCheckBox, chkInactiveUnits)
+#: rc.cpp:15
+msgid "<html><head/><body><p>Toggle show inactive units.</p></body></html>"
+msgstr ""
+"<html><head/><body><p>Etkin olmayan birimleri göster arasında geçiş yap.</p></"
+"body></html>"
+
+#. i18n: file: ui/kcmsystemd.ui:113
+#. i18n: ectx: property (text), widget (QCheckBox, chkInactiveUnits)
+#: rc.cpp:18
+msgid "Show inactive"
+msgstr "Etkin olmayanı göster"
+
+#. i18n: file: ui/kcmsystemd.ui:123
+#. i18n: ectx: property (text), widget (QCheckBox, chkShowUnloadedUnits)
+#: rc.cpp:21
+msgid "Show unloaded"
+msgstr "Yüklenmemiş göster"
+
+#. i18n: file: ui/kcmsystemd.ui:143
+#. i18n: ectx: property (toolTip), widget (QPushButton, btnRefreshUnits)
+#: rc.cpp:24
+msgid ""
+"<html><head/><body><p>Reload the list of units from systemd.</p></body></html>"
+msgstr ""
+"<html><head/><body><p>Birim listesini systemd'den yeniden yükleyin.</p></body></"
+"html>"
+
+#. i18n: file: ui/kcmsystemd.ui:146
+#. i18n: ectx: property (text), widget (QPushButton, btnRefreshUnits)
+#: rc.cpp:27
+msgid "Refresh"
+msgstr "Yenile"
+
+#. i18n: file: ui/kcmsystemd.ui:208
+#. i18n: ectx: attribute (title), widget (QWidget, tabConf)
+#: rc.cpp:30
+msgid "Conf"
+msgstr "Ayar"
+
+#. i18n: file: ui/kcmsystemd.ui:219
+#. i18n: ectx: property (text), widget (QLabel, label_9)
+#: rc.cpp:33
+msgid "Configuration file:"
+msgstr "Yapılandırma dosyası:"
+
+#. i18n: file: ui/kcmsystemd.ui:258
+#. i18n: ectx: attribute (title), widget (QWidget, tabSessions)
+#: rc.cpp:36
+msgid "Sessions"
+msgstr "Oturumlar"
+
+#. i18n: file: ui/kcmsystemd.ui:341
+#. i18n: ectx: property (text), widget (QLabel, lblFailMessage)
+#: rc.cpp:39
+msgid "Attempt to contact the systemd daemon through D-Bus system bus failed!"
+msgstr ""
+"D-Bus sistem veri yolu aracılığıyla sistem arka plan programıyla bağlantı kurma "
+"girişimi başarısız oldu!"
+
+#: src/kcmsystemd.cpp:88
+msgid "Unable to find directory with systemd configuration files."
+msgstr "Sistemd yapılandırma dosyalarının bulunduğu dizin bulunamadı."
+
+#: src/kcmsystemd.cpp:229
+msgid "All"
+msgstr "Tümü"
+
+#: src/kcmsystemd.cpp:229
+msgid "Targets"
+msgstr "Hedefler"
+
+#: src/kcmsystemd.cpp:229
+msgid "Services"
+msgstr "Servisler"
+
+#: src/kcmsystemd.cpp:230
+msgid "Devices"
+msgstr "Aygıtlar"
+
+#: src/kcmsystemd.cpp:230
+msgid "Mounts"
+msgstr "Bağlılar"
+
+#: src/kcmsystemd.cpp:230
+msgid "Automounts"
+msgstr "Otomatik Bağlamalar"
+
+#: src/kcmsystemd.cpp:230
+msgid "Swaps"
+msgstr "Takaslar"
+
+#: src/kcmsystemd.cpp:231
+msgid "Sockets"
+msgstr "Soketler"
+
+#: src/kcmsystemd.cpp:231
+msgid "Paths"
+msgstr "Yollar"
+
+#: src/kcmsystemd.cpp:231
+msgid "Timers"
+msgstr "Zamanlayıcılar"
+
+#: src/kcmsystemd.cpp:231
+msgid "Snapshots"
+msgstr "Anlık görüntüler"
+
+#: src/kcmsystemd.cpp:232
+msgid "Slices"
+msgstr "Paylar"
+
+#: src/kcmsystemd.cpp:232
+msgid "Scopes"
+msgstr "Kapsamlar"
+
+#: src/kcmsystemd.cpp:270
+msgid "<p>Set the level of log entries in systemd.</p>"
+msgstr "<p>Systemd'deki günlük girişlerinin düzeyini ayarlayın.</p>"
+
+#: src/kcmsystemd.cpp:279
+msgid "<p>Set target for logs.</p>"
+msgstr "<p>Günlükler için hedef belirleyin.</p>"
+
+#: src/kcmsystemd.cpp:287
+msgid "<p>Use color to highlight important log messages.</p>"
+msgstr "<p>Önemli günlük mesajlarını vurgulamak için renk kullanın.</p>"
+
+#: src/kcmsystemd.cpp:295
+msgid "<p>Include code location in log messages.</p>"
+msgstr "<p>Günlük mesajlarına kod konumunu dahil edin.</p>"
+
+#: src/kcmsystemd.cpp:303
+msgid "<p>Dump core on systemd crash.</p>"
+msgstr "<p>Sistem çökmesinde çekirdeği boşaltın.</p>"
+
+#: src/kcmsystemd.cpp:311
+msgid ""
+"<p>Spawn a shell when systemd crashes. Note: The shell is not password-protected."
+"</p>"
+msgstr ""
+"<p>systemd çöktüğünde bir kabuk oluşturur. Not: Kabuk parola korumalı değildir.</"
+"p>"
+
+#: src/kcmsystemd.cpp:320
+msgid "<p>Show terse service status information while booting.</p>"
+msgstr "<p>Önyükleme sırasında kısa hizmet durumu bilgilerini göster.</p>"
+
+#: src/kcmsystemd.cpp:329
+msgid ""
+"<p>Activate the specified virtual terminal when systemd crashes (-1 to "
+"deactivate).</p>"
+msgstr ""
+"<p>Sistem çöktüğünde belirtilen sanal terminali etkinleştirin (devre dışı "
+"bırakmak için -1).</p>"
+
+#: src/kcmsystemd.cpp:340
+msgid "<p>The initial CPU affinity for the systemd init process.</p>"
+msgstr "<p>systemd başlatma işlemi için ilk CPU benzeşimi.</p>"
+
+#: src/kcmsystemd.cpp:348
+msgid ""
+"<p>Controllers that shall be mounted in a single hierarchy. Takes a space-"
+"separated list of comma-separated controller names, in order to allow multiple "
+"joined hierarchies. Pass an empty string to ensure that systemd mounts all "
+"controllers in separate hierarchies.</p>"
+msgstr ""
+"<p>Tek bir hiyerarşide monte edilecek denetleyiciler. Birden çok birleştirilmiş "
+"hiyerarşiye izin vermek için virgülle ayrılmış denetleyici adlarının boşlukla "
+"ayrılmış bir listesini alır. systemd'nin tüm denetleyicileri ayrı hiyerarşilere "
+"bağlamasını sağlamak için boş bir dize iletin.</p>"
+
+#: src/kcmsystemd.cpp:358
+msgid ""
+"<p>Configures in which control group hierarchies to create per-service cgroups "
+"automatically, in addition to the name=systemd named hierarchy. Takes a space-"
+"separated list of controller names. Pass the empty string to ensure that systemd "
+"does not touch any hierarchies but its own.</p>"
+msgstr ""
+"<p>name=systemd adlı hiyerarşiye ek olarak, hizmet başına grup gruplarının "
+"otomatik olarak oluşturulacağı kontrol grubu hiyerarşilerini yapılandırır. "
+"Denetleyici adlarının boşlukla ayrılmış bir listesini alır. systemd'nin kendi "
+"hiyerarşisi dışında herhangi bir hiyerarşiye dokunmadığından emin olmak için boş "
+"dizeyi iletin.</p>"
+
+#: src/kcmsystemd.cpp:367
+msgid ""
+"<p>The watchdog hardware (/dev/watchdog) will be programmed to automatically "
+"reboot the system if it is not contacted within the specified timeout interval. "
+"The system manager will ensure to contact it at least once in half the specified "
+"timeout interval. This feature requires a hardware watchdog device.</p>"
+msgstr ""
+"<p>İzleyici donanımı (/dev/watchdog), belirtilen zaman aşımı aralığı içinde "
+"iletişim kurulmazsa sistemi otomatik olarak yeniden başlatacak şekilde "
+"programlanacaktır. Sistem yöneticisi, belirtilen zaman aşımı aralığının yarısında "
+"en az bir kez kendisiyle iletişime geçilmesini sağlayacaktır. Bu özellik, bir "
+"donanım izleme cihazı gerektirir.</p>"
+
+#: src/kcmsystemd.cpp:376
+msgid ""
+"<p>This setting may be used to configure the hardware watchdog when the system is "
+"asked to reboot. It works as a safety net to ensure that the reboot takes place "
+"even if a clean reboot attempt times out. This feature requires a hardware "
+"watchdog device.</p>"
+msgstr ""
+"<p>Bu ayar, sistemin yeniden başlatılması istendiğinde donanım izleyicisini "
+"yapılandırmak için kullanılabilir. Temiz bir yeniden başlatma denemesi zaman "
+"aşımına uğrasa bile yeniden başlatmanın gerçekleşmesini sağlamak için bir "
+"güvenlik ağı olarak çalışır. Bu özellik, bir donanım izleme cihazı gerektirir.</p>"
+
+#: src/kcmsystemd.cpp:384
+msgid "<p>Capabilities for the systemd daemon and its children.</p>"
+msgstr "<p>Sistem arka plan programı ve alt öğeleri için yetenekler.</p>"
+
+#: src/kcmsystemd.cpp:394
+msgid "<p>Architectures of which system calls may be invoked on the system.</p>"
+msgstr "<p>Sistemde sistem çağrılarının çağrılabileceği mimariler.</p>"
+
+#: src/kcmsystemd.cpp:406
+msgid ""
+"<p>Sets the timer slack for PID 1 which is then inherited to all executed "
+"processes, unless overridden individually. The timer slack controls the accuracy "
+"of wake-ups triggered by timers.</p>"
+msgstr ""
+"<p>Tek tek geçersiz kılınmadıkça, daha sonra yürütülen tüm işlemlere devralınan "
+"PID 1 için zamanlayıcı boşluğunu ayarlar. Zamanlayıcı bolluğu, zamanlayıcılar "
+"tarafından tetiklenen uyanmaların doğruluğunu kontrol eder.</p>"
+
+#: src/kcmsystemd.cpp:416
+msgid ""
+"<p>The default accuracy of timer units. Note that the accuracy of timer units is "
+"also affected by the configured timer slack for PID 1.</p>"
+msgstr ""
+"<p>Zamanlayıcı birimlerinin varsayılan doğruluğu. Zamanlayıcı birimlerinin "
+"doğruluğunun, PID 1 için yapılandırılmış zamanlayıcı bolluğundan da etkilendiğini "
+"unutmayın.</p>"
+
+#: src/kcmsystemd.cpp:428
+msgid "<p>Sets the default output for all services and sockets.</p>"
+msgstr "<p>Tüm hizmetler ve soketler için varsayılan çıktıyı ayarlar.</p>"
+
+#: src/kcmsystemd.cpp:439
+msgid "<p>Sets the default error output for all services and sockets.</p>"
+msgstr "<p>Tüm hizmetler ve soketler için varsayılan hata çıktısını ayarlar.</p>"
+
+#: src/kcmsystemd.cpp:449
+msgid "<p>The default timeout for starting of units.</p>"
+msgstr "<p>Birimlerin başlatılması için varsayılan zaman aşımı.</p>"
+
+#: src/kcmsystemd.cpp:457
+msgid "<p>The default timeout for stopping of units.</p>"
+msgstr "<p>Birimlerin durdurulması için varsayılan zaman aşımı.</p>"
+
+#: src/kcmsystemd.cpp:466
+msgid "<p>The default time to sleep between automatic restart of units.</p>"
+msgstr ""
+"<p>Birimlerin otomatik olarak yeniden başlatılması arasındaki uyku için "
+"varsayılan süre.</p>"
+
+#: src/kcmsystemd.cpp:474
+msgid "<p>Time interval used in start rate limit for services.</p>"
+msgstr "<p>Hizmetler için başlangıç ​​hızı sınırında kullanılan zaman aralığı.</p>"
+
+#: src/kcmsystemd.cpp:482
+msgid ""
+"<p>Services are not allowed to start more than this number of times within the "
+"time interval defined in DefaultStartLimitInterval"
+msgstr ""
+"<p>Hizmetlerin, DefaultStartLimitInterval içinde tanımlanan zaman aralığı içinde "
+"bu sayıdan daha fazla başlatılmasına izin verilmez"
+
+#: src/kcmsystemd.cpp:493
+msgid ""
+"<p>Manager environment variables passed to all executed processes. Takes a space-"
+"separated list of variable assignments.</p>"
+msgstr ""
+"<p>Yönetici ortam değişkenleri, yürütülen tüm işlemlere aktarıldı. Değişken "
+"atamalarının boşlukla ayrılmış bir listesini alır.</p>"
+
+#: src/kcmsystemd.cpp:504
+msgid "<p>Default CPU usage accounting.</p>"
+msgstr "<p>Varsayılan CPU kullanım hesabı.</p>"
+
+#: src/kcmsystemd.cpp:512
+msgid "<p>Default block IO accounting.</p>"
+msgstr "<p>Varsayılan blok KS hesabı.</p>"
+
+#: src/kcmsystemd.cpp:520
+msgid "<p>Default process and kernel memory accounting.</p>"
+msgstr "<p>Varsayılan işlem ve çekirdek bellek hesabı.</p>"
+
+#: src/kcmsystemd.cpp:538
+msgid "<p>Default resource limit for units. Set to -1 for no limit.</p>"
+msgstr ""
+"<p>Birimler için varsayılan kaynak sınırı. Sınırsız olarak -1 olarak ayarlayın.</"
+"p>"
+
+#: src/kcmsystemd.cpp:550
+msgid "<p>Where to store log files.</p>"
+msgstr "<p>Günlük dosyalarının nerede saklanacağı.</p>"
+
+#: src/kcmsystemd.cpp:558
+msgid "<p>Compress log files.</p>"
+msgstr "<p>Günlük dosyalarını sıkıştır.</p>"
+
+#: src/kcmsystemd.cpp:566
+msgid "<p>Enable Forward Secure Sealing (FSS) for all persistent journal files.</p>"
+msgstr ""
+"<p>Tüm kalıcı günlük dosyaları için İleri Güvenli Mühürlemeyi (FSS) etkinleştirin."
+"</p>"
+
+#: src/kcmsystemd.cpp:578
+msgid ""
+"<p>Whether and how to split log files. If <i>uid</i>, all users will get each "
+"their own journal files regardless of whether they possess a login session or "
+"not, however system users will log into the system journal. If <i>login</i>, "
+"actually logged-in users will get each their own journal files, but users without "
+"login session and system users will log into the system journal. If <i>none</i>, "
+"journal files are not split up by user and all messages are instead stored in the "
+"single system journal.</p>"
+msgstr ""
+"<p>Günlük dosyalarının bölünüp bölünmeyeceği ve nasıl bölüneceği. <i>uid</i> ise, "
+"oturum açma oturumu olup olmadığına bakılmaksızın tüm kullanıcılar kendi günlük "
+"dosyalarını alır, ancak sistem kullanıcıları sistem günlüğünde oturum açar. "
+"<i>login</i> ise, gerçekten oturum açmış kullanıcıların her biri kendi günlük "
+"dosyalarını alacaktır, ancak oturum açma oturumu olmayan kullanıcılar ve sistem "
+"kullanıcıları sistem günlüğünde oturum açacaktır. <i>Yok</i> ise, günlük "
+"dosyaları kullanıcıya göre bölünmez ve bunun yerine tüm mesajlar tek sistem "
+"günlüğünde depolanır.</p>"
+
+#: src/kcmsystemd.cpp:587
+msgid "<p>The timeout before synchronizing journal files to disk.</p>"
+msgstr "<p>Günlük dosyalarını diske eşitlemeden önceki zaman aşımı.</p>"
+
+#: src/kcmsystemd.cpp:595
+msgid ""
+"<p>Time interval for rate limiting of log messages. Set to 0 to turn off rate-"
+"limiting.</p>"
+msgstr ""
+"<p>Günlük mesajlarının hız sınırlaması için zaman aralığı. Hız sınırlamasını "
+"kapatmak için 0'a ayarlayın.</p>"
+
+#: src/kcmsystemd.cpp:603
+msgid ""
+"<p>Maximum number of messages logged for a unit in the interval specified in "
+"RateLimitInterval. Set to 0 to turn off rate-limiting.</p>"
+msgstr ""
+"<p>RaateLimitInterval'de belirtilen aralıkta bir birim için günlüğe kaydedilen "
+"maksimum mesaj sayısı. Hız sınırlamasını kapatmak için 0'a ayarlayın.</p>"
+
+#: src/kcmsystemd.cpp:612
+#, c-format
+msgid ""
+"<p>Maximum disk space the persistent journal may take up. Defaults to 10% of file "
+"system size.</p>"
+msgstr ""
+"<p>Kalıcı günlüğün kaplayabileceği maksimum disk alanı. Dosya sistemi boyutunun "
+"%10'u varsayılandır.</p>"
+
+#: src/kcmsystemd.cpp:621
+#, c-format
+msgid ""
+"<p>Minimum disk space the persistent journal should keep free for other uses. "
+"Defaults to 15% of file system size.</p>"
+msgstr ""
+"<p>Kalıcı günlüğün diğer kullanımlar için boş tutması gereken minimum disk alanı. "
+"Varsayılan olarak dosya sistemi boyutunun %15'idir.</p>"
+
+#: src/kcmsystemd.cpp:630
+msgid ""
+"<p>Maximum size of individual journal files on persistent storage. Defaults to "
+"1/8 of SystemMaxUse.</p>"
+msgstr ""
+"<p>Kalıcı depolamadaki tek günlük dosyalarının maksimum boyutu. Varsayılan, "
+"SystemMaxUse'un 1/8'idir.</p>"
+
+#: src/kcmsystemd.cpp:639
+#, c-format
+msgid ""
+"<p>Maximum disk space the volatile journal may take up. Defaults to 10% of file "
+"system size.</p>"
+msgstr ""
+"<p>Uçucu günlüğün kaplayabileceği maksimum disk alanı. Dosya sistemi boyutunun "
+"%10'u varsayılandır.</p>"
+
+#: src/kcmsystemd.cpp:648
+#, c-format
+msgid ""
+"<p>Minimum disk space the volatile journal should keep free for other uses. "
+"Defaults to 15% of file system size.</p>"
+msgstr ""
+"<p>Uçucu günlüğün diğer kullanımlar için boş tutması gereken minimum disk alanı. "
+"Varsayılan olarak dosya sistemi boyutunun %15'idir.</p>"
+
+#: src/kcmsystemd.cpp:657
+msgid ""
+"<p>Maximum size of individual journal files on volatile storage. Defaults to 1/8 "
+"of RuntimeMaxUse.</p>"
+msgstr ""
+"<p>Uçucu depolamadaki tek günlük dosyalarının maksimum boyutu. Varsayılan değer, "
+"RuntimeMaxUse'un 1/8'idir.</p>"
+
+#: src/kcmsystemd.cpp:666
+msgid "<p>Maximum time to store journal entries. Set to 0 to disable.</p>"
+msgstr ""
+"<p>Günlük girişlerini saklamak için maksimum süre. Devre dışı bırakmak için 0'a "
+"ayarlayın.</p>"
+
+#: src/kcmsystemd.cpp:675
+msgid ""
+"<p>Maximum time to store entries in a single journal file before rotating to the "
+"next one. Set to 0 to disable.</p>"
+msgstr ""
+"<p>Bir sonrakine dönmeden önce girişleri tek bir günlük dosyasında depolamak için "
+"maksimum süre. Devre dışı bırakmak için 0'a ayarlayın.</p>"
+
+#: src/kcmsystemd.cpp:683
+msgid "<p>Forward journal messages to syslog.</p>"
+msgstr "<p>Günlük mesajlarını sistem günlüğüne iletin.</p>"
+
+#: src/kcmsystemd.cpp:691
+msgid "<p>Forward journal messages to kernel log buffer</p>"
+msgstr "<p>Günlük iletilerini çekirdek günlük arabelleğine iletin</p>"
+
+#: src/kcmsystemd.cpp:699
+msgid ""
+"<p>Forward journal messages to the system console. The console can be changed "
+"with TTYPath.</p>"
+msgstr ""
+"<p>Günlük mesajlarını sistem konsoluna iletin. Konsol, TTYPath ile "
+"değiştirilebilir.</p>"
+
+#: src/kcmsystemd.cpp:709
+msgid "<p>Forward journal messages as wall messages to all logged-in users.</p>"
+msgstr ""
+"<p>Günlük mesajlarını, oturum açmış tüm kullanıcılara duvar mesajları olarak "
+"iletin.</p>"
+
+#: src/kcmsystemd.cpp:718
+msgid "<p>Forward journal messages to this TTY if ForwardToConsole is set.</p>"
+msgstr "<p>ForwardToConsole ayarlanmışsa günlük mesajlarını bu TTY'ye iletin.</p>"
+
+#: src/kcmsystemd.cpp:742
+msgid "<p>Max log level to forward/store to the specified target.</p>"
+msgstr "<p>Belirtilen hedefe iletmek/depolamak için maksimum günlük düzeyi.</p>"
+
+#: src/kcmsystemd.cpp:754
+msgid ""
+"<p>Number of virtual terminals (VTs) to allocate by default and which will "
+"autospawn. Set to 0 to disable.</p>"
+msgstr ""
+"<p>Varsayılan olarak atanacak ve otomatik olarak ortaya çıkacak sanal "
+"terminallerin (VT'ler) sayısı. Devre dışı bırakmak için 0'a ayarlayın.</p>"
+
+#: src/kcmsystemd.cpp:763
+msgid ""
+"<p>Virtual terminal that shall unconditionally be reserved for autospawning. Set "
+"to 0 to disable.</p>"
+msgstr ""
+"<p>Otomatik yumurtlama için koşulsuz olarak ayrılacak sanal terminal. Devre dışı "
+"bırakmak için 0'a ayarlayın.</p>"
+
+#: src/kcmsystemd.cpp:771
+msgid "<p>Kill the processes of a user when the user completely logs out.</p>"
+msgstr ""
+"<p>Kullanıcı tamamen çıkış yaptığında, kullanıcının işlemlerini sonlandırın.</p>"
+
+#: src/kcmsystemd.cpp:778
+msgid ""
+"<p>Space-separated list of usernames for which only processes will be killed if "
+"KillUserProcesses is enabled.</p>"
+msgstr ""
+"<p>Yalnızca KillUserProcesses etkinleştirildiğinde işlemlerin sonlandırılacağı, "
+"boşlukla ayrılmış kullanıcı adları listesi.</p>"
+
+#: src/kcmsystemd.cpp:786
+msgid ""
+"<p>Space-separated list of usernames for which processes will be excluded from "
+"being killed if KillUserProcesses is enabled.</p>"
+msgstr ""
+"<p>KillUserProcesses etkinleştirilirse, işlemlerin öldürülmekten hariç "
+"tutulacağı, boşlukla ayrılmış kullanıcı adları listesi.</p>"
+
+#: src/kcmsystemd.cpp:794
+msgid ""
+"<p>Specifies the maximum time a system shutdown or sleep request is delayed due "
+"to an inhibitor lock of type delay being active before the inhibitor is ignored "
+"and the operation executes anyway.</p>"
+msgstr ""
+"<p>İnhibitör yok sayılmadan ve işlem yine de yürütülmeden önce, gecikme türünde "
+"bir engelleyici kilidin etkin olması nedeniyle bir sistem kapatma veya uyku "
+"isteğinin ertelendiği maksimum süreyi belirtir.</p>"
+
+#: src/kcmsystemd.cpp:818
+msgid ""
+"<p>Controls whether logind shall handle the system power and sleep keys and the "
+"lid switch to trigger power actions.</p>"
+msgstr ""
+"<p>Güç işlemlerini tetiklemek için oturum açmanın sistem güç ve uyku tuşlarını ve "
+"kapak anahtarını işleyip işlemeyeceğini kontrol eder.</p>"
+
+#: src/kcmsystemd.cpp:827
+msgid ""
+"<p>Controls whether actions triggered by the power key are subject to inhibitor "
+"locks.</p>"
+msgstr ""
+"<p>Güç tuşu tarafından tetiklenen işlemlerin engelleyici kilitlere tabi olup "
+"olmadığını kontrol eder.</p>"
+
+#: src/kcmsystemd.cpp:835
+msgid ""
+"<p>Controls whether actions triggered by the suspend key are subject to inhibitor "
+"locks.</p>"
+msgstr ""
+"<p>Askıya alma anahtarı tarafından tetiklenen eylemlerin engelleyici kilitlere "
+"tabi olup olmadığını kontrol eder.</p>"
+
+#: src/kcmsystemd.cpp:843
+msgid ""
+"<p>Controls whether actions triggered by the hibernate key are subject to "
+"inhibitor locks.</p>"
+msgstr ""
+"<p>Hazırda bekletme anahtarı tarafından tetiklenen eylemlerin engelleyici "
+"kilitlere tabi olup olmadığını kontrol eder.</p>"
+
+#: src/kcmsystemd.cpp:851
+msgid ""
+"<p>Controls whether actions triggered by the lid switch are subject to inhibitor "
+"locks.</p>"
+msgstr ""
+"<p>Kapak anahtarı tarafından tetiklenen eylemlerin engelleyici kilitlere tabi "
+"olup olmadığını kontrol eder.</p>"
+
+#: src/kcmsystemd.cpp:860
+msgid "<p>Configures the action to take when the system is idle.</p>"
+msgstr "<p>Sistem boştayken yapılacak eylemi yapılandırır.</p>"
+
+#: src/kcmsystemd.cpp:868
+msgid ""
+"<p>Configures the delay after which the action configured in IdleAction is taken "
+"after the system is idle.</p>"
+msgstr ""
+"<p>Sistem boşta kaldıktan sonra IdleAction'da yapılandırılan eylemin "
+"gerçekleştirileceği gecikmeyi yapılandırır.</p>"
+
+#: src/kcmsystemd.cpp:878
+msgid ""
+"<p>Controls whether System V and POSIX IPC objects belonging to the user shall be "
+"removed when the user fully logs out.</p>"
+msgstr ""
+"<p>Kullanıcı tamamen çıkış yaptığında, kullanıcıya ait System V ve POSIX IPC "
+"nesnelerinin kaldırılıp kaldırılmayacağını kontrol eder.</p>"
+
+#: src/kcmsystemd.cpp:891
+msgid ""
+"<p>Controls where to store cores. When <i>none</i>, the coredumps will be logged "
+"but not stored permanently. When <i>external</i>, cores will be stored in /var/"
+"lib/systemd/coredump. When <i>journal</i>, cores will be stored in the journal "
+"and rotated following normal journal rotation patterns.</p>"
+msgstr ""
+"<p>Çekirdeklerin nerede saklanacağını kontrol eder. <i>yok</i> olduğunda, "
+"çekirdek dökümler günlüğe kaydedilir ancak kalıcı olarak depolanmaz. <i>harici</"
+"i> olduğunda, çekirdekler /var/lib/systemd/coredump içinde depolanır. <i>Günlük</"
+"i> olduğunda, çekirdekler günlükte depolanır ve normal günlük döndürme düzenleri "
+"izlenerek döndürülür.</p>"
+
+#: src/kcmsystemd.cpp:899
+msgid "<p>Controls compression for external storage.</p>"
+msgstr "<p>Harici depolama için sıkıştırmayı kontrol eder.</p>"
+
+#: src/kcmsystemd.cpp:908
+msgid ""
+"<p>The maximum size of a core which will be processed. Coredumps exceeding this "
+"size will be logged, but the backtrace will not be generated and the core will "
+"not be stored.</p>"
+msgstr ""
+"<p>İşlenecek bir çekirdeğin maksimum boyutu. Bu boyutu aşan çekirdek dökümleri "
+"günlüğe kaydedilir, ancak geri izleme oluşturulmaz ve çekirdek depolanmaz.</p>"
+
+#: src/kcmsystemd.cpp:917 src/kcmsystemd.cpp:926
+msgid "<p>The maximum (uncompressed) size of a core to be saved.</p>"
+msgstr "<p>Kaydedilecek bir çekirdeğin maksimum (sıkıştırılmamış) boyutu.</p>"
+
+#: src/kcmsystemd.cpp:935
+#, c-format
+msgid ""
+"<p>Old coredumps are removed as soon as the total disk space taken up by "
+"coredumps grows beyond this limit. Defaults to 10% of the total disk size.</p>"
+msgstr ""
+"<p>Eski çekirdek dökümleri, çekirdek dökümlerin kapladığı toplam disk alanı bu "
+"sınırın üzerine çıkar çıkmaz kaldırılır. Varsayılan olarak toplam disk boyutunun "
+"%10'u kadardır.</p>"
+
+#: src/kcmsystemd.cpp:944
+#, c-format
+msgid ""
+"<p>Minimum disk space to keep free. Defaults to 15% of the total disk size.</p>"
+msgstr ""
+"<p>Boş tutmak için minimum disk alanı. Varsayılan olarak toplam disk boyutunun % "
+"15'i.</p>"
+
+#: src/kcmsystemd.cpp:974
+#, kde-format
+msgid "\"%1\" is not a valid value for %2. Using default value for this parameter."
+msgstr ""
+"\"%1\", %2 için geçerli bir değer değil. Bu parametre için varsayılan değer "
+"kullanılıyor."
+
+#: src/kcmsystemd.cpp:983
+#, kde-format
+msgid "Failed to read %1/%2. Using default values."
+msgstr "%1/%2 okunamadı. Varsayılan değerleri kullanma."
+
+#: src/kcmsystemd.cpp:1025
+msgid "Load state"
+msgstr "Yükleme durumu"
+
+#: src/kcmsystemd.cpp:1026
+msgid "Active state"
+msgstr "Aktif durum"
+
+#: src/kcmsystemd.cpp:1027
+msgid "Unit state"
+msgstr "Birim durumu"
+
+#: src/kcmsystemd.cpp:1028
+msgid "Unit"
+msgstr "Birim"
+
+#: src/kcmsystemd.cpp:1056
+msgid "Session ID"
+msgstr "Oturum ID"
+
+#: src/kcmsystemd.cpp:1057
+msgid "Session Object Path"
+msgstr "Oturum Nesne Yolu"
+
+#: src/kcmsystemd.cpp:1058
+msgid "State"
+msgstr "Durum"
+
+#: src/kcmsystemd.cpp:1059
+msgid "User ID"
+msgstr "Kullanıcı ID"
+
+#: src/kcmsystemd.cpp:1060
+msgid "User Name"
+msgstr "Kullanıcı Adı"
+
+#: src/kcmsystemd.cpp:1061
+msgid "Seat ID"
+msgstr ""
+
+#: src/kcmsystemd.cpp:1073
+msgid "Load default settings for all files?"
+msgstr "Tüm dosyalar için varsayılan ayarlar yüklensin mi?"
+
+#: src/kcmsystemd.cpp:1128
+msgid "Unable to find directory for configuration files."
+msgstr "Yapılandırma dosyaları için dizin bulunamadı."
+
+#: src/kcmsystemd.cpp:1149
+#, kde-format
+msgid "Unable to authenticate/execute the action: %1, %2"
+msgstr "Eylemin kimliği doğrulanamıyor/yürütülemiyor: %1, %2"
+
+#: src/kcmsystemd.cpp:1152
+#, kde-format
+msgid "Configuration files succesfully written to: %1"
+msgstr "Yapılandırma dosyaları başarıyla yazıldı: %1"
+
+#: src/kcmsystemd.cpp:1481
+#, kde-format
+msgid "Total: %1 units, %2 active, %3 displayed"
+msgstr "Toplam: %1 birim, %2 etkin, %3 görüntülendi"
+
+#: src/kcmsystemd.cpp:1509
+#, kde-format
+msgid ""
+"Unable to authenticate/execute the action.\n"
+"Error code: %1\n"
+"Error string: %2\n"
+"Error text: %3"
+msgstr ""
+"Eylemin kimliği doğrulanamıyor/yürütülemiyor.\n"
+"Hata kodu: %1\n"
+"Hata dizesi: %2\n"
+"Hata metni: %3"
+
+#: src/kcmsystemd.cpp:1537
+msgid "&Start unit"
+msgstr "&Başlangıç ​​ünitesi"
+
+#: src/kcmsystemd.cpp:1538
+msgid "S&top unit"
+msgstr "Durdurma ünitesi"
+
+#: src/kcmsystemd.cpp:1539
+msgid "&Restart unit"
+msgstr "&Üniteyi yeniden başlat"
+
+#: src/kcmsystemd.cpp:1540
+msgid "Re&load unit"
+msgstr "Üniteyi yeniden &yükle"
+
+#: src/kcmsystemd.cpp:1542
+msgid "&Edit unit file"
+msgstr "&Birim dosyasını düzenle"
+
+#: src/kcmsystemd.cpp:1543
+msgid "&Isolate unit"
+msgstr "&İzole birimi"
+
+#: src/kcmsystemd.cpp:1545
+msgid "En&able unit"
+msgstr "Üniteyi etkinleştir"
+
+#: src/kcmsystemd.cpp:1546
+msgid "&Disable unit"
+msgstr "Üniteyi durdur"
+
+#: src/kcmsystemd.cpp:1548
+msgid "&Mask unit"
+msgstr "Maske ünitesi"
+
+#: src/kcmsystemd.cpp:1549
+msgid "&Unmask unit"
+msgstr "&Birimin maskesini kaldır"
+
+#: src/kcmsystemd.cpp:1551
+msgid "Rel&oad all unit files"
+msgstr "Tüm birim dosyalarını yeniden yükle"
+
+#: src/kcmsystemd.cpp:1552
+msgid "Ree&xecute systemd"
+msgstr "Systemd'yi yeniden çalıştır"
+
+#: src/kcmsystemd.cpp:1648
+msgid "kdesu executable not found. Unable to start kwrite!"
+msgstr "kdesu yürütülebilir dosyası bulunamadı. kwrite başlatılamıyor!"
+
+#: src/kcmsystemd.cpp:1749
+msgid "&Activate session"
+msgstr "&Oturumu etkinleştir"
+
+#: src/kcmsystemd.cpp:1750
+msgid "&Terminate session"
+msgstr "&Oturumu sonlandır"
+
+#: src/kcmsystemd.cpp:1751
+msgid "&Lock session"
+msgstr "&Oturumu kilitle"
+
+#: src/kcmsystemd.cpp:1824
+msgid "<b>Description: </b>"
+msgstr "<b>Açıklama: </b>"
+
+#: src/kcmsystemd.cpp:1826
+msgid "<br><b>Fragment path: </b>"
+msgstr "<br><b>Parça yolu: </b>"
+
+#: src/kcmsystemd.cpp:1828 src/kcmsystemd.cpp:1872
+msgid "<br><b>Unit file state: </b>"
+msgstr "<br><b>Birim dosya durumu:</b>"
+
+#: src/kcmsystemd.cpp:1831
+msgid "<br><b>Activated: </b>"
+msgstr "<br><b>Aktif: </b>"
+
+#: src/kcmsystemd.cpp:1841
+msgid "<br><b>Deactivated: </b>"
+msgstr "<br><b>Devre dışı: </b>"
+
+#: src/kcmsystemd.cpp:1868
+msgid "<b>Fragment path: </b>"
+msgstr "<b>Parça yolu: </b>"
+
+#: src/kcmsystemd.cpp:1882
+msgid "<hr><b>Last log entries:</b>"
+msgstr "<hr><b>Son günlük girişleri:</b>"
+
+#: src/kcmsystemd.cpp:1885
+msgid "<br><i>No log entries found for this unit.</i>"
+msgstr "<br><i>Bu birim için günlük girişi bulunamadı.</i>"
+
+#: src/kcmsystemd.cpp:1938
+#, kde-format
+msgid "<b>VT:</b> %1"
+msgstr "<b>VT:</b> %1"
+
+#: src/kcmsystemd.cpp:1943
+#, kde-format
+msgid "<br><b>Remote host:</b> %1"
+msgstr "<br><b>Uzak ana makine:</b> %1"
+
+#: src/kcmsystemd.cpp:1944
+#, kde-format
+msgid "<br><b>Remote user:</b> %1"
+msgstr "<br><b>Uzak kullanıcı:</b> %1"
+
+#: src/kcmsystemd.cpp:1946
+#, kde-format
+msgid "<br><b>Service:</b> %1"
+msgstr "<br><b>Servis:</b> %1"
+
+#: src/kcmsystemd.cpp:1949
+#, kde-format
+msgid "<br><b>Type:</b> %1"
+msgstr "<br><b>Tür:</b> %1"
+
+#: src/kcmsystemd.cpp:1951
+#, kde-format
+msgid " (display %1)"
+msgstr " (%1 göster)"
+
+#: src/kcmsystemd.cpp:1961
+#, kde-format
+msgid "<br><b>Class:</b> %1"
+msgstr "<br><b>Sınıf:</b> %1"
+
+#: src/kcmsystemd.cpp:1962
+#, kde-format
+msgid "<br><b>State:</b> %1"
+msgstr "<br><b>Durum:</b> %1"
+
+#: src/kcmsystemd.cpp:1963
+#, kde-format
+msgid "<br><b>Scope:</b> %1"
+msgstr "<br><b>Kapsam:</b> %1"
+
+#: src/kcmsystemd.cpp:1966
+#, kde-format
+msgid "<br><b>Created: </b>"
+msgstr "<br><b>Oluşturma: </b>"
+
+#: src/kcmsystemd.cpp:2045
+#, kde-format
+msgid "File to be written: %1/%2"
+msgstr "Yazılacak dosya: %1/%2"
